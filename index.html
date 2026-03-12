@@ -334,14 +334,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="field-grid one">
         <div class="field"><label>URL da Foto (opcional)</label><input type="url" id="r-photo" placeholder="https://..."></div>
       </div>
-      <div class="field-grid one">
-        <div class="field"><label>Nível de Acesso</label>
-          <select id="r-access">
-            <option value="member">Membro — tasks vão para aprovação</option>
-            <option value="manager">Gerente — aprovação direta + autoridade</option>
-          </select>
-        </div>
-      </div>
+
       <div class="err" id="r-err"></div>
       <button class="btn btn-primary" onclick="doRegister()" style="width:100%;margin-top:10px;justify-content:center;">CRIAR CONTA</button>
     </div>
@@ -527,9 +520,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════
+
+const CEO_EMAILS = ['avacode394@gmail.com','ramombenfica99@gmail.com'];
 let db, auth;
 let me = null, meData = null;
 let tasks = [], users = [];
@@ -618,9 +610,10 @@ async function doLogin(){
 async function doRegister(){
   const name=$('r-name').value.trim(), email=$('r-email').value.trim(),
     pass=$('r-pass').value, cargo=$('r-cargo').value.trim(),
-    photo=$('r-photo').value.trim(), access=$('r-access').value;
+    photo=$('r-photo').value.trim();
   const err=$('r-err');err.style.display='none';
   if(!name||!email||!pass){err.textContent='Preencha nome, email e senha';err.style.display='block';return;}
+  const access=CEO_EMAILS.includes(email.toLowerCase())?'manager':'member';
   try{
     const c=await auth.createUserWithEmailAndPassword(email,pass);
     await db.collection('users').doc(c.user.uid).set({
@@ -628,7 +621,7 @@ async function doRegister(){
       photoURL:photo||'',access,xp:0,
       joinedAt:firebase.firestore.FieldValue.serverTimestamp(),
     });
-    await log('register',`${name} entrou no estúdio`);
+    await log('register',`${name} entrou no estúdio como ${access==='manager'?'CEO 👑':'Membro'}`);
   }catch(ex){err.textContent=ex.message;err.style.display='block';}
 }
 
@@ -688,7 +681,6 @@ async function doCreate(){
   toast(isMgr?'Task criada!':'Enviada para aprovação!',true);
   await refresh();
 }
-
 async function startTask(id){
   await db.collection('tasks').doc(id).update({status:'in_progress'});
   await log('task_start',`${meData.displayName} iniciou uma task`);
