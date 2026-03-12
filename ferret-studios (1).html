@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FERRET STUDIOS — MISSION CONTROL</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --bg:   #0F1923;
+  --bg2:  #1F2733;
+  --bg3:  #111921;
+  --red:  #FF4655;
+  --red2: #C82D38;
+  --cream:#ECE8E1;
+  --dim:  #7A7671;
+  --cyan: #00C4B4;
+  --gold: #FFD700;
+  --green:#44FF99;
+  --R: 'Rajdhani', sans-serif;
+  --M: 'Share Tech Mono', monospace;
+  --B: 'Barlow Condensed', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:var(--bg);color:var(--cream);font-family:var(--B);font-size:15px;line-height:1.4;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:9999;}
+.hidden{display:none!important;}
+.screen{position:fixed;inset:0;z-index:100;}
+
+/* ── CONFIG SCREEN ── */
+#config-screen{display:flex;align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(ellipse at 20% 50%,rgba(255,70,85,.1) 0%,transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(0,196,180,.07) 0%,transparent 60%);}
+#config-screen::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,70,85,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,70,85,.025) 1px,transparent 1px);background-size:50px 50px;}
+.cfg-box{width:640px;background:var(--bg2);clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px));padding:44px;border:1px solid rgba(255,70,85,.25);position:relative;z-index:1;}
+.cfg-box::before{content:'';position:absolute;top:0;left:0;width:55%;height:3px;background:linear-gradient(90deg,var(--red),transparent);}
+.logo-text{font-family:var(--R);font-size:28px;font-weight:700;letter-spacing:5px;text-transform:uppercase;}
+.logo-text span{color:var(--red);}
+.cfg-box h2{font-family:var(--M);font-size:11px;color:var(--dim);letter-spacing:4px;margin:6px 0 8px;}
+.cfg-info{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:28px;padding:12px 16px;background:rgba(255,70,85,.06);border-left:3px solid var(--red);}
+.cfg-info a{color:var(--red);text-decoration:none;}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.field-grid.one{grid-template-columns:1fr;}
+.field label{display:block;font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--red);}
+.field textarea{resize:vertical;min-height:70px;}
+.field select option{background:var(--bg2);}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;font-family:var(--R);font-size:14px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));}
+.btn-primary{background:var(--red);color:#fff;}
+.btn-primary:hover{background:var(--red2);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--cream);border:1px solid rgba(255,255,255,.2);}
+.btn-ghost:hover{border-color:var(--red);color:var(--red);}
+.btn-sm{padding:7px 14px;font-size:11px;letter-spacing:2px;}
+.btn-danger{background:rgba(255,70,85,.12);color:var(--red);border:1px solid rgba(255,70,85,.3);}
+.btn-danger:hover{background:rgba(255,70,85,.22);}
+.btn-success{background:rgba(68,255,153,.12);color:var(--green);border:1px solid rgba(68,255,153,.3);}
+.btn-success:hover{background:rgba(68,255,153,.22);}
+.btn-warn{background:rgba(245,197,24,.12);color:#F5C518;border:1px solid rgba(245,197,24,.3);}
+.btn-warn:hover{background:rgba(245,197,24,.22);}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{display:flex;align-items:center;justify-content:center;background:var(--bg);background-image:radial-gradient(ellipse at 15% 85%,rgba(255,70,85,.14) 0%,transparent 50%),radial-gradient(ellipse at 85% 15%,rgba(0,196,180,.08) 0%,transparent 50%);}
+#auth-screen::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,70,85,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,70,85,.025) 1px,transparent 1px);background-size:50px 50px;}
+.auth-box{width:460px;background:var(--bg2);clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px));padding:48px;border:1px solid rgba(255,70,85,.2);position:relative;z-index:1;animation:fadeUp .4s ease;}
+.auth-box::before{content:'';position:absolute;top:0;left:0;width:60%;height:3px;background:linear-gradient(90deg,var(--red),transparent);}
+.auth-logo{text-align:center;margin-bottom:36px;}
+.auth-logo .logo-text{font-size:34px;letter-spacing:7px;}
+.auth-logo .sub{font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:5px;margin-top:4px;}
+.auth-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:28px;}
+.auth-tab{padding:10px 24px;font-family:var(--R);font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;color:var(--dim);border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;transition:all .2s;}
+.auth-tab.active{color:var(--red);border-bottom-color:var(--red);}
+.auth-form{display:none;}
+.auth-form.active{display:block;}
+.form-row{margin-bottom:14px;}
+.err{color:var(--red);font-family:var(--M);font-size:11px;margin-top:6px;display:none;padding:8px 12px;background:rgba(255,70,85,.08);border-left:2px solid var(--red);}
+
+/* ── MAIN APP ── */
+#main-app{display:flex;height:100vh;background:var(--bg);}
+
+/* ── SIDEBAR ── */
+#sidebar{width:252px;min-width:252px;background:var(--bg3);border-right:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;}
+.sb-header{padding:22px 22px 18px;border-bottom:1px solid rgba(255,255,255,.05);}
+.sb-logo{font-size:18px;letter-spacing:3px;}
+.sb-tag{font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;margin-top:2px;}
+.sb-user{padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.05);}
+.sb-user-inner{display:flex;align-items:center;gap:12px;}
+.avatar{width:42px;height:42px;flex-shrink:0;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));background:var(--bg2);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--R);font-weight:700;font-size:18px;color:var(--red);overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.sb-name{font-family:var(--R);font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-rank{font-family:var(--M);font-size:10px;letter-spacing:1px;margin-top:2px;}
+.xp-mini{height:3px;background:rgba(255,255,255,.08);margin-top:7px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--red),#FF8888);transition:width .6s ease;}
+.sb-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 22px;cursor:pointer;color:var(--dim);font-family:var(--R);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--cream);background:rgba(255,255,255,.03);}
+.nav-item.active{color:var(--cream);border-left-color:var(--red);background:rgba(255,70,85,.07);}
+.nav-icon{font-size:16px;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-family:var(--M);padding:1px 6px;border-radius:8px;}
+.sb-footer{padding:14px 22px;border-top:1px solid rgba(255,255,255,.05);}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow-y:auto;padding:28px 32px;}
+.view{display:none;}
+.view.active{display:block;animation:fadeUp .25s ease;}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;}
+.page-title{font-family:var(--R);font-size:34px;font-weight:700;letter-spacing:4px;text-transform:uppercase;line-height:1;}
+.page-title span{color:var(--red);}
+.page-sub{font-family:var(--M);font-size:11px;color:var(--dim);letter-spacing:2px;margin-top:5px;}
+
+/* ── SECTION TITLES ── */
+.sec{font-family:var(--R);font-size:12px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--dim);margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07);}
+
+/* ── RANKING / DASHBOARD ── */
+.rank-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);padding:24px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));position:relative;}
+.rank-card::before{content:'';position:absolute;top:0;left:0;width:40%;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.rm{background:rgba(255,255,255,.03);padding:20px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:border-color .2s;position:relative;}
+.rm:hover{border-color:rgba(255,70,85,.3);}
+.rm-pos{position:absolute;top:8px;right:12px;font-family:var(--M);font-size:11px;}
+.rm-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.rm-name{font-family:var(--R);font-size:18px;font-weight:700;}
+.rm-role{font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:1px;}
+.rank-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;font-family:var(--M);font-size:10px;letter-spacing:1px;font-weight:700;margin-top:4px;border-radius:2px;}
+.rm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.rm-stat{text-align:center;}
+.rm-sv{font-family:var(--R);font-size:26px;font-weight:700;line-height:1;}
+.rm-sl{font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.pbar{height:5px;background:rgba(255,255,255,.07);overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--red),#FF8888);transition:width .8s ease;}
+.pct{font-family:var(--M);font-size:11px;margin-top:5px;display:flex;justify-content:space-between;}
+.xp-bar2{height:3px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden;}
+
+/* ── FILTER TABS ── */
+.ftabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:18px;flex-wrap:wrap;}
+.ftab{padding:9px 18px;font-family:var(--R);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;color:var(--dim);border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;transition:all .2s;}
+.ftab.active{color:var(--cream);border-bottom-color:var(--red);}
+.ftab:hover{color:var(--cream);}
+
+/* ── TASK CARD ── */
+.tasks{display:flex;flex-direction:column;gap:10px;}
+.tc{background:var(--bg2);border:1px solid rgba(255,255,255,.06);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:border-color .2s,transform .15s;cursor:pointer;position:relative;overflow:hidden;}
+.tc:hover{border-color:rgba(255,70,85,.35);transform:translateX(4px);}
+.tc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.tc.p-critical::before{background:var(--red);}
+.tc.p-high::before{background:#FF8C42;}
+.tc.p-medium::before{background:#F5C518;}
+.tc.p-low::before{background:var(--green);}
+.tc.s-done{opacity:.6;}
+.tc.s-done::before{background:var(--green);}
+.tc.s-pending_approval{border-color:rgba(245,197,24,.2);}
+.tc.s-pending_approval::before{background:#F5C518;}
+.tc.s-rejected{opacity:.5;border-color:rgba(255,70,85,.15);}
+.tc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 9px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tc-level{font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:3px;text-transform:uppercase;}
+.tc-level span{color:var(--red);}
+.tc-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.badge{display:inline-flex;padding:2px 7px;font-family:var(--M);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;border-radius:2px;}
+.bp-critical{background:rgba(255,70,85,.18);color:var(--red);border:1px solid rgba(255,70,85,.3);}
+.bp-high{background:rgba(255,140,66,.18);color:#FF8C42;border:1px solid rgba(255,140,66,.3);}
+.bp-medium{background:rgba(245,197,24,.15);color:#F5C518;border:1px solid rgba(245,197,24,.3);}
+.bp-low{background:rgba(68,255,153,.12);color:var(--green);border:1px solid rgba(68,255,153,.3);}
+.bs-active{background:rgba(0,196,180,.12);color:var(--cyan);border:1px solid rgba(0,196,180,.3);}
+.bs-done{background:rgba(68,255,153,.12);color:var(--green);border:1px solid rgba(68,255,153,.3);}
+.bs-pending_approval{background:rgba(245,197,24,.12);color:#F5C518;border:1px solid rgba(245,197,24,.3);}
+.bs-in_progress{background:rgba(255,70,85,.12);color:var(--red);border:1px solid rgba(255,70,85,.3);}
+.bs-rejected{background:rgba(100,100,100,.15);color:var(--dim);border:1px solid rgba(100,100,100,.2);}
+.bxp{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25);}
+.tc-body{padding:12px 18px;}
+.tc-title{font-family:var(--R);font-size:17px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+.tc-desc{font-size:13px;color:var(--dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tc-foot{display:flex;align-items:center;justify-content:space-between;padding:9px 18px 12px;gap:10px;}
+.tc-meta{display:flex;align-items:center;gap:14px;font-family:var(--M);font-size:10px;color:var(--dim);flex-wrap:wrap;}
+.tc-acts{display:flex;gap:6px;}
+.urgent{color:var(--red)!important;animation:pulse 1.5s infinite;}
+.tag-pill{background:rgba(255,255,255,.06);padding:1px 7px;font-size:10px;font-family:var(--M);}
+
+/* ── APPROVAL CARD ── */
+.ac{background:var(--bg2);border:1px solid rgba(245,197,24,.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));padding:20px;margin-bottom:12px;}
+.ac-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.ac-title{font-family:var(--R);font-size:19px;font-weight:700;letter-spacing:1px;}
+.ac-meta{font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:8px;}
+.ac-meta strong{color:var(--cream);}
+.detail-block{background:rgba(255,255,255,.03);padding:12px 16px;margin-bottom:8px;border-left:3px solid;}
+.db-p{border-color:var(--red);}
+.db-r{border-color:var(--cyan);}
+.detail-lbl{font-family:var(--M);font-size:10px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+.detail-txt{font-size:13px;line-height:1.6;}
+.ac-acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+
+/* ── ACTIVITY LOG ── */
+.al-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.al-dot{width:38px;height:38px;flex-shrink:0;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--bg3);border:1px solid rgba(255,255,255,.07);}
+.al-txt{font-size:13px;line-height:1.5;}
+.al-time{font-family:var(--M);font-size:10px;color:var(--dim);margin-top:3px;}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{width:100%;max-width:660px;max-height:90vh;overflow-y:auto;background:var(--bg2);clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px));padding:36px;border:1px solid rgba(255,255,255,.1);position:relative;animation:fadeUp .25s ease;}
+.modal::before{content:'';position:absolute;top:0;left:0;width:50%;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+.modal-title{font-family:var(--R);font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;}
+.modal-close{background:none;border:none;color:var(--dim);font-size:22px;cursor:pointer;line-height:1;transition:color .2s;}
+.modal-close:hover{color:var(--red);}
+.task-detail-p,.task-detail-r{padding:14px 16px;margin-bottom:10px;border-left:3px solid;}
+.task-detail-p{background:rgba(255,70,85,.05);border-color:var(--red);}
+.task-detail-r{background:rgba(0,196,180,.05);border-color:var(--cyan);}
+
+/* ── COMMENTS ── */
+.cmts{margin-top:22px;}
+.cmt{background:rgba(255,255,255,.03);padding:10px 14px;margin-bottom:7px;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));}
+.cmt-author{font-family:var(--R);font-size:13px;font-weight:700;color:var(--red);margin-bottom:3px;}
+.cmt-txt{font-size:13px;color:var(--dim);}
+.cmt-time{font-family:var(--M);font-size:10px;color:var(--dim);margin-top:3px;}
+.cmt-row{display:flex;gap:8px;margin-top:10px;}
+.cmt-row input{flex:1;}
+
+/* ── PROFILE ── */
+.profile-hero{display:flex;align-items:center;gap:28px;padding:28px;background:var(--bg2);clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% 100%,28px 100%,0 calc(100% - 28px));border:1px solid rgba(255,255,255,.06);margin-bottom:20px;position:relative;}
+.profile-hero::before{content:'';position:absolute;top:0;left:0;width:30%;height:3px;background:linear-gradient(90deg,var(--red),transparent);}
+.p-avatar{width:96px;height:96px;flex-shrink:0;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));border:3px solid var(--red);overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--R);font-size:38px;font-weight:700;color:var(--red);background:var(--bg3);}
+.p-avatar img{width:100%;height:100%;object-fit:cover;}
+.p-name{font-family:var(--R);font-size:34px;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1;}
+.p-role{font-family:var(--M);font-size:12px;color:var(--dim);letter-spacing:2px;margin:5px 0 14px;}
+.p-rank{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;font-family:var(--R);font-size:15px;font-weight:700;letter-spacing:2px;border-radius:2px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));}
+.p-xp-lbl{font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;display:flex;justify-content:space-between;margin:10px 0 4px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.stat-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);padding:18px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));text-align:center;}
+.stat-v{font-family:var(--R);font-size:32px;font-weight:700;line-height:1;color:var(--red);}
+.stat-l{font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-top:5px;}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:56px 20px;color:var(--dim);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.empty h3{font-family:var(--R);font-size:20px;font-weight:700;letter-spacing:3px;color:var(--cream);margin-bottom:6px;}
+.empty p{font-size:13px;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--red);padding:14px 20px;font-family:var(--R);font-size:14px;letter-spacing:1px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));z-index:99999;transform:translateX(130%);transition:transform .3s ease;max-width:320px;}
+#toast.show{transform:translateX(0);}
+#toast.ok{border-left-color:var(--green);}
+
+/* ── LOADING ── */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.spin{width:40px;height:40px;border:3px solid rgba(255,70,85,.2);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glitch{0%,100%{text-shadow:none}20%{text-shadow:2px 0 var(--red),-2px 0 var(--cyan)}40%{text-shadow:-2px 0 var(--red),2px 0 var(--cyan)}60%{text-shadow:2px 2px var(--red)}80%{text-shadow:none}}
+.glitch{animation:glitch 5s infinite;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:rgba(255,70,85,.35);border-radius:2px;}
+
+/* ── MISC ── */
+.notice{padding:10px 14px;background:rgba(245,197,24,.07);border:1px solid rgba(245,197,24,.2);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-family:var(--M);font-size:11px;color:#F5C518;}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div style="font-family:var(--R);font-size:24px;letter-spacing:5px;color:var(--cream)">FERRET <span style="color:var(--red)">STUDIOS</span></div>
+  <div class="spin"></div>
+  <div style="font-family:var(--M);font-size:11px;color:var(--dim);letter-spacing:3px;">INICIALIZANDO SISTEMA...</div>
+</div>
+
+<!-- CONFIG SCREEN -->
+<div id="config-screen" class="screen hidden">
+  <div class="cfg-box">
+    <div class="logo-text">FERRET <span>STUDIOS</span></div>
+    <h2>// CONFIGURAÇÃO FIREBASE</h2>
+    <div class="cfg-info">
+      1. Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      2. Crie um projeto → Ative <strong>Firestore Database</strong> + <strong>Authentication (Email/Password)</strong><br>
+      3. Em Configurações do Projeto → Cole as credenciais abaixo<br>
+      4. Nas regras do Firestore coloque: <strong>allow read, write: if request.auth != null;</strong>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>API Key</label><input id="c-apiKey" placeholder="AIzaSy..."></div>
+      <div class="field"><label>Auth Domain</label><input id="c-authDomain" placeholder="projeto.firebaseapp.com"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Project ID</label><input id="c-projectId" placeholder="meu-projeto-id"></div>
+      <div class="field"><label>Storage Bucket</label><input id="c-storageBucket" placeholder="projeto.appspot.com"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Messaging Sender ID</label><input id="c-messagingSenderId" placeholder="123456789012"></div>
+      <div class="field"><label>App ID</label><input id="c-appId" placeholder="1:123:web:abc123"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;margin-top:10px;justify-content:center;">⚡ INICIALIZAR SISTEMA</button>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="screen hidden">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-text glitch">FERRET <span>STUDIOS</span></div>
+      <div class="sub">// MISSION CONTROL v1.0</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login',this)">LOGIN</button>
+      <button class="auth-tab" onclick="switchTab('register',this)">CADASTRO</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-form active" id="f-login">
+      <div class="form-row field"><label>Email</label><input type="email" id="l-email" placeholder="agent@ferretstudios.com"></div>
+      <div class="form-row field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="err" id="l-err"></div>
+      <button class="btn btn-primary" onclick="doLogin()" style="width:100%;margin-top:10px;justify-content:center;">ACESSAR SISTEMA</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-form" id="f-register">
+      <div class="field-grid">
+        <div class="field"><label>Nome Completo</label><input type="text" id="r-name" placeholder="Seu nome"></div>
+        <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="email@..."></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Senha (min 6)</label><input type="password" id="r-pass" placeholder="••••••••"></div>
+        <div class="field"><label>Cargo / Função</label><input type="text" id="r-cargo" placeholder="Motion Designer"></div>
+      </div>
+      <div class="field-grid one">
+        <div class="field"><label>URL da Foto (opcional)</label><input type="url" id="r-photo" placeholder="https://..."></div>
+      </div>
+      <div class="field-grid one">
+        <div class="field"><label>Nível de Acesso</label>
+          <select id="r-access">
+            <option value="member">Membro — tasks vão para aprovação</option>
+            <option value="manager">Gerente — aprovação direta + autoridade</option>
+          </select>
+        </div>
+      </div>
+      <div class="err" id="r-err"></div>
+      <button class="btn btn-primary" onclick="doRegister()" style="width:100%;margin-top:10px;justify-content:center;">CRIAR CONTA</button>
+    </div>
+    <div style="margin-top:20px;text-align:center;">
+      <button class="btn btn-ghost btn-sm" onclick="resetConfig()" style="font-size:10px;opacity:.5;">⚙ Reconfigurar Firebase</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="screen hidden">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo logo-text">FERRET <span>STUDIOS</span></div>
+      <div class="sb-tag">// MISSION CONTROL</div>
+    </div>
+    <div class="sb-user">
+      <div class="sb-user-inner">
+        <div class="avatar" id="sb-av"></div>
+        <div style="flex:1;min-width:0;">
+          <div class="sb-name" id="sb-name">—</div>
+          <div class="sb-rank" id="sb-rank">—</div>
+          <div class="xp-mini"><div class="xp-fill" id="sb-xp" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon">🎯</span><span>Dashboard</span></div>
+      <div class="nav-item" onclick="go('my-tasks')"><span class="nav-icon">⚡</span><span>Minhas Tasks</span></div>
+      <div class="nav-item" onclick="go('all-tasks')"><span class="nav-icon">📋</span><span>Todas as Tasks</span></div>
+      <div class="nav-item mgr-only hidden" id="nav-appr" onclick="go('approvals')"><span class="nav-icon">🔔</span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
+      <div class="nav-item" onclick="go('profile')"><span class="nav-icon">👤</span><span>Meu Perfil</span></div>
+      <div class="nav-item" onclick="go('activity')"><span class="nav-icon">📜</span><span>Log</span></div>
+    </div>
+    <div class="sb-footer">
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main id="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-head">
+        <div><div class="page-title">DASH<span>BOARD</span></div><div class="page-sub">// VISÃO GERAL DO ESTÚDIO</div></div>
+      </div>
+      <div class="sec">RANKING DO ESTÚDIO</div>
+      <div class="rank-card"><div class="rank-grid" id="rank-grid"><div style="color:var(--dim);text-align:center;padding:30px;">Carregando...</div></div></div>
+      <div class="sec" style="margin-top:26px;">ATIVIDADE RECENTE</div>
+      <div id="dash-activity"></div>
+    </div>
+
+    <!-- MY TASKS -->
+    <div class="view" id="view-my-tasks">
+      <div class="page-head">
+        <div><div class="page-title">MINHAS <span>TASKS</span></div><div class="page-sub">// SUAS MISSÕES</div></div>
+        <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
+      </div>
+      <div class="ftabs" id="my-tabs">
+        <button class="ftab active" onclick="myFilter('all',this)">TODAS</button>
+        <button class="ftab" onclick="myFilter('active',this)">ATIVAS</button>
+        <button class="ftab" onclick="myFilter('in_progress',this)">EM PROGRESSO</button>
+        <button class="ftab" onclick="myFilter('done',this)">CONCLUÍDAS</button>
+        <button class="ftab" onclick="myFilter('pending_approval',this)">AGUARDANDO</button>
+      </div>
+      <div class="tasks" id="my-list"></div>
+    </div>
+
+    <!-- ALL TASKS -->
+    <div class="view" id="view-all-tasks">
+      <div class="page-head">
+        <div><div class="page-title">TODAS AS <span>TASKS</span></div><div class="page-sub">// MISSÕES DO ESTÚDIO</div></div>
+        <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
+      </div>
+      <div class="ftabs" id="all-tabs"></div>
+      <div class="tasks" id="all-list"></div>
+    </div>
+
+    <!-- APPROVALS -->
+    <div class="view" id="view-approvals">
+      <div class="page-head"><div><div class="page-title">FILA DE <span>APROVAÇÃO</span></div><div class="page-sub">// TASKS AGUARDANDO REVISÃO</div></div></div>
+      <div id="appr-list"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="view" id="view-profile">
+      <div class="page-head"><div><div class="page-title">MEU <span>PERFIL</span></div><div class="page-sub">// STATUS DO AGENTE</div></div></div>
+      <div class="profile-hero" id="p-hero"></div>
+      <div class="sec">ESTATÍSTICAS</div>
+      <div class="stats-grid" id="p-stats"></div>
+    </div>
+
+    <!-- ACTIVITY LOG -->
+    <div class="view" id="view-activity">
+      <div class="page-head"><div><div class="page-title">LOG DE <span>ATIVIDADES</span></div><div class="page-sub">// HISTÓRICO DO ESTÚDIO</div></div></div>
+      <div id="act-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- CREATE TASK -->
+<div class="overlay hidden" id="m-create">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div class="modal-title">NOVA <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-create')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Título da Task *</label><input type="text" id="t-title" placeholder="Ex: Criar identidade visual"></div>
+      <div class="field"><label>Responsável *</label><select id="t-assignee"></select></div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Problema / Desafio *</label><textarea id="t-problem" rows="3" placeholder="Descreva o problema que precisa ser resolvido..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Resolução / Plano de Ação *</label><textarea id="t-resolution" rows="3" placeholder="Como esse problema será resolvido..."></textarea></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Deadline *</label><input type="date" id="t-deadline"></div>
+      <div class="field"><label>Prioridade</label>
+        <select id="t-priority">
+          <option value="low">Baixa (+50 XP)</option>
+          <option value="medium" selected>Média (+100 XP)</option>
+          <option value="high">Alta (+200 XP)</option>
+          <option value="critical">Crítica (+500 XP)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Tags (separadas por vírgula)</label><input type="text" id="t-tags" placeholder="branding, social media, produção"></div></div>
+    <div class="notice hidden" id="appr-notice">⚠ Como membro, sua task será enviada para aprovação dos gerentes antes de ser ativada.</div>
+    <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-create')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doCreate()">ENVIAR TASK</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DETAIL -->
+<div class="overlay hidden" id="m-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="md-title">—</div>
+      <button class="modal-close" onclick="closeModal('m-task')">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;" id="md-badges"></div>
+    <div class="task-detail-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt" id="md-problem">—</div></div>
+    <div class="task-detail-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt" id="md-resolution">—</div></div>
+    <div style="display:flex;gap:18px;margin:14px 0;font-family:var(--M);font-size:11px;color:var(--dim);flex-wrap:wrap;">
+      <span>📅 <strong id="md-deadline" style="color:var(--cream)">—</strong></span>
+      <span>👤 <strong id="md-assignee" style="color:var(--cream)">—</strong></span>
+      <span>✨ <strong id="md-xp" style="color:var(--gold)">—</strong></span>
+    </div>
+    <div id="md-acts" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;"></div>
+    <div class="cmts">
+      <div class="sec" style="font-size:11px;">COMENTÁRIOS</div>
+      <div id="md-cmts"></div>
+      <div class="cmt-row">
+        <div class="field" style="flex:1"><input type="text" id="cmt-in" placeholder="Adicionar comentário..." onkeydown="if(event.key==='Enter')doComment()"></div>
+        <button class="btn btn-primary btn-sm" onclick="doComment()">ENVIAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT -->
+<div class="overlay hidden" id="m-reject">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject')">✕</button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-reason" rows="4" placeholder="Explique o motivo para o responsável..."></textarea></div></div>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doReject()">REJEITAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let db, auth;
+let me = null, meData = null;
+let tasks = [], users = [];
+let curView = 'dashboard';
+let myFilterVal = 'all';
+let allFilterVal = 'all';
+let selTask = null, rejTask = null;
+
+// ══════════════════════════════════════════════════════
+// RANKS & XP
+// ══════════════════════════════════════════════════════
+const RANKS = [
+  {name:'IRON',      min:0,     color:'#9B9B9B', icon:'⬜'},
+  {name:'BRONZE',    min:300,   color:'#CD7F32', icon:'🟫'},
+  {name:'SILVER',    min:700,   color:'#C0C0C0', icon:'🩶'},
+  {name:'GOLD',      min:1500,  color:'#FFD700', icon:'🟡'},
+  {name:'PLATINUM',  min:3000,  color:'#00C4B4', icon:'💠'},
+  {name:'DIAMOND',   min:5500,  color:'#88CCFF', icon:'💎'},
+  {name:'ASCENDANT', min:9000,  color:'#44FF99', icon:'🌿'},
+  {name:'IMMORTAL',  min:14000, color:'#FF4655', icon:'🔥'},
+  {name:'RADIANT',   min:22000, color:'#FFD700', icon:'✨'},
+];
+const XP = {low:50, medium:100, high:200, critical:500};
+
+function rank(xp){let r=RANKS[0];for(const x of RANKS)if(xp>=x.min)r=x;return r;}
+function nextRank(xp){for(let i=0;i<RANKS.length-1;i++)if(xp<RANKS[i+1].min)return RANKS[i+1];return null;}
+function xpPct(xp){const r=rank(xp),n=nextRank(xp);if(!n)return 100;return Math.round(((xp-r.min)/(n.min-r.min))*100);}
+
+// ══════════════════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════════════════
+function initFB(cfg){
+  if(firebase.apps.length)firebase.apps.forEach(a=>a.delete());
+  firebase.initializeApp(cfg);
+  db=firebase.firestore();
+  auth=firebase.auth();
+  auth.onAuthStateChanged(onAuth);
+}
+
+function saveConfig(){
+  const cfg={
+    apiKey:$('c-apiKey').value.trim(),
+    authDomain:$('c-authDomain').value.trim(),
+    projectId:$('c-projectId').value.trim(),
+    storageBucket:$('c-storageBucket').value.trim(),
+    messagingSenderId:$('c-messagingSenderId').value.trim(),
+    appId:$('c-appId').value.trim(),
+  };
+  if(!cfg.apiKey||!cfg.projectId){toast('Preencha API Key e Project ID',false);return;}
+  localStorage.setItem('fs_cfg',JSON.stringify(cfg));
+  hide('config-screen');
+  initFB(cfg);
+}
+
+function resetConfig(){
+  localStorage.removeItem('fs_cfg');
+  if(auth)auth.signOut().catch(()=>{});
+  show('config-screen');
+  hide('auth-screen');hide('main-app');
+}
+
+// ══════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════
+async function onAuth(user){
+  hide('loader');
+  if(user){
+    me=user;
+    meData=await getUser(user.uid);
+    if(!meData){await auth.signOut();show('auth-screen');return;}
+    await boot();
+  } else {
+    me=null;meData=null;
+    show('auth-screen');hide('main-app');
+  }
+}
+
+async function doLogin(){
+  const e=$('l-email').value.trim(), p=$('l-pass').value;
+  const err=$('l-err');err.style.display='none';
+  if(!e||!p){err.textContent='Preencha todos os campos';err.style.display='block';return;}
+  try{await auth.signInWithEmailAndPassword(e,p);}
+  catch{err.textContent='Email ou senha incorretos';err.style.display='block';}
+}
+
+async function doRegister(){
+  const name=$('r-name').value.trim(), email=$('r-email').value.trim(),
+    pass=$('r-pass').value, cargo=$('r-cargo').value.trim(),
+    photo=$('r-photo').value.trim(), access=$('r-access').value;
+  const err=$('r-err');err.style.display='none';
+  if(!name||!email||!pass){err.textContent='Preencha nome, email e senha';err.style.display='block';return;}
+  try{
+    const c=await auth.createUserWithEmailAndPassword(email,pass);
+    await db.collection('users').doc(c.user.uid).set({
+      displayName:name,email,cargo:cargo||'Motion Designer',
+      photoURL:photo||'',access,xp:0,
+      joinedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await log('register',`${name} entrou no estúdio`);
+  }catch(ex){err.textContent=ex.message;err.style.display='block';}
+}
+
+async function doLogout(){await auth.signOut();}
+
+// ══════════════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════════════
+async function getUser(uid){
+  const d=await db.collection('users').doc(uid).get();
+  return d.exists?{uid,...d.data()}:null;
+}
+async function loadUsers(){
+  const s=await db.collection('users').get();
+  users=s.docs.map(d=>({uid:d.id,...d.data()}));
+}
+async function addXP(uid,amt){
+  await db.collection('users').doc(uid).update({xp:firebase.firestore.FieldValue.increment(amt)});
+  if(uid===me.uid){meData.xp=(meData.xp||0)+amt;updateSidebar();}
+}
+
+// ══════════════════════════════════════════════════════
+// TASKS
+// ══════════════════════════════════════════════════════
+async function loadTasks(){
+  const s=await db.collection('tasks').orderBy('createdAt','desc').get();
+  tasks=s.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+async function doCreate(){
+  const title=$('t-title').value.trim(), problem=$('t-problem').value.trim(),
+    resolution=$('t-resolution').value.trim(), deadline=$('t-deadline').value,
+    priority=$('t-priority').value, assigneeId=$('t-assignee').value,
+    tagsRaw=$('t-tags').value;
+  if(!title||!problem||!resolution||!deadline||!assigneeId){toast('Preencha os campos obrigatórios',false);return;}
+  const assignee=users.find(u=>u.uid===assigneeId);
+  const isMgr=meData.access==='manager';
+  const status=isMgr?'active':'pending_approval';
+  const userTasks=tasks.filter(t=>t.assigneeId===assigneeId);
+  const level=userTasks.length+1;
+  const data={
+    title,problem,resolution,
+    deadline:new Date(deadline+'T00:00:00'),
+    priority,assigneeId,
+    assigneeName:assignee?.displayName||'—',
+    createdById:me.uid,createdByName:meData.displayName,
+    status,tags:tagsRaw.split(',').map(t=>t.trim()).filter(Boolean),
+    xpReward:XP[priority],level,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    completedAt:null,approvedById:isMgr?me.uid:null,rejectionReason:null,
+  };
+  await db.collection('tasks').add(data);
+  const msg=isMgr?`${meData.displayName} criou "${title}" para ${assignee?.displayName}`
+    :`${meData.displayName} submeteu "${title}" para aprovação`;
+  await log(isMgr?'task_create':'task_pending',msg);
+  closeModal('m-create');
+  toast(isMgr?'Task criada!':'Enviada para aprovação!',true);
+  await refresh();
+}
+
+async function startTask(id){
+  await db.collection('tasks').doc(id).update({status:'in_progress'});
+  await log('task_start',`${meData.displayName} iniciou uma task`);
+  toast('Task em progresso!');closeModal('m-task');await refresh();
+}
+
+async function completeTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  await db.collection('tasks').doc(id).update({status:'done',completedAt:firebase.firestore.FieldValue.serverTimestamp()});
+  await addXP(t.assigneeId,t.xpReward);
+  await log('task_done',`${meData.displayName} completou "${t.title}" (+${t.xpReward} XP)`);
+  toast(`Missão concluída! +${t.xpReward} XP 🏆`,true);
+  closeModal('m-task');await refresh();renderCurView();
+}
+
+async function approveTask(id){
+  const t=tasks.find(x=>x.id===id);
+  await db.collection('tasks').doc(id).update({status:'active',approvedById:me.uid});
+  await log('task_approve',`${meData.displayName} aprovou "${t?.title}"`);
+  toast('Task aprovada!',true);await refresh();renderCurView();updBadge();
+}
+
+function openReject(id){rejTask=id;$('rej-reason').value='';showModal('m-reject');}
+
+async function doReject(){
+  const reason=$('rej-reason').value.trim();
+  if(!reason){toast('Informe o motivo',false);return;}
+  const t=tasks.find(x=>x.id===rejTask);
+  await db.collection('tasks').doc(rejTask).update({status:'rejected',rejectionReason:reason});
+  await log('task_reject',`${meData.displayName} rejeitou "${t?.title}"`);
+  toast('Task rejeitada');closeModal('m-reject');await refresh();renderCurView();updBadge();
+}
+
+// ══════════════════════════════════════════════════════
+// COMMENTS
+// ══════════════════════════════════════════════════════
+async function loadComments(taskId){
+  const s=await db.collection('comments').where('taskId','==',taskId).get();
+  const c=s.docs.map(d=>({id:d.id,...d.data()}));
+  c.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+  return c;
+}
+
+async function doComment(){
+  const txt=$('cmt-in').value.trim();
+  if(!txt||!selTask)return;
+  await db.collection('comments').add({
+    taskId:selTask,userId:me.uid,userName:meData.displayName,
+    text:txt,createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+  });
+  $('cmt-in').value='';
+  renderComments(await loadComments(selTask));
+}
+
+function renderComments(cmts){
+  const c=$('md-cmts');
+  if(!cmts.length){c.innerHTML='<div style="color:var(--dim);font-size:13px;padding:10px 0;">Nenhum comentário ainda.</div>';return;}
+  c.innerHTML=cmts.map(x=>`
+    <div class="cmt">
+      <div class="cmt-author">${x.userName}</div>
+      <div class="cmt-txt">${x.text}</div>
+      <div class="cmt-time">${fmtTime(x.createdAt)}</div>
+    </div>`).join('');
+  c.scrollTop=c.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════════
+// ACTIVITY LOG
+// ══════════════════════════════════════════════════════
+async function log(action,details){
+  if(!me)return;
+  await db.collection('activityLog').add({
+    userId:me.uid,userName:meData?.displayName||'—',
+    action,details,createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function loadLog(lim=30){
+  const s=await db.collection('activityLog').orderBy('createdAt','desc').limit(lim).get();
+  return s.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+async function go(v){
+  curView=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  $('view-'+v).classList.add('active');
+  const map={dashboard:0,'my-tasks':1,'all-tasks':2,approvals:3,profile:4,activity:5};
+  const items=document.querySelectorAll('.nav-item');
+  if(items[map[v]])items[map[v]].classList.add('active');
+  await renderCurView();
+}
+
+async function renderCurView(){
+  switch(curView){
+    case 'dashboard': await renderDash();break;
+    case 'my-tasks': await renderMyTasks();break;
+    case 'all-tasks': await renderAllTasks();break;
+    case 'approvals': await renderApprovals();break;
+    case 'profile': await renderProfile();break;
+    case 'activity': await renderActivity();break;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+async function renderDash(){
+  await loadUsers();await loadTasks();
+  const stats=users.map(u=>{
+    const ut=tasks.filter(t=>t.assigneeId===u.uid&&t.status!=='rejected'&&t.status!=='pending_approval');
+    const done=ut.filter(t=>t.status==='done').length;
+    const active=ut.filter(t=>t.status==='active'||t.status==='in_progress').length;
+    const pct=ut.length?Math.round((done/ut.length)*100):0;
+    return{...u,done,active,total:ut.length,pct};
+  }).sort((a,b)=>b.pct-a.pct);
+
+  $('rank-grid').innerHTML=stats.map((u,i)=>{
+    const r=rank(u.xp||0),n=nextRank(u.xp||0),p=xpPct(u.xp||0);
+    const medal=i===0?`<span style="color:var(--gold)">#1 👑</span>`:`<span style="color:var(--dim)">#${i+1}</span>`;
+    return`<div class="rm" onclick="allFilterUser('${u.uid}')">
+      <div class="rm-pos">${medal}</div>
+      <div class="rm-head">
+        <div class="avatar" style="width:48px;height:48px;font-size:20px;">${u.photoURL?`<img src="${u.photoURL}" onerror="this.parentNode.textContent='${u.displayName[0]||'?'}'">`:(u.displayName[0]||'?')}</div>
+        <div>
+          <div class="rm-name">${u.displayName}</div>
+          <div class="rm-role">${u.cargo||'—'}</div>
+          <div class="rank-badge" style="background:${r.color}20;color:${r.color};border:1px solid ${r.color}40;">${r.icon} ${r.name}</div>
+        </div>
+      </div>
+      <div class="rm-stats">
+        <div class="rm-stat"><div class="rm-sv">${u.done}</div><div class="rm-sl">Feitas</div></div>
+        <div class="rm-stat"><div class="rm-sv">${u.active}</div><div class="rm-sl">Ativas</div></div>
+        <div class="rm-stat"><div class="rm-sv" style="color:${i===0?'var(--gold)':'var(--cream)'}">${u.pct}%</div><div class="rm-sl">Conc.</div></div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${u.pct}%"></div></div>
+      <div class="pct"><span style="font-family:var(--M);font-size:10px;color:var(--dim);">${u.xp||0} XP${n?' → '+n.name:' MAX'}</span><span>${u.pct}% concluído</span></div>
+      <div class="xp-bar2" style="overflow:hidden;"><div style="height:100%;width:${p}%;background:${r.color};opacity:.7;"></div></div>
+    </div>`;
+  }).join('');
+
+  const logs=await loadLog(5);
+  $('dash-activity').innerHTML=`<div>${renderLogs(logs)}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// MY TASKS
+// ══════════════════════════════════════════════════════
+async function renderMyTasks(){
+  await loadTasks();
+  let t=tasks.filter(x=>x.assigneeId===me.uid);
+  if(myFilterVal!=='all')t=t.filter(x=>x.status===myFilterVal);
+  $('my-list').innerHTML=t.length?t.map((task,i)=>taskCard(task,i,true)).join('')
+    :`<div class="empty"><div class="empty-icon">🎯</div><h3>SEM MISSÕES</h3><p>Crie sua primeira task!</p></div>`;
+}
+
+function myFilter(val,btn){
+  myFilterVal=val;
+  document.querySelectorAll('#my-tabs .ftab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderMyTasks();
+}
+
+// ══════════════════════════════════════════════════════
+// ALL TASKS
+// ══════════════════════════════════════════════════════
+async function renderAllTasks(){
+  await loadUsers();await loadTasks();
+  $('all-tabs').innerHTML=`<button class="ftab ${allFilterVal==='all'?'active':''}" onclick="allFilter('all',this)">TODOS</button>`
+    +users.map(u=>`<button class="ftab ${allFilterVal===u.uid?'active':''}" onclick="allFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
+  let t=tasks.filter(x=>x.status!=='rejected');
+  if(allFilterVal!=='all')t=t.filter(x=>x.assigneeId===allFilterVal);
+  $('all-list').innerHTML=t.length?t.map((task,i)=>taskCard(task,i,false)).join('')
+    :`<div class="empty"><div class="empty-icon">📋</div><h3>SEM TASKS</h3><p>Nenhuma task encontrada.</p></div>`;
+}
+
+function allFilter(val,btn){allFilterVal=val;document.querySelectorAll('#all-tabs .ftab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderAllTasks();}
+function allFilterUser(uid){allFilterVal=uid;go('all-tasks');}
+
+// ══════════════════════════════════════════════════════
+// APPROVALS
+// ══════════════════════════════════════════════════════
+async function renderApprovals(){
+  await loadTasks();
+  const pend=tasks.filter(t=>t.status==='pending_approval');
+  $('appr-list').innerHTML=pend.length?pend.map(t=>{
+    const dl=fmtDate(t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null);
+    const pl={low:'BAIXA',medium:'MÉDIA',high:'ALTA',critical:'CRÍTICA'}[t.priority];
+    return`<div class="ac">
+      <div class="ac-head">
+        <div><div class="ac-meta">DE: <strong>${t.createdByName}</strong> · PARA: <strong>${t.assigneeName}</strong></div><div class="ac-title">${t.title}</div></div>
+        <span class="badge bp-${t.priority}">${pl}</span>
+      </div>
+      <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${t.problem}</div></div>
+      <div class="detail-block db-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt">${t.resolution}</div></div>
+      <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-top:10px;">📅 Deadline: <strong style="color:var(--cream)">${dl}</strong> &nbsp;✨ Recompensa: <strong style="color:var(--gold)">+${t.xpReward} XP</strong></div>
+      <div class="ac-acts">
+        <button class="btn btn-success btn-sm" onclick="approveTask('${t.id}')">✓ APROVAR</button>
+        <button class="btn btn-danger btn-sm" onclick="openReject('${t.id}')">✕ REJEITAR</button>
+        <button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">VER DETALHES</button>
+      </div>
+    </div>`;
+  }).join(''):`<div class="empty"><div class="empty-icon">✅</div><h3>TUDO APROVADO</h3><p>Nenhuma task aguardando.</p></div>`;
+}
+
+async function updBadge(){
+  await loadTasks();
+  const n=tasks.filter(t=>t.status==='pending_approval').length;
+  const b=$('appr-badge');
+  b.textContent=n;b.classList.toggle('hidden',n===0);
+}
+
+// ══════════════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════════════
+async function renderProfile(){
+  await loadTasks();
+  const myTasks=tasks.filter(t=>t.assigneeId===me.uid);
+  const done=myTasks.filter(t=>t.status==='done').length;
+  const active=myTasks.filter(t=>t.status==='active'||t.status==='in_progress').length;
+  const pend=myTasks.filter(t=>t.status==='pending_approval').length;
+  const r=rank(meData.xp||0),n=nextRank(meData.xp||0),p=xpPct(meData.xp||0);
+
+  $('p-hero').innerHTML=`
+    <div class="p-avatar">${meData.photoURL?`<img src="${meData.photoURL}" onerror="this.parentNode.textContent='${meData.displayName[0]||'?'}'">`:(meData.displayName[0]||'?')}</div>
+    <div style="flex:1;">
+      <div class="p-name">${meData.displayName}</div>
+      <div class="p-role">${meData.cargo||'—'} · ${meData.access==='manager'?'GERENTE':'MEMBRO'}</div>
+      <div class="p-rank" style="background:${r.color}20;color:${r.color};border:1px solid ${r.color}40;">${r.icon} ${r.name}</div>
+      <div class="p-xp-lbl"><span>${meData.xp||0} XP total</span><span>${n?`→ ${n.name} (${p}%)`:' RANK MÁXIMO ✨'}</span></div>
+      <div class="pbar" style="height:6px;"><div class="pfill" style="width:${p}%;background:${r.color};"></div></div>
+    </div>`;
+
+  $('p-stats').innerHTML=[
+    {v:done,l:'Concluídas'},
+    {v:active,l:'Ativas'},
+    {v:pend,l:'Aguardando'},
+    {v:meData.xp||0,l:'Total XP'},
+  ].map(s=>`<div class="stat-card"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// ACTIVITY
+// ══════════════════════════════════════════════════════
+async function renderActivity(){
+  const logs=await loadLog(50);
+  $('act-list').innerHTML=renderLogs(logs);
+}
+
+function renderLogs(logs){
+  if(!logs.length)return`<div class="empty"><div class="empty-icon">📜</div><h3>SEM ATIVIDADE</h3></div>`;
+  const icons={register:'👤',task_create:'➕',task_pending:'⏳',task_approve:'✅',task_reject:'❌',task_start:'▶️',task_done:'🏆'};
+  return logs.map(l=>`<div class="al-item">
+    <div class="al-dot">${icons[l.action]||'•'}</div>
+    <div><div class="al-txt">${l.details}</div><div class="al-time">${fmtTime(l.createdAt)}</div></div>
+  </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// TASK CARD
+// ══════════════════════════════════════════════════════
+function taskCard(t,i,isMe){
+  const sl={active:'ATIVA',in_progress:'EM PROGRESSO',done:'CONCLUÍDA',pending_approval:'AGUARDANDO',rejected:'REJEITADA'};
+  const pl={low:'BAIXA',medium:'MÉDIA',high:'ALTA',critical:'CRÍTICA'};
+  const dl=t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null;
+  const urgent=dl&&(dl-new Date())<2*864e5&&t.status!=='done';
+  const tags=(t.tags||[]).map(x=>`<span class="tag-pill">${x}</span>`).join('');
+  let acts='';
+  if(t.status==='active'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')">▶ INICIAR</button>`;
+  if(t.status==='in_progress'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')">✓ CONCLUIR</button>`;
+  return`<div class="tc p-${t.priority} s-${t.status}" onclick="openTask('${t.id}')">
+    <div class="tc-head">
+      <div class="tc-level">MISSION // <span>LEVEL ${String(t.level||i+1).padStart(2,'0')}</span></div>
+      <div class="tc-badges">
+        ${!isMe?`<span style="font-family:var(--M);font-size:10px;color:var(--dim);">👤 ${t.assigneeName}</span>`:''}
+        <span class="badge bp-${t.priority}">${pl[t.priority]}</span>
+        <span class="badge bs-${t.status}">${sl[t.status]||t.status}</span>
+        <span class="badge bxp">+${t.xpReward} XP</span>
+      </div>
+    </div>
+    <div class="tc-body">
+      <div class="tc-title">${t.title}</div>
+      <div class="tc-desc">${t.problem}</div>
+    </div>
+    <div class="tc-foot">
+      <div class="tc-meta">
+        <span class="${urgent?'urgent':''}">📅 ${fmtDate(dl)}</span>
+        ${tags}
+      </div>
+      <div class="tc-acts" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">DETALHES</button>
+        ${acts}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// TASK MODAL
+// ══════════════════════════════════════════════════════
+async function openTask(id){
+  selTask=id;
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  const dl=t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null;
+  const sl={active:'ATIVA',in_progress:'EM PROGRESSO',done:'CONCLUÍDA',pending_approval:'AGUARDANDO',rejected:'REJEITADA'};
+  const pl={low:'BAIXA',medium:'MÉDIA',high:'ALTA',critical:'CRÍTICA'};
+  $('md-title').textContent=t.title;
+  $('md-problem').textContent=t.problem;
+  $('md-resolution').textContent=t.resolution;
+  $('md-deadline').textContent=fmtDate(dl);
+  $('md-assignee').textContent=t.assigneeName;
+  $('md-xp').textContent=`+${t.xpReward} XP`;
+  $('md-badges').innerHTML=`<span class="badge bp-${t.priority}">${pl[t.priority]}</span><span class="badge bs-${t.status}">${sl[t.status]||t.status}</span>${(t.tags||[]).map(x=>`<span class="badge" style="background:rgba(255,255,255,.06);color:var(--dim);border:1px solid rgba(255,255,255,.08);">${x}</span>`).join('')}`;
+  let acts='';
+  if(t.status==='active'&&t.assigneeId===me.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="startTask('${id}')">▶ INICIAR TASK</button>`;
+  if(t.status==='in_progress'&&t.assigneeId===me.uid)acts+=`<button class="btn btn-success btn-sm" onclick="completeTask('${id}')">✓ MARCAR CONCLUÍDA</button>`;
+  if(t.status==='done')acts+=`<span style="color:var(--green);font-family:var(--M);font-size:12px;">✓ MISSÃO CONCLUÍDA</span>`;
+  if(t.status==='rejected')acts+=`<div style="color:var(--red);font-family:var(--M);font-size:11px;padding:8px 12px;background:rgba(255,70,85,.08);border-left:2px solid var(--red);">REJEITADA: ${t.rejectionReason||'—'}</div>`;
+  if(meData?.access==='manager'&&t.status==='pending_approval'){
+    acts+=`<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')">✓ APROVAR</button>`;
+    acts+=`<button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')">✕ REJEITAR</button>`;
+  }
+  $('md-acts').innerHTML=acts;
+  renderComments(await loadComments(id));
+  showModal('m-task');
+}
+
+// ══════════════════════════════════════════════════════
+// CREATE MODAL
+// ══════════════════════════════════════════════════════
+async function openCreate(){
+  await loadUsers();
+  $('t-assignee').innerHTML=users.map(u=>`<option value="${u.uid}">${u.displayName}</option>`).join('');
+  $('t-assignee').value=me.uid;
+  ['t-title','t-problem','t-resolution','t-tags'].forEach(id=>{$(id).value='';});
+  $('t-priority').value='medium';
+  const d=new Date();d.setDate(d.getDate()+7);
+  $('t-deadline').value=d.toISOString().split('T')[0];
+  const isMgr=meData?.access==='manager';
+  $('appr-notice').classList.toggle('hidden',isMgr);
+  showModal('m-create');
+}
+
+// ══════════════════════════════════════════════════════
+// SIDEBAR UPDATE
+// ══════════════════════════════════════════════════════
+function updateSidebar(){
+  if(!meData)return;
+  const av=$('sb-av');
+  av.innerHTML=meData.photoURL?`<img src="${meData.photoURL}" onerror="this.parentNode.textContent='${meData.displayName[0]||'?'}'">`:meData.displayName[0]||'?';
+  $('sb-name').textContent=meData.displayName;
+  const r=rank(meData.xp||0),p=xpPct(meData.xp||0);
+  $('sb-rank').textContent=`${r.icon} ${r.name}`;
+  $('sb-rank').style.color=r.color;
+  $('sb-xp').style.width=p+'%';
+  const isMgr=meData.access==='manager';
+  document.querySelectorAll('.mgr-only').forEach(el=>el.classList.toggle('hidden',!isMgr));
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function $(id){return document.getElementById(id);}
+function show(id){$(id).classList.remove('hidden');}
+function hide(id){$(id).classList.add('hidden');}
+function showModal(id){$(id).classList.remove('hidden');}
+function closeModal(id){$(id).classList.add('hidden');}
+
+function fmtDate(d){if(!d)return'—';return d instanceof Date?d.toLocaleDateString('pt-BR'):fmtDate(new Date(d));}
+function fmtTime(ts){
+  if(!ts)return'—';
+  const d=ts?.toDate?ts.toDate():new Date(ts);
+  const diff=Date.now()-d;
+  if(diff<60e3)return'Agora mesmo';
+  if(diff<3600e3)return`${Math.floor(diff/60e3)}min atrás`;
+  if(diff<86400e3)return`${Math.floor(diff/3600e3)}h atrás`;
+  return d.toLocaleDateString('pt-BR');
+}
+
+function toast(msg,ok=true){
+  const t=$('toast');t.textContent=msg;t.className='show'+(ok?' ok':'');
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.className='';},3500);
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+  btn.classList.add('active');$('f-'+tab).classList.add('active');
+}
+
+async function refresh(){await loadTasks();await loadUsers();}
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+async function boot(){
+  updateSidebar();
+  show('main-app');hide('auth-screen');
+  await loadUsers();await loadTasks();
+  await go('dashboard');
+  await updBadge();
+  // Refresh badge every 30s
+  setInterval(updBadge,30000);
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+(function init(){
+  const cfg={
+    apiKey:"AIzaSyCo2XRo7OwUln0yj4U8Ry4APC4fg2dOvHQ",
+    authDomain:"ferret-studio.firebaseapp.com",
+    projectId:"ferret-studio",
+    storageBucket:"ferret-studio.firebasestorage.app",
+    messagingSenderId:"983275545835",
+    appId:"1:983275545835:web:b6a3c0a62e086ff7fe8aae"
+  };
+  localStorage.setItem('fs_cfg',JSON.stringify(cfg));
+  initFB(cfg);
+})();
+</script>
+</body>
+</html>
