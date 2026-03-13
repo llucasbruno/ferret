@@ -306,6 +306,19 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .notice{padding:9px 12px;background:rgba(245,197,24,.07);border:1px solid rgba(245,197,24,.2);clip-path:var(--clip-sm);font-family:var(--M);font-size:11px;color:#F5C518}
 .xp-penalty{color:var(--red);font-family:var(--M);font-size:10px;padding:2px 6px;background:rgba(255,70,85,.1);border:1px solid rgba(255,70,85,.2);border-radius:2px}
 
+/* ── PATCH NOTES ── */
+.pn-card{background:var(--bg2);border:var(--border-dim);clip-path:var(--clip-lg);padding:24px 26px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color .2s}
+.pn-card:hover{border-color:rgba(255,255,255,.12)}
+.pn-card::before{content:'';position:absolute;top:0;left:0;width:40%;height:2px;background:linear-gradient(90deg,var(--red),transparent)}
+.pn-ver{font-family:var(--M);font-size:10px;color:var(--red);letter-spacing:3px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.pn-title{font-family:var(--R);font-size:22px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.pn-meta{font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:14px}
+.pn-body{font-size:13px;color:var(--dim);line-height:1.9;white-space:pre-wrap}
+.pn-tag{display:inline-flex;padding:2px 10px;font-family:var(--M);font-size:10px;border-radius:2px;letter-spacing:1px;font-weight:700}
+.pn-new{background:rgba(68,255,153,.12);color:var(--green);border:1px solid rgba(68,255,153,.3)}
+.pn-fix{background:rgba(255,70,85,.12);color:var(--red);border:1px solid rgba(255,70,85,.3)}
+.pn-improve{background:rgba(0,196,180,.12);color:var(--cyan);border:1px solid rgba(0,196,180,.3)}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -452,6 +465,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
         <div class="nav-section">PESSOAL</div>
         <div class="nav-item" onclick="go('profile')"><span class="nav-icon">👤</span><span>Meu Perfil</span></div>
         <div class="nav-item" onclick="go('activity')"><span class="nav-icon">📜</span><span>Log</span></div>
+        <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon">📰</span><span>Atualizações</span></div>
       </div>
       <div class="sb-footer">
         <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
@@ -477,8 +491,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="view" id="view-projects">
         <div class="page-head">
           <div><div class="page-title">PROJ<span>ETOS</span></div><div class="page-sub">// CLIENTES & CAMPANHAS</div></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="proj-head-acts">
-            <!-- buttons rendered by renderProjects based on role -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary mgr-only hidden" onclick="openCreateProject()">+ NOVO PROJETO</button>
           </div>
         </div>
         <div class="proj-grid" id="projects-list"></div>
@@ -557,6 +571,15 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="view" id="view-activity">
         <div class="page-head"><div><div class="page-title">LOG DE <span>ATIVIDADES</span></div><div class="page-sub">// HISTÓRICO DO ESTÚDIO</div></div></div>
         <div id="act-list"></div>
+      </div>
+
+      <!-- PATCH NOTES -->
+      <div class="view" id="view-patchnotes">
+        <div class="page-head">
+          <div><div class="page-title">NOTAS DE <span>ATUALIZAÇÃO</span></div><div class="page-sub">// CHANGELOG DO SISTEMA</div></div>
+          <button class="btn btn-primary mgr-only hidden" onclick="openCreatePN()" style="align-self:flex-start;">+ NOVA NOTA</button>
+        </div>
+        <div id="pn-list"></div>
       </div>
 
     </main>
@@ -695,6 +718,32 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
     <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-cargo')">CANCELAR</button>
       <button class="btn btn-primary" onclick="saveCargo()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVA NOTA DE ATUALIZAÇÃO -->
+<div class="overlay hidden" id="m-pn">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <div class="modal-title">NOVA <span style="color:var(--red)">ATUALIZAÇÃO</span></div>
+      <button class="modal-close" onclick="closeModal('m-pn')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Versão *</label><input type="text" id="pn-version" placeholder="v1.1"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="pn-type">
+          <option value="new">🟢 Nova Funcionalidade</option>
+          <option value="improve">💠 Melhoria</option>
+          <option value="fix">🔴 Correção de Bug</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Título *</label><input type="text" id="pn-title" placeholder="Ex: Sistema de Aprovações de Tasks"></div></div>
+    <div class="field-grid one"><div class="field"><label>Descrição Completa *</label><textarea id="pn-body" rows="8" placeholder="Descreva o que foi adicionado, corrigido ou melhorado. Você pode usar quebras de linha para organizar."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-pn')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doCreatePN()">📢 PUBLICAR</button>
     </div>
   </div>
 </div>
@@ -887,26 +936,9 @@ function openEditProject(id){
   $('proj-start').value=fmtInput(p.startDate);$('proj-deadline').value=fmtInput(p.deadline);
   showModal('m-project');
 }
-async function archiveProject(id){
-  if(!confirm('Arquivar este projeto?'))return;
-  await db.collection('projects').doc(id).update({archived:true});
-  await refresh();buildGlobalProjSel();renderCurView();toast('Projeto arquivado');
-}
-
-function openRequestProject(){
-  editProjId=null;
-  $('m-proj-modal-title').innerHTML='SOLICITAR <span style="color:var(--red)">PROJETO</span>';
-  ['proj-name','proj-client','proj-desc'].forEach(id=>$(id).value='');
-  $('proj-color').value='#FF4655';
-  const today=new Date().toISOString().split('T')[0];
-  $('proj-start').value=today;$('proj-deadline').value='';
-  showModal('m-project');
-}
-
 async function saveProject(){
   const name=$('proj-name').value.trim();
   if(!name){toast('Informe o nome do projeto',false);return;}
-  const isMgr=meData.access==='manager';
   const data={name,client:$('proj-client').value.trim(),description:$('proj-desc').value.trim(),color:$('proj-color').value,
     startDate:$('proj-start').value?new Date($('proj-start').value+'T00:00:00'):null,
     deadline:$('proj-deadline').value?new Date($('proj-deadline').value+'T00:00:00'):null};
@@ -917,58 +949,40 @@ async function saveProject(){
   }else{
     data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
     data.createdById=me.uid;
-    data.requestedBy=meData.displayName;
-    data.status=isMgr?'active':'pending'; // members need approval
     await db.collection('projects').add(data);
-    if(isMgr){
-      await log('project_create',`${meData.displayName} criou o projeto "${name}"`);
-      toast('Projeto criado!',true);
-    }else{
-      await log('project_create',`${meData.displayName} solicitou o projeto "${name}" (aguardando aprovação)`);
-      toast('Solicitação enviada! Aguardando aprovação.',true);
-    }
+    await log('project_create',`${meData.displayName} criou o projeto "${name}"`);
+    toast('Projeto criado!',true);
   }
   closeModal('m-project');await refresh();buildGlobalProjSel();renderCurView();
 }
-
-async function approveProject(id){
-  const p=projects.find(x=>x.id===id);
-  await db.collection('projects').doc(id).update({status:'active'});
-  await log('project_update',`${meData.displayName} aprovou o projeto "${p?.name}"`);
-  toast('Projeto aprovado!',true);await refresh();buildGlobalProjSel();renderCurView();
-}
-
-async function rejectProject(id){
-  const p=projects.find(x=>x.id===id);
-  if(!confirm(`Rejeitar o projeto "${p?.name}"? Ele será removido.`))return;
-  await db.collection('projects').doc(id).delete();
-  await log('project_update',`${meData.displayName} rejeitou o projeto "${p?.name}"`);
-  toast('Projeto rejeitado');await refresh();buildGlobalProjSel();renderCurView();
+async function archiveProject(id){
+  if(!confirm('Arquivar este projeto?'))return;
+  await db.collection('projects').doc(id).update({archived:true});
+  await refresh();buildGlobalProjSel();renderCurView();toast('Projeto arquivado');
 }
 
 // ══════════════════════════════════════════════
 //  TASK ACTIONS
 // ══════════════════════════════════════════════
 async function doCreate(){
-  const required=['t-title','t-problem','t-resolution','t-deadline','t-assignee'];
-  if(required.some(id=>!$(id).value.trim())){toast('Preencha os campos obrigatórios',false);return;}
+  const fields=['t-title','t-problem','t-resolution','t-deadline','t-assignee','t-project'];
+  if(fields.some(id=>!$(id).value.trim())){toast('Preencha os campos obrigatórios',false);return;}
   const title=$('t-title').value.trim(),problem=$('t-problem').value.trim(),resolution=$('t-resolution').value.trim(),
     deadline=$('t-deadline').value,priority=$('t-priority').value,
-    assigneeId=$('t-assignee').value,projectId=$('t-project').value||null;
-  const assignee=users.find(u=>u.uid===assigneeId),proj=projectId?projects.find(p=>p.id===projectId):null;
+    assigneeId=$('t-assignee').value,projectId=$('t-project').value;
+  const assignee=users.find(u=>u.uid===assigneeId),proj=projects.find(p=>p.id===projectId);
   const isMgr=meData.access==='manager';
   await db.collection('tasks').add({
     title,problem,resolution,deadline:new Date(deadline+'T00:00:00'),priority,assigneeId,
     assigneeName:assignee?.displayName||'—',createdById:me.uid,createdByName:meData.displayName,
-    projectId:projectId||null,projectName:proj?.name||null,
+    projectId,projectName:proj?.name||'—',
     status:isMgr?'active':'pending_approval',
     tags:$('t-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
     xpReward:XP_REWARD[priority],level:tasks.filter(t=>t.assigneeId===assigneeId).length+1,
     createdAt:firebase.firestore.FieldValue.serverTimestamp(),
     completedAt:null,approvedById:isMgr?me.uid:null,rejectionReason:null,
   });
-  const projLabel=proj?`[${proj.name}]`:'[sem projeto]';
-  await log(isMgr?'task_create':'task_pending',isMgr?`${meData.displayName} criou "${title}" ${projLabel}`:`${meData.displayName} submeteu "${title}" para aprovação`);
+  await log(isMgr?'task_create':'task_pending',isMgr?`${meData.displayName} criou "${title}" [${proj?.name||'—'}]`:`${meData.displayName} submeteu "${title}" para aprovação`);
   closeModal('m-create');toast(isMgr?'Task criada!':'Enviada para aprovação!',true);
   await refresh();renderCurView();
 }
@@ -1153,34 +1167,8 @@ async function renderDash(){
 
 async function renderProjects(){
   await refresh();
-  const isMgr=meData?.access==='manager';
-  $('proj-head-acts').innerHTML=isMgr
-    ?`<button class="btn btn-primary" onclick="openCreateProject()">+ NOVO PROJETO</button>`
-    :`<button class="btn btn-ghost" onclick="openRequestProject()">+ SOLICITAR PROJETO</button>`;
-
-  // Pending project requests shown to managers
-  const pendingProjs=projects.filter(p=>p.status==='pending'&&!p.archived);
-  let pendingHtml='';
-  if(isMgr&&pendingProjs.length){
-    pendingHtml=`<div style="margin-bottom:20px;">
-      <div class="sec">PROJETOS AGUARDANDO APROVAÇÃO</div>
-      ${pendingProjs.map(p=>`<div class="ac" style="margin-bottom:10px;">
-        <div class="ac-head"><div>
-          <div class="ac-meta">SOLICITADO POR: <strong>${p.requestedBy||'—'}</strong></div>
-          <div class="ac-title">${p.name}</div>
-        </div><div class="proj-dot" style="background:${p.color};width:12px;height:12px;border-radius:50%;margin-top:4px;flex-shrink:0"></div></div>
-        ${p.client?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;">👤 ${p.client}</div>`:''}
-        ${p.description?`<div class="detail-block db-r"><div class="detail-txt">${p.description}</div></div>`:''}
-        <div class="ac-acts">
-          <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')">✓ APROVAR</button>
-          <button class="btn btn-danger btn-sm" onclick="rejectProject('${p.id}')">✕ REJEITAR</button>
-        </div>
-      </div>`).join('')}
-    </div>`;
-  }
-
-  const list=projects.filter(p=>!p.archived&&p.status!=='pending');
-  $('projects-list').innerHTML=pendingHtml+(list.length?list.map(p=>{
+  const list=projects.filter(p=>!p.archived);
+  $('projects-list').innerHTML=list.length?list.map(p=>{
     const pt=tasks.filter(t=>t.projectId===p.id&&!['rejected'].includes(t.status));
     const done=pt.filter(t=>t.status==='done').length;
     const active=pt.filter(t=>['active','in_progress'].includes(t.status)).length;
@@ -1192,7 +1180,7 @@ async function renderProjects(){
       <div class="proj-card-header">
         <div class="proj-dot" style="background:${p.color}"></div>
         <div class="proj-name">${p.name}</div>
-        <div style="display:flex;gap:5px;">${isMgr?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}</div>
+        <div style="display:flex;gap:5px;">${meData?.access==='manager'?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}</div>
       </div>
       ${p.client?`<div class="proj-client" style="padding-left:20px;margin-bottom:8px;">👤 ${p.client}</div>`:''}
       ${p.description?`<div style="font-size:13px;color:var(--dim);margin-bottom:10px;padding-left:20px;">${p.description}</div>`:''}
@@ -1211,10 +1199,10 @@ async function renderProjects(){
       ${dl?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;">📅 Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>`:''}
       <div class="proj-acts">
         <button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN</button>
-        ${isMgr?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:''}
+        ${meData?.access==='manager'?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:''}
       </div>
     </div>`;
-  }).join(''):`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr?'primary':'ghost'} btn-sm" onclick="${isMgr?'openCreateProject()':'openRequestProject()'}">+ ${isMgr?'CRIAR PROJETO':'SOLICITAR PROJETO'}</button></div>`);
+  }).join(''):`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p>${meData?.access==='manager'?`<button class="btn btn-primary btn-sm" onclick="openCreateProject()">+ CRIAR PRIMEIRO PROJETO</button>`:''}</div>`;
 }
 
 async function renderKanban(){
@@ -1410,9 +1398,8 @@ async function openTask(id){
 
 async function openCreate(){
   await refresh();
-  // Project is optional — always include a "sem projeto" option
-  const projOpts=projects.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  $('t-project').innerHTML=`<option value="">— Sem projeto —</option>${projOpts}`;
+  $('t-project').innerHTML=projects.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if(!$('t-project').innerHTML){$('t-project').innerHTML='<option value="">Sem projetos</option>';toast('Crie um projeto primeiro',false);return;}
   if(globalProjFV!=='all')$('t-project').value=globalProjFV;
   $('t-assignee').innerHTML=users.map(u=>`<option value="${u.uid}">${u.displayName}</option>`).join('');
   $('t-assignee').value=me.uid;
@@ -1426,7 +1413,7 @@ async function openCreate(){
 // ══════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════
-const NAV_ORDER=['dashboard','projects','kanban','my-tasks','all-tasks','history','approvals','members','profile','activity'];
+const NAV_ORDER=['dashboard','projects','kanban','my-tasks','all-tasks','history','approvals','members','profile','activity','patchnotes'];
 async function go(v){
   curView=v;closeSidebar();
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
@@ -1437,7 +1424,7 @@ async function go(v){
 }
 
 async function renderCurView(){
-  const map={dashboard:renderDash,projects:renderProjects,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,profile:renderProfile,activity:renderActivity};
+  const map={dashboard:renderDash,projects:renderProjects,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,profile:renderProfile,activity:renderActivity,patchnotes:renderPatchNotes};
   await map[curView]?.();
 }
 
@@ -1473,6 +1460,71 @@ function switchTab(tab,btn){
   document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
   btn.classList.add('active');$('f-'+tab).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  PATCH NOTES
+// ══════════════════════════════════════════════
+function openCreatePN(){
+  ['pn-version','pn-title','pn-body'].forEach(id=>$(id).value='');
+  $('pn-type').value='new';
+  showModal('m-pn');
+}
+
+async function doCreatePN(){
+  const version=$('pn-version').value.trim();
+  const title=$('pn-title').value.trim();
+  const body=$('pn-body').value.trim();
+  const type=$('pn-type').value;
+  if(!version||!title||!body){toast('Preencha versão, título e descrição',false);return;}
+  await db.collection('patchNotes').add({
+    version,title,body,type,
+    authorId:me.uid,authorName:meData.displayName,
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await log('patch_note',`${meData.displayName} publicou atualização ${version}: "${title}"`);
+  closeModal('m-pn');
+  toast(`📢 Atualização ${version} publicada!`,true);
+  await renderPatchNotes();
+}
+
+async function deletePN(id){
+  if(!confirm('Excluir esta nota de atualização?'))return;
+  await db.collection('patchNotes').doc(id).delete();
+  await log('patch_note',`${meData.displayName} removeu uma nota de atualização`);
+  toast('Nota removida');
+  await renderPatchNotes();
+}
+
+async function renderPatchNotes(){
+  const snap=await db.collection('patchNotes').orderBy('createdAt','desc').get();
+  const notes=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const isMgr=meData?.access==='manager';
+
+  // Show/hide the "+" button based on role
+  document.querySelectorAll('.mgr-only').forEach(el=>el.classList.toggle('hidden',meData.access!=='manager'));
+
+  const typeLabel={new:'🟢 NOVA FUNCIONALIDADE',improve:'💠 MELHORIA',fix:'🔴 CORREÇÃO'};
+  const typeClass={new:'pn-new',improve:'pn-improve',fix:'pn-fix'};
+
+  if(!notes.length){
+    $('pn-list').innerHTML=`<div class="empty"><div class="empty-icon">📰</div><h3>SEM ATUALIZAÇÕES</h3><p>Nenhuma nota de atualização publicada ainda.</p>${isMgr?'<br><button class="btn btn-primary btn-sm" onclick="openCreatePN()">+ PUBLICAR PRIMEIRA NOTA</button>':''}</div>`;
+    return;
+  }
+
+  $('pn-list').innerHTML=notes.map(n=>{
+    const date=n.createdAt?.toDate?n.createdAt.toDate():new Date();
+    return`<div class="pn-card">
+      <div class="pn-ver">
+        <span>${n.version}</span>
+        <span class="pn-tag ${typeClass[n.type]||'pn-new'}">${typeLabel[n.type]||'NOVO'}</span>
+      </div>
+      <div class="pn-title">${n.title}</div>
+      <div class="pn-meta">📅 ${date.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} &nbsp;·&nbsp; ✍ ${n.authorName}</div>
+      <div class="pn-body">${n.body}</div>
+      ${isMgr?`<div style="margin-top:14px;"><button class="btn btn-danger btn-sm" onclick="deletePN('${n.id}')">🗑 EXCLUIR</button></div>`:''}
+    </div>`;
+  }).join('');
 }
 
 async function boot(){
