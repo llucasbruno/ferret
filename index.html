@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 :root{
   --bg:#0F1923;--bg2:#1F2733;--bg3:#111921;--bg4:#162030;
@@ -87,7 +88,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 22px;cursor:pointer;color:var(--dim);font-family:var(--R);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;border-left:3px solid transparent}
 .nav-item:hover{color:var(--cream);background:rgba(255,255,255,.03)}
 .nav-item.active{color:var(--cream);border-left-color:var(--red);background:rgba(255,70,85,.07)}
-.nav-icon{font-size:15px;width:17px;text-align:center}
+.nav-icon{width:17px;height:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-family:var(--M);padding:1px 6px;border-radius:8px}
 .sb-footer{padding:12px 22px;border-top:1px solid rgba(255,255,255,.05)}
 #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199}
@@ -200,12 +202,31 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .tc-meta{display:flex;align-items:center;gap:10px;font-family:var(--M);font-size:10px;color:var(--dim);flex-wrap:wrap}
 .tc-acts{display:flex;gap:5px;flex-wrap:wrap}
 .urgent,.overdue-txt{color:var(--red)!important}
-.tag-pill{background:rgba(255,255,255,.06);padding:1px 6px;font-size:9px;font-family:var(--M)}
+.tag-pill{background:rgba(255,255,255,.06);padding:1px 6px;font-size:9px;font-family:var(--M);cursor:pointer;border-radius:2px;border:1px solid transparent;transition:all .15s;}
+.tag-pill:hover{background:rgba(var(--cyan-rgb,0,229,255),.12);border-color:var(--cyan);color:var(--cyan);}
+.tag-pill.active{background:rgba(var(--cyan-rgb,0,229,255),.18);border-color:var(--cyan);color:var(--cyan);}
+.tag-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.tag-active-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,.15);border:1px solid var(--cyan);color:var(--cyan);font-family:var(--M);font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:1px;}
+.tag-active-chip button{background:none;border:none;color:var(--cyan);cursor:pointer;font-size:12px;padding:0;line-height:1;}
 .rej-notice{background:rgba(255,70,85,.07);border-left:3px solid var(--red);padding:10px 16px;margin:0 16px 8px}
 .rej-notice-lbl{font-family:var(--M);font-size:9px;letter-spacing:3px;color:var(--red);margin-bottom:3px}
 
 /* ── RANKING ── */
 .rank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.metrics-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px;}
+.metric-card{background:var(--bg2);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:14px 16px;position:relative;overflow:hidden;transition:border-color .2s;}
+.metric-card:hover{border-color:rgba(255,255,255,.15);}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.metric-card.m-xp::before{background:var(--gold);}
+.metric-card.m-rank::before{background:var(--cyan);}
+.metric-card.m-done::before{background:var(--green);}
+.metric-card.m-active::before{background:#00C4B4;}
+.metric-card.m-overdue::before{background:var(--red);}
+.metric-card.m-pending::before{background:#F5C518;}
+.metric-label{font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.metric-label svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.metric-value{font-family:var(--R);font-size:26px;font-weight:700;letter-spacing:1px;line-height:1;}
+.metric-sub{font-family:var(--M);font-size:9px;color:var(--dim);margin-top:5px;letter-spacing:1px;}
 .rm{background:var(--bg2);padding:18px;clip-path:var(--clip-md);border:var(--border-dim);cursor:pointer;transition:border-color .2s;position:relative}
 .rm:hover{border-color:rgba(255,70,85,.3)}
 .rm-pos{position:absolute;top:8px;right:12px;font-family:var(--M);font-size:11px}
@@ -255,6 +276,19 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 .task-detail-p{background:rgba(255,70,85,.05);border-color:var(--red)}
 .task-detail-r{background:rgba(0,196,180,.05);border-color:var(--cyan)}
 .cmts{margin-top:18px}
+.st-w-btn{background:var(--bg3);border:1px solid rgba(255,255,255,.1);color:var(--dim);font-family:var(--M);font-size:10px;padding:3px 10px;border-radius:2px;cursor:pointer;transition:all .15s;}
+.st-w-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.st-w-btn.active{background:rgba(0,196,180,.15);border-color:var(--cyan);color:var(--cyan);}
+.subtask-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border-radius:3px;margin-bottom:5px;border-left:3px solid transparent;transition:border-color .15s;}
+.subtask-item.done{opacity:.5;border-left-color:var(--green);}
+.subtask-item.done .st-title{text-decoration:line-through;}
+.subtask-item:not(.done){border-left-color:rgba(255,255,255,.1);}
+.st-check{width:16px;height:16px;border-radius:2px;border:1.5px solid rgba(255,255,255,.2);background:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.st-check.done{background:var(--green);border-color:var(--green);}
+.st-title{font-family:var(--R);font-size:13px;font-weight:600;flex:1;color:var(--cream);}
+.st-weight{font-family:var(--M);font-size:9px;color:var(--dim);flex-shrink:0;}
+.st-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 4px;opacity:.4;transition:opacity .15s;}
+.st-del:hover{opacity:1;color:var(--red);}
 .cmt{background:rgba(255,255,255,.03);padding:9px 12px;margin-bottom:6px;clip-path:var(--clip-sm)}
 .cmt-author{font-family:var(--R);font-size:12px;font-weight:700;color:var(--red);margin-bottom:2px}
 .cmt-txt{font-size:13px;color:var(--dim)}
@@ -452,21 +486,21 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       </div>
       <div class="sb-nav">
         <div class="nav-section">VISÃO GERAL</div>
-        <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon">🎯</span><span>Dashboard</span></div>
-        <div class="nav-item" onclick="go('projects')"><span class="nav-icon">📁</span><span>Projetos</span></div>
-        <div class="nav-item" onclick="go('kanban')"><span class="nav-icon">🗂</span><span>Kanban</span></div>
+        <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span>Dashboard</span></div>
+        <div class="nav-item" onclick="go('projects')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Projetos</span></div>
+        <div class="nav-item" onclick="go('kanban')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg></span><span>Kanban</span></div>
         <div class="nav-section">TASKS</div>
-        <div class="nav-item" onclick="go('my-tasks')"><span class="nav-icon">⚡</span><span>Minhas Tasks</span></div>
-        <div class="nav-item" onclick="go('all-tasks')"><span class="nav-icon">📋</span><span>Todas as Tasks</span></div>
-        <div class="nav-item" onclick="go('history')"><span class="nav-icon">🏆</span><span>Histórico</span></div>
+        <div class="nav-item" onclick="go('my-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>Minhas Tasks</span></div>
+        <div class="nav-item" onclick="go('all-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span>Todas as Tasks</span></div>
+        <div class="nav-item" onclick="go('history')"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span><span>Histórico</span></div>
         <div class="nav-section">GESTÃO</div>
-        <div class="nav-item mgr-only hidden" onclick="go('approvals')"><span class="nav-icon">🔔</span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
-        <div class="nav-item mgr-only hidden" onclick="go('members')"><span class="nav-icon">👥</span><span>Membros</span></div>
-        <div class="nav-item member-only hidden" onclick="go('notifications')"><span class="nav-icon">🔔</span><span>Notificações</span><span class="nav-badge hidden" id="notif-badge">0</span></div>
+        <div class="nav-item mgr-only hidden" onclick="go('approvals')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
+        <div class="nav-item mgr-only hidden" onclick="go('members')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Membros</span></div>
+        <div class="nav-item member-only hidden" onclick="go('notifications')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>Notificações</span><span class="nav-badge hidden" id="notif-badge">0</span></div>
         <div class="nav-section">PESSOAL</div>
-        <div class="nav-item" onclick="go('profile')"><span class="nav-icon">👤</span><span>Meu Perfil</span></div>
-        <div class="nav-item" onclick="go('activity')"><span class="nav-icon">📜</span><span>Log</span></div>
-        <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon">📰</span><span>Atualizações</span></div>
+        <div class="nav-item" onclick="go('profile')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Meu Perfil</span></div>
+        <div class="nav-item mgr-only" onclick="go('activity')"><span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Log</span></div>
+        <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>Atualizações</span></div>
       </div>
       <div class="sb-footer">
         <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
@@ -480,6 +514,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
         <div class="page-head">
           <div><div class="page-title">DASH<span>BOARD</span></div><div class="page-sub">// VISÃO GERAL DO ESTÚDIO</div></div>
         </div>
+        <div class="metrics-bar" id="dash-metrics"></div>
         <div class="sec">PROJETOS ATIVOS</div>
         <div id="dash-projects" style="margin-bottom:22px;"></div>
         <div class="sec">RANKING DO ESTÚDIO</div>
@@ -494,7 +529,37 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <div><div class="page-title">PROJ<span>ETOS</span></div><div class="page-sub">// CLIENTES & CAMPANHAS</div></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;" id="proj-head-acts"></div>
         </div>
-        <div class="proj-grid" id="projects-list"></div>
+        <div class="ftabs" id="proj-tabs" style="margin-bottom:16px;">
+          <button class="ftab active" onclick="projFilter('active',this)">ATIVOS</button>
+          <button class="ftab" onclick="projFilter('deletion',this)">EXCLUSÃO PENDENTE&nbsp;<span id="del-req-count" class="hidden" style="background:var(--red);color:#fff;font-family:var(--M);font-size:9px;padding:1px 6px;border-radius:10px;">0</span></button>
+          <button class="ftab" onclick="projFilter('archived',this)">ARQUIVADOS</button>
+        </div>
+        <div id="projects-list"></div>
+      </div>
+
+      <!-- PROJETO DETALHE -->
+      <div class="view" id="view-project-detail">
+        <div class="page-head">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="btn btn-ghost btn-sm" onclick="go('projects')" style="padding:6px 10px;">← VOLTAR</button>
+            <div>
+              <div class="page-title" id="pd-title">—</div>
+              <div class="page-sub" id="pd-sub">—</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pd-acts"></div>
+        </div>
+        <!-- Métricas do projeto -->
+        <div class="metrics-bar" id="pd-metrics" style="margin-bottom:20px;"></div>
+        <!-- Mini Kanban -->
+        <div class="sec">KANBAN DO PROJETO</div>
+        <div id="pd-kanban" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;margin-bottom:24px;"></div>
+        <!-- Lista de tasks -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec" style="margin:0;">TODAS AS TASKS</div>
+          <button class="btn btn-primary btn-sm" id="pd-add-task" onclick="openCreateForProject()">+ NOVA TASK</button>
+        </div>
+        <div id="pd-tasks"></div>
       </div>
 
       <!-- KANBAN -->
@@ -526,6 +591,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <button class="ftab" onclick="myFilter('pending_approval',this)">AGUARDANDO</button>
           <button class="ftab" onclick="myFilter('rejected',this)">REJEITADAS</button>
         </div>
+        <div id="my-tag-bar"></div>
         <div class="tasks" id="my-list"></div>
       </div>
 
@@ -536,6 +602,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
           <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
         </div>
         <div class="ftabs" id="all-tabs"></div>
+        <div id="all-tag-bar"></div>
         <div class="tasks" id="all-list"></div>
       </div>
 
@@ -675,6 +742,35 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <span>✨ <strong id="md-xp" style="color:var(--gold)">—</strong></span>
     </div>
     <div id="md-acts" style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;"></div>
+    <!-- SUBTASKS -->
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="sec" style="font-size:10px;margin:0;">SUBTASKS <span id="md-sub-pct" style="color:var(--cyan);margin-left:6px;"></span></div>
+        <button class="btn btn-ghost btn-sm" onclick="openAddSubtask()" id="btn-add-subtask" style="font-size:10px;">+ ADICIONAR</button>
+      </div>
+      <div id="md-sub-progress" style="height:4px;background:var(--bg3);border-radius:2px;margin-bottom:10px;overflow:hidden;display:none;">
+        <div id="md-sub-bar" style="height:100%;background:var(--cyan);border-radius:2px;transition:width .3s;width:0%"></div>
+      </div>
+      <div id="md-subtasks"></div>
+      <!-- form inline -->
+      <div id="subtask-form" class="hidden" style="background:var(--bg3);border-radius:4px;padding:12px;margin-top:8px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="st-title" placeholder="Ex: Storyboard" style="flex:1;" onkeydown="if(event.key==='Enter')saveSubtask()">
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;">PESO:</span>
+          <button class="st-w-btn" onclick="selectWeight(this,25)">25%</button>
+          <button class="st-w-btn" onclick="selectWeight(this,50)">50%</button>
+          <button class="st-w-btn active" onclick="selectWeight(this,75)">75%</button>
+          <button class="st-w-btn" onclick="selectWeight(this,100)">100%</button>
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim);margin-left:4px;">→ os pesos são normalizados automaticamente</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" onclick="saveSubtask()">SALVAR</button>
+          <button class="btn btn-ghost btn-sm" onclick="hide('subtask-form');$('st-title').value=''">CANCELAR</button>
+        </div>
+      </div>
+    </div>
     <div class="cmts">
       <div class="sec" style="font-size:10px;">COMENTÁRIOS</div>
       <div id="md-cmts"></div>
@@ -682,6 +778,42 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
         <div class="field" style="flex:1"><input type="text" id="cmt-in" placeholder="Comentário..." onkeydown="if(event.key==='Enter')doComment()"></div>
         <button class="btn btn-primary btn-sm" onclick="doComment()">ENVIAR</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR TASK -->
+<div class="overlay hidden" id="m-edit-task">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-edit-task')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Título *</label><input type="text" id="et-title" placeholder="Ex: Criar identidade visual"></div>
+      <div class="field"><label>Projeto</label><select id="et-project"></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Responsável</label><select id="et-assignee"></select></div>
+      <div class="field"><label>Prioridade</label>
+        <select id="et-priority">
+          <option value="low">Baixa (+80 XP)</option>
+          <option value="medium">Média (+150 XP)</option>
+          <option value="high">Alta (+300 XP)</option>
+          <option value="critical">Crítica (+700 XP)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Problema / Desafio *</label><textarea id="et-problem" rows="3" placeholder="Descreva o problema..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Resolução / Plano *</label><textarea id="et-resolution" rows="3" placeholder="Como será resolvido..."></textarea></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Deadline *</label><input type="date" id="et-deadline"></div>
+      <div class="field"><label>Tags (vírgula)</label><input type="text" id="et-tags" placeholder="branding, social..."></div>
+    </div>
+    <div id="et-notice" class="hidden notice" style="margin-top:8px;">⚠ Alterar prioridade ou responsável recalcula o XP da task.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-edit-task')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doEditTask()">SALVAR ALTERAÇÕES</button>
     </div>
   </div>
 </div>
@@ -753,6 +885,50 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   </div>
 </div>
 
+<!-- MODAL: SOLICITAR EXCLUSÃO DE PROJETO -->
+<div class="overlay hidden" id="m-delete-proj">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">EXCLUIR <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-delete-proj')">✕</button>
+    </div>
+    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;">⚠ REQUER APROVAÇÃO DE OUTRO ADM</div>
+      <div style="font-size:13px;color:var(--dim);">A exclusão de <strong style="color:var(--cream)" id="del-proj-name">—</strong> precisará ser aprovada por outro administrador. As tasks vinculadas <strong style="color:var(--cream)">não serão deletadas</strong>, apenas desvinculadas do projeto.</div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Motivo da exclusão *</label>
+      <input type="text" id="del-proj-reason" placeholder="Ex: Projeto cancelado pelo cliente">
+    </div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-delete-proj')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="submitDeleteProject()">SOLICITAR EXCLUSÃO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ATRIBUIR TASK A PROJETO -->
+<div class="overlay hidden" id="m-assign-project">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">ATRIBUIR A <span style="color:var(--cyan)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-assign-project')">✕</button>
+    </div>
+    <div id="assign-task-info" style="background:var(--bg3);border-radius:4px;padding:10px 14px;margin-bottom:16px;font-family:var(--M);font-size:11px;color:var(--dim);"></div>
+    <div class="field-grid one"><div class="field">
+      <label>Selecionar Projeto</label>
+      <select id="assign-proj-select"></select>
+    </div></div>
+    <div id="assign-member-notice" class="hidden" style="background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-family:var(--M);font-size:10px;color:#F5C518;">
+      ⏳ Como membro, esta atribuição precisará de aprovação do ADM antes de ser efetivada.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-assign-project')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveAssignProject()">ATRIBUIR</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: REJEITAR PROJETO -->
 <div class="overlay hidden" id="m-reject-proj">
   <div class="modal" style="max-width:400px">
@@ -792,6 +968,13 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       </div>
     </div>
     <div class="field-grid one"><div class="field"><label>Descrição</label><textarea id="proj-desc" rows="2" placeholder="Breve descrição do projeto..."></textarea></div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Imagem de Capa <span style="color:var(--dim);font-weight:400;">(URL)</span></label>
+      <input type="text" id="proj-cover" placeholder="https://..." oninput="previewCover(this.value)">
+      <div id="proj-cover-preview" style="margin-top:8px;height:80px;border-radius:4px;background:var(--bg3);background-size:cover;background-position:center;display:none;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,var(--bg2));"></div>
+      </div>
+    </div></div>
     <div class="field-grid">
       <div class="field"><label>Data de Início</label><input type="date" id="proj-start"></div>
       <div class="field"><label>Deadline</label><input type="date" id="proj-deadline"></div>
@@ -915,8 +1098,8 @@ const LI={register:'👤',task_create:'➕',task_pending:'⏳',task_approve:'✅
 //  STATE
 // ══════════════════════════════════════════════
 let db,auth,me=null,meData=null,tasks=[],users=[],projects=[];
-let curView='dashboard',myFV='all',allFV='all',histFV='all',kanbanProjFV='all',globalProjFV='all';
-let selTask=null,rejTask=null,cargoUID=null,editProjId=null;
+let curView='dashboard',myFV='all',allFV='all',histFV='all',kanbanProjFV='all',globalProjFV='all',tagFV=[],projFV='active';
+let selTask=null,rejTask=null,cargoUID=null,editProjId=null,editingTaskId=null;
 let dragTask=null;
 
 // ══════════════════════════════════════════════
@@ -961,6 +1144,7 @@ async function onAuth(user){
     if(!d.exists){await auth.signOut();show('auth-screen');return;}
     meData={uid:user.uid,...d.data()};
     await applyOverduePenalties();
+    await checkDeadlineAlerts();
     await log('login',`${meData.displayName} fez login`);
     await boot();
   }else{me=null;meData=null;show('auth-screen');hide('main-app');}
@@ -988,6 +1172,48 @@ async function applyOverduePenalties(){
     toast(`⚠ -${pen} XP por tasks atrasadas`,false);
   }else{
     await db.collection('users').doc(me.uid).update({lastPenaltyCheck:firebase.firestore.FieldValue.serverTimestamp()});
+  }
+}
+
+async function checkDeadlineAlerts(){
+  // Busca tasks ativas do usuário com deadline nos próximos 2 dias
+  const s=await db.collection('tasks').where('assigneeId','==',me.uid).get();
+  const now=Date.now();
+  const TWO_DAYS=2*864e5;
+  const TODAY=new Date().toISOString().split('T')[0]; // "2026-03-13"
+
+  const batch=db.batch();
+  let alertCount=0;
+
+  for(const doc of s.docs){
+    const t={id:doc.id,...doc.data()};
+    if(!['active','in_progress'].includes(t.status))continue;
+    const dl=t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null;
+    if(!dl)continue;
+    const diff=dl.getTime()-now;
+    if(diff<0||diff>TWO_DAYS)continue; // já atrasada ou longe
+
+    // Evita spam: só 1 alerta por task por dia
+    const lastAlert=t.lastDeadlineAlert; // "2026-03-13"
+    if(lastAlert===TODAY)continue;
+
+    // Dias restantes
+    const daysLeft=Math.ceil(diff/864e5);
+    const label=daysLeft<=0?'hoje':daysLeft===1?'amanhã':`em ${daysLeft} dias`;
+
+    await saveNotif(me.uid,'deadline_warning',t.title,{
+      fromName:'Sistema',
+      reason:`Prazo: ${dl.toLocaleDateString('pt-BR')} — vence ${label}`
+    });
+
+    // Marca no doc da task para não repetir hoje
+    batch.update(doc.ref,{lastDeadlineAlert:TODAY});
+    alertCount++;
+  }
+
+  if(alertCount>0){
+    await batch.commit();
+    toast(`⏰ ${alertCount} task${alertCount>1?'s':''} com prazo próximo!`,false);
   }
 }
 
@@ -1055,10 +1281,13 @@ function startListeners(){
 let _changeTimer=null;
 function _onDataChange(){
   // Debounce — wait 120ms after last change before re-rendering
+  // Skip full re-render if a modal is currently open (preserves user input)
   clearTimeout(_changeTimer);
   _changeTimer=setTimeout(()=>{
-    renderCurView();
+    const modalOpen=document.querySelector('.overlay:not(.hidden)');
+    if(!modalOpen)renderCurView();
     updBadge();
+    if(curView==='dashboard')renderMetrics();
   },120);
 }
 
@@ -1099,11 +1328,23 @@ function buildGlobalProjSel(){
 // ══════════════════════════════════════════════
 //  PROJECT ACTIONS
 // ══════════════════════════════════════════════
+function previewCover(url){
+  const el=$('proj-cover-preview');if(!el)return;
+  if(url){
+    el.style.backgroundImage=`url('${url}')`;
+    el.style.display='block';
+  }else{
+    el.style.backgroundImage='';
+    el.style.display='none';
+  }
+}
+
 function openCreateProject(){
   editProjId=null;
   $('m-proj-modal-title').innerHTML='NOVO <span style="color:var(--red)">PROJETO</span>';
-  ['proj-name','proj-client','proj-desc'].forEach(id=>$(id).value='');
+  ['proj-name','proj-client','proj-desc','proj-cover'].forEach(id=>$(id).value='');
   $('proj-color').value='#FF4655';
+  $('proj-cover-preview').style.display='none';
   const today=new Date().toISOString().split('T')[0];
   $('proj-start').value=today;$('proj-deadline').value='';
   showModal('m-project');
@@ -1114,6 +1355,8 @@ function openEditProject(id){
   $('m-proj-modal-title').innerHTML='EDITAR <span style="color:var(--red)">PROJETO</span>';
   $('proj-name').value=p.name||'';$('proj-client').value=p.client||'';
   $('proj-desc').value=p.description||'';$('proj-color').value=p.color||'#FF4655';
+  $('proj-cover').value=p.coverImage||'';
+  previewCover(p.coverImage||'');
   const toDate=d=>d?.toDate?d.toDate():d?new Date(d):null;
   const fmtInput=d=>{if(!d)return'';const dt=toDate(d);if(!dt)return'';return dt.toISOString().split('T')[0];};
   $('proj-start').value=fmtInput(p.startDate);$('proj-deadline').value=fmtInput(p.deadline);
@@ -1123,7 +1366,8 @@ async function saveProject(){
   const name=$('proj-name').value.trim();
   if(!name){toast('Informe o nome do projeto',false);return;}
   const isMgr=meData.access==='manager';
-  const data={name,client:$('proj-client').value.trim(),description:$('proj-desc').value.trim(),color:$('proj-color').value,
+  const data={name,client:$('proj-client').value.trim(),description:$('proj-desc').value.trim(),
+    color:$('proj-color').value,coverImage:$('proj-cover').value.trim()||null,
     startDate:$('proj-start').value?new Date($('proj-start').value+'T00:00:00'):null,
     deadline:$('proj-deadline').value?new Date($('proj-deadline').value+'T00:00:00'):null};
   if(editProjId){
@@ -1150,6 +1394,91 @@ async function archiveProject(id){
   if(!confirm('Arquivar este projeto?'))return;
   await db.collection('projects').doc(id).update({archived:true});
   await refresh();buildGlobalProjSel();renderCurView();toast('Projeto arquivado');
+}
+
+async function unarchiveProject(id){
+  await db.collection('projects').doc(id).update({archived:false});
+  await refresh();buildGlobalProjSel();renderCurView();toast('Projeto reativado!',true);
+}
+
+let deleteProjId=null;
+async function openDeleteProject(id){
+  // Check if already has a pending deletion request
+  const existing=await db.collection('projectDeletionRequests')
+    .where('projectId','==',id).where('status','==','pending').get();
+  if(!existing.empty){
+    toast('Já existe uma solicitação de exclusão pendente para este projeto.',false);
+    return;
+  }
+  deleteProjId=id;
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  $('del-proj-name').textContent=p.name;
+  $('del-proj-reason').value='';
+  showModal('m-delete-proj');
+}
+
+async function submitDeleteProject(){
+  const reason=$('del-proj-reason').value.trim();
+  if(!reason){toast('Informe o motivo da exclusão',false);return;}
+  const p=projects.find(x=>x.id===deleteProjId);if(!p)return;
+
+  // Save deletion request
+  await db.collection('projectDeletionRequests').add({
+    projectId:deleteProjId,
+    projectName:p.name,
+    requestedBy:me.uid,
+    requestedByName:meData.displayName,
+    reason,
+    status:'pending',
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // Notify all OTHER managers
+  const otherMgrs=users.filter(u=>u.access==='manager'&&u.uid!==me.uid);
+  for(const mgr of otherMgrs){
+    await saveNotif(mgr.uid,'delete_request',p.name,{
+      fromName:meData.displayName,
+      reason:`Motivo: ${reason}`
+    });
+  }
+
+  await log('project_update',`${meData.displayName} solicitou exclusão do projeto "${p.name}": ${reason}`);
+  closeModal('m-delete-proj');
+  toast('Solicitação enviada para outro ADM!',true);
+  await updBadge();
+}
+
+async function approveDeleteProject(reqId){
+  const snap=await db.collection('projectDeletionRequests').doc(reqId).get();
+  const r=snap.data();if(!r)return;
+
+  // Unlink all tasks from this project
+  const taskSnap=await db.collection('tasks').where('projectId','==',r.projectId).get();
+  if(taskSnap.size>0){
+    const batch=db.batch();
+    taskSnap.docs.forEach(d=>batch.update(d.ref,{projectId:null,projectName:null}));
+    await batch.commit();
+  }
+
+  // Delete the project
+  await db.collection('projects').doc(r.projectId).delete();
+  await db.collection('projectDeletionRequests').doc(reqId).update({status:'approved'});
+
+  // Notify requester
+  await saveNotif(r.requestedBy,'delete_approved',r.projectName,{fromName:meData.displayName});
+  await log('project_update',`${meData.displayName} aprovou exclusão do projeto "${r.projectName}"`);
+  toast('Projeto excluído!',true);
+  await refresh();buildGlobalProjSel();renderCurView();updBadge();
+}
+
+async function rejectDeleteProject(reqId){
+  const snap=await db.collection('projectDeletionRequests').doc(reqId).get();
+  const r=snap.data();if(!r)return;
+  await db.collection('projectDeletionRequests').doc(reqId).update({status:'rejected'});
+  await saveNotif(r.requestedBy,'delete_rejected',r.projectName,{fromName:meData.displayName});
+  await log('project_update',`${meData.displayName} rejeitou exclusão do projeto "${r.projectName}"`);
+  toast('Solicitação rejeitada.',false);
+  renderCurView();updBadge();
 }
 function openRequestProject(){
   editProjId=null;
@@ -1218,6 +1547,7 @@ async function startTask(id){
 
 async function completeTask(id){
   const t=tasks.find(x=>x.id===id);if(!t)return;
+  if(t.status==='done'){toast('Task já concluída',false);return;}
   const overdue=isOverdue(t),pen=overdue?XP_PENALTY[t.priority]:0,xp=Math.max(0,t.xpReward-pen);
   await db.collection('tasks').doc(id).update({status:'done',completedAt:firebase.firestore.FieldValue.serverTimestamp()});
   if(xp>0)await addXP(t.assigneeId,xp,true);
@@ -1240,6 +1570,7 @@ function openReject(id){rejTask=id;$('rej-reason').value='';showModal('m-reject'
 async function doReject(){
   const reason=$('rej-reason').value.trim();
   if(!reason){toast('Informe o motivo',false);return;}
+  if(!rejTask){toast('Erro: task não encontrada',false);return;}
   const snap=await db.collection('tasks').doc(rejTask).get();
   const t={id:rejTask,...snap.data()};
   await db.collection('tasks').doc(rejTask).update({status:'rejected',rejectionReason:reason});
@@ -1263,11 +1594,14 @@ async function doComment(){
 }
 
 // Drag & Drop (Kanban)
+let _movingTask=false;
 async function moveTaskStatus(id,newStatus){
+  if(_movingTask)return;
   const t=tasks.find(x=>x.id===id);if(!t||t.status===newStatus)return;
+  _movingTask=true;
   // Block members from moving pending_approval tasks
   if(t.status==='pending_approval'&&meData?.access!=='manager'){
-    toast('Task aguardando aprovação do ADM',false);return;
+    _movingTask=false;toast('Task aguardando aprovação do ADM',false);return;
   }
   // Completing via drag
   if(newStatus==='done'){await completeTask(id);return;}
@@ -1287,18 +1621,23 @@ async function moveTaskStatus(id,newStatus){
         updateSidebar();
       }
     }else{
-      // XP was 0 (full penalty) but still decrement counter
-      await db.collection('users').doc(t.assigneeId).update({tasksCompleted:firebase.firestore.FieldValue.increment(-1)});
+      // XP was 0 (full penalty) but still decrement counter if > 0
+      const uSnap=await db.collection('users').doc(t.assigneeId).get();
+      if((uSnap.data().tasksCompleted||0)>0)
+        await db.collection('users').doc(t.assigneeId).update({tasksCompleted:firebase.firestore.FieldValue.increment(-1)});
+      else
+        await db.collection('users').doc(t.assigneeId).update({tasksCompleted:0});
       if(t.assigneeId===me?.uid){meData.tasksCompleted=Math.max(0,(meData.tasksCompleted||1)-1);updateSidebar();}
     }
     await db.collection('tasks').doc(id).update({status:newStatus,completedAt:null});
     await log('task_start',`${meData.displayName} reabriu "${t.title}" → ${SL[newStatus]} (XP revertido)`);
     toast('Task reaberta. XP revertido.',false);
-    await refresh();renderKanban();return;
+    _movingTask=false;await refresh();renderKanban();return;
   }
-  if(newStatus==='in_progress'&&t.status==='active'){await startTask(id);return;}
+  if(newStatus==='in_progress'&&t.status==='active'){_movingTask=false;await startTask(id);return;}
   await db.collection('tasks').doc(id).update({status:newStatus});
   await log('task_start',`${meData.displayName} moveu "${t.title}" para ${SL[newStatus]}`);
+  _movingTask=false;
   await refresh();renderKanban();
 }
 
@@ -1409,6 +1748,40 @@ function renderComments(cmts){
 }
 
 // Filter tasks by global project
+function toggleTagFilter(tag){
+  if(tagFV.includes(tag))tagFV=tagFV.filter(t=>t!==tag);
+  else tagFV=[...tagFV,tag];
+  renderCurView();
+}
+function filterByTag(tag){
+  if(tagFV.includes(tag)) tagFV=tagFV.filter(t=>t!==tag); // remove se já está
+  else tagFV=[...tagFV,tag]; // adiciona
+  go('all-tasks');
+}
+function clearTagFilter(){tagFV=[];renderCurView();}
+function removeTag(tag){tagFV=tagFV.filter(t=>t!==tag);renderCurView();}
+
+function buildTagBar(taskList){
+  const counts={};
+  taskList.forEach(t=>(t.tags||[]).forEach(tag=>{counts[tag]=(counts[tag]||0)+1;}));
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  if(!sorted.length)return'';
+  const chips=sorted.map(([tag,n])=>{
+    const active=tagFV.includes(tag);
+    return`<span class="tag-pill${active?' active':''}" onclick="toggleTagFilter(${JSON.stringify(tag)})">${tag} <span style="opacity:.5">${n}</span></span>`;
+  }).join('');
+  const activeChips=tagFV.map(tag=>`<span class="tag-active-chip">🏷 ${tag} <button onclick="removeTag('${tag}')">✕</button></span>`).join('');
+  return`<div class="tag-filter-bar">
+    <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;flex-shrink:0;">TAGS:</span>
+    ${chips}
+    ${tagFV.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-left:4px;padding-left:8px;border-left:1px solid rgba(255,255,255,.1);">${activeChips}<button class="btn btn-ghost btn-sm" style="font-size:9px;padding:2px 6px;" onclick="clearTagFilter()">LIMPAR</button></div>`:''}
+  </div>`;
+}
+
+function applyTagFilter(arr){
+  if(!tagFV.length)return arr;
+  return arr.filter(t=>tagFV.every(tag=>(t.tags||[]).includes(tag)));
+}
 function filterByGlobalProj(arr){
   if(globalProjFV==='all')return arr;
   return arr.filter(t=>t.projectId===globalProjFV);
@@ -1418,7 +1791,7 @@ function taskCard(t,i,isMe){
   const dl=t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null;
   const overdue=isOverdue(t);
   const urgent=dl&&!overdue&&(dl-new Date())<2*864e5&&t.status!=='done';
-  const tags=(t.tags||[]).map(x=>`<span class="tag-pill">${x}</span>`).join('');
+  const tags=(t.tags||[]).map(x=>`<span class="tag-pill${tagFV.includes(x)?' active':''}" onclick="event.stopPropagation();filterByTag(${JSON.stringify(x)})">${x}</span>`).join('');
   const col=projColor(t.projectId);
   const pname=t.projectName||projName(t.projectId);
   const statusBadge=overdue?`<span class="badge bs-overdue">ATRASADA</span>`:`<span class="badge bs-${t.status}">${SL[t.status]||t.status}</span>`;
@@ -1436,6 +1809,7 @@ function taskCard(t,i,isMe){
     </div>
     ${rejBlock}
     <div class="tc-body"><div class="tc-title">${t.title}</div><div class="tc-desc">${t.problem}</div></div>
+    ${(()=>{const subs=t.subtasks||[];if(!subs.length)return'';const pct=calcProgress(subs);const done=subs.filter(x=>x.done).length;return`<div style="padding:0 16px 8px;"><div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:9px;color:var(--dim);margin-bottom:4px;"><span>SUBTASKS ${done}/${subs.length}</span><span style="color:${pct===100?'var(--green)':'var(--cyan)'};">${pct}%</span></div><div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--cyan)'};border-radius:2px;transition:width .3s;"></div></div></div>`;})()}
     <div class="tc-foot">
       <div class="tc-meta"><span class="${urgent?'urgent':overdue?'overdue-txt':''}">📅 ${fmtDate(dl)}${overdue?' ⚠':''}</span>${tags}</div>
       <div class="tc-acts" onclick="event.stopPropagation()"><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">VER</button>${acts}</div>
@@ -1446,8 +1820,43 @@ function taskCard(t,i,isMe){
 // ══════════════════════════════════════════════
 //  VIEWS
 // ══════════════════════════════════════════════
+function renderMetrics(){
+  const isMgr=meData?.access==='manager';
+  const myTasks=tasks.filter(t=>t.assigneeId===me.uid&&!['rejected','done'].includes(t.status));
+  const active=myTasks.filter(t=>['active','in_progress'].includes(t.status)).length;
+  const overdue=myTasks.filter(t=>isOverdue(t)).length;
+  const xp=meData?.xp||0;
+  const r=rank(xp);
+  const done=meData?.tasksCompleted||0;
+  const pending=isMgr?tasks.filter(t=>t.status==='pending_approval').length:0;
+
+  const ic=(path,extra='')=>`<svg viewBox="0 0 24 24" ${extra}>${path}</svg>`;
+  const iconXP=ic('<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>');
+  const iconRank=ic('<path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/><path d="M15 7a3 3 0 1 0-6 0"/><path d="M18.05 7.27A9 9 0 1 0 5.95 7.27"/>');
+  const iconDone=ic('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>');
+  const iconActive=ic('<rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/>');
+  const iconOverdue=ic('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>');
+  const iconPending=ic('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><circle cx="12" cy="12" r="3"/>');
+
+  const card=(cls,icon,label,value,color,sub)=>`
+    <div class="metric-card ${cls}" onclick="${cls==='m-overdue'?"go('my-tasks');myFilter('active',document.querySelector('.ftab'))":`go('${cls==='m-active'||cls==='m-overdue'?'my-tasks':cls==='m-done'?'history':cls==='m-pending'?'approvals':'profile'}')`}" style="cursor:pointer;">
+      <div class="metric-label" style="color:${color};">${icon} ${label}</div>
+      <div class="metric-value" style="color:${color};">${value}</div>
+      ${sub?`<div class="metric-sub">${sub}</div>`:''}
+    </div>`;
+
+  $('dash-metrics').innerHTML=
+    card('m-xp',    iconXP,     'MEU XP',       xp.toLocaleString(), 'var(--gold)',  r.icon+' '+r.name)+
+    card('m-rank',  iconRank,   'RANK',          r.name,              r.color,       xp+' / '+(rank(xp+1)?.min||'MAX')+' XP')+
+    card('m-done',  iconDone,   'CONCLUÍDAS',    done,                'var(--green)', 'tasks finalizadas')+
+    card('m-active',iconActive, 'ATIVAS',        active,              'var(--cyan)',  'em andamento')+
+    card('m-overdue',iconOverdue,'EM ATRASO',    overdue,             overdue>0?'var(--red)':'var(--dim)', overdue>0?'requer atenção':'tudo em dia')+
+    (isMgr?card('m-pending',iconPending,'APROVAÇÕES',pending,'#F5C518',pending>0?'aguardando revisão':'nenhuma pendente'):'');
+}
+
 async function renderDash(){
   await refresh();
+  renderMetrics();
   // Mini project cards
   const activeProjs=projects.filter(p=>!p.archived).slice(0,6);
   $('dash-projects').innerHTML=activeProjs.length?`<div class="proj-grid">${activeProjs.map(p=>{
@@ -1497,6 +1906,194 @@ async function renderDash(){
   $('dash-activity').innerHTML=`<div>${renderLogs(await loadLog(5))}</div>`;
 }
 
+// ══════════════════════════════════════════════
+//  PROJECT DETAIL
+// ══════════════════════════════════════════════
+let curProjectId=null;
+
+function openProjectDetail(id){
+  curProjectId=id;
+  go('project-detail');
+}
+
+async function openCreateForProject(){
+  await openCreate();
+  if($('t-project')&&curProjectId)$('t-project').value=curProjectId;
+}
+
+async function renderProjectDetail(){
+  await refresh();
+  const p=projects.find(x=>x.id===curProjectId);
+  if(!p){go('projects');return;}
+  const isMgr=meData?.access==='manager';
+  const col=p.color||'var(--cyan)';
+  const pt=tasks.filter(t=>t.projectId===p.id&&t.status!=='rejected');
+  const done=pt.filter(t=>t.status==='done').length;
+  const pct=pt.length?Math.round((done/pt.length)*100):0;
+  const overdue=pt.filter(t=>isOverdue(t)).length;
+  const active=pt.filter(t=>['active','in_progress'].includes(t.status)).length;
+  const pending=pt.filter(t=>t.status==='pending_approval').length;
+
+  // Header
+  $('pd-title').innerHTML=`<span style="color:${col}">${p.name}</span>`;
+  $('pd-sub').textContent=(p.client?'👤 '+p.client+' · ':'')+(p.description||'');
+
+  // Actions
+  $('pd-acts').innerHTML=
+    `<button class="btn btn-ghost btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN GLOBAL</button>`+
+    (isMgr?`<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')">✏ EDITAR</button>`:'`')+
+    (isMgr?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:'')+
+    (isMgr?`<button class="btn btn-danger btn-sm" onclick="openDeleteProject('${p.id}')">🗑 EXCLUIR</button>`:'');;
+
+  // Metrics
+  $('pd-metrics').innerHTML=`
+    <div class="metric-card" style="border-top:2px solid ${col}22;">
+      <div class="metric-label" style="color:${col};">PROGRESSO</div>
+      <div class="metric-value" style="color:${col};">${pct}%</div>
+      <div style="height:3px;background:var(--bg3);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px;"></div></div>
+    </div>
+    <div class="metric-card m-active"><div class="metric-label" style="color:var(--cyan);">ATIVAS</div><div class="metric-value" style="color:var(--cyan);">${active}</div></div>
+    <div class="metric-card m-done"><div class="metric-label" style="color:var(--green);">CONCLUÍDAS</div><div class="metric-value" style="color:var(--green);">${done}</div></div>
+    <div class="metric-card m-overdue"><div class="metric-label" style="color:${overdue>0?'var(--red)':'var(--dim)'};">EM ATRASO</div><div class="metric-value" style="color:${overdue>0?'var(--red)':'var(--dim)'};">${overdue}</div></div>
+    ${pending?`<div class="metric-card m-pending"><div class="metric-label" style="color:#F5C518;">APROVAÇÕES</div><div class="metric-value" style="color:#F5C518;">${pending}</div></div>`:''}
+  `;
+
+  // Mini Kanban
+  const KB=[
+    {id:'active',label:'A FAZER',color:'var(--cyan)'},
+    {id:'in_progress',label:'EM PROGRESSO',color:'var(--gold)'},
+    {id:'pending_approval',label:'APROVAÇÃO',color:'#F5C518'},
+    {id:'done',label:'CONCLUÍDO',color:'var(--green)'},
+  ];
+  $('pd-kanban').innerHTML=KB.map(col=>{
+    const colTasks=pt.filter(t=>t.status===col.id);
+    return`<div style="min-width:200px;flex:1;background:var(--bg2);border-radius:4px;border:1px solid rgba(255,255,255,.06);padding:10px;">
+      <div style="font-family:var(--M);font-size:9px;color:${col.color};letter-spacing:2px;margin-bottom:8px;display:flex;justify-content:space-between;">
+        <span>${col.label}</span><span>${colTasks.length}</span>
+      </div>
+      ${colTasks.map(t=>`<div onclick="openTask('${t.id}')" style="background:var(--bg3);border-radius:3px;padding:7px 9px;margin-bottom:5px;cursor:pointer;border-left:2px solid ${col.color};transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+        <div style="font-family:var(--R);font-size:12px;font-weight:600;color:var(--cream);margin-bottom:3px;">${t.title}</div>
+        <div style="font-family:var(--M);font-size:9px;color:var(--dim);">👤 ${t.assigneeName||'—'}</div>
+        ${(t.subtasks||[]).length?`<div style="margin-top:4px;height:2px;background:var(--bg2);border-radius:1px;overflow:hidden;"><div style="height:100%;width:${calcProgress(t.subtasks)}%;background:var(--cyan);"></div></div>`:''}
+      </div>`).join('')||`<div style="font-family:var(--M);font-size:9px;color:rgba(255,255,255,.1);text-align:center;padding:12px 0;">VAZIO</div>`}
+    </div>`;
+  }).join('');
+
+  // Task list
+  const allProjTasks=tasks.filter(t=>t.projectId===p.id&&t.status!=='rejected');
+  $('pd-tasks').innerHTML=allProjTasks.length
+    ?allProjTasks.map((t,i)=>taskCard(t,i,false)).join('')
+    :`<div class="empty"><div class="empty-icon">📋</div><h3>SEM TASKS</h3><p>Crie a primeira task deste projeto</p></div>`;
+}
+
+// Assign existing task to project
+let assignTaskId=null;
+function openAssignProject(taskId){
+  assignTaskId=taskId;
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const isMgr=meData?.access==='manager';
+  $('assign-task-info').innerHTML=`TASK: <strong style="color:var(--cream)">${t.title}</strong>${t.projectId?` · Projeto atual: <span style="color:var(--cyan)">${projName(t.projectId)}</span>`:''}`;
+  const opts=projects.filter(p=>!p.archived&&p.status==='active').map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  $('assign-proj-select').innerHTML=`<option value="">— Sem projeto —</option>${opts}`;
+  if(t.projectId)$('assign-proj-select').value=t.projectId;
+  $('assign-member-notice').classList.toggle('hidden',isMgr);
+  showModal('m-assign-project');
+}
+
+async function saveAssignProject(){
+  const t=tasks.find(x=>x.id===assignTaskId);if(!t)return;
+  const projId=$('assign-proj-select').value;
+  const isMgr=meData?.access==='manager';
+  const proj=projects.find(p=>p.id===projId);
+
+  if(isMgr){
+    // ADM vincula direto
+    await db.collection('tasks').doc(assignTaskId).update({
+      projectId:projId||null,
+      projectName:proj?.name||null
+    });
+    closeModal('m-assign-project');
+    toast('Task atribuída ao projeto!',true);
+  }else{
+    // Membro cria pendente de aprovação de vínculo
+    await db.collection('projectAssignmentRequests').add({
+      taskId:assignTaskId,
+      taskTitle:t.title,
+      projectId:projId||null,
+      projectName:proj?.name||null,
+      requestedBy:me.uid,
+      requestedByName:meData.displayName,
+      status:'pending',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    closeModal('m-assign-project');
+    toast('Solicitação enviada para o ADM!',true);
+  }
+}
+
+function projFilter(val,btn){
+  projFV=val;
+  document.querySelectorAll('#proj-tabs .ftab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderProjects();
+}
+
+function projCard(p,isMgr,delReq=null){
+  const pt=tasks.filter(t=>t.projectId===p.id&&!['rejected'].includes(t.status));
+  const done=pt.filter(t=>t.status==='done').length;
+  const active=pt.filter(t=>['active','in_progress'].includes(t.status)).length;
+  const overdue=pt.filter(t=>isOverdue(t)).length;
+  const pct=pt.length?Math.round((done/pt.length)*100):0;
+  const dl=p.deadline?.toDate?p.deadline.toDate():p.deadline?new Date(p.deadline):null;
+  const isDeletion=projFV==='deletion';
+  const isArchived=projFV==='archived';
+  return`<div class="proj-card" style="border-color:${isDeletion?'rgba(255,70,85,.4)':p.color+'33'};cursor:pointer;${isDeletion?'opacity:.85':''};padding:0;overflow:hidden;" onclick="openProjectDetail('${p.id}')">
+    ${p.coverImage?`
+    <div style="height:110px;background:url('${p.coverImage}') center/cover no-repeat;position:relative;flex-shrink:0;">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--bg2) 100%);"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${isDeletion?'var(--red)':p.color};"></div>
+      ${isDeletion?`<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.85);color:#fff;font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;">🗑 EXCLUSÃO PENDENTE</div>`:''}
+    </div>
+    <div style="padding:14px 16px 0;">
+    `:`
+    <div style="padding:20px 20px 0;position:relative;">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${isDeletion?'var(--red)':'linear-gradient(90deg,'+p.color+',transparent)'};"></div>
+      ${isDeletion?`<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.15);border:1px solid rgba(255,70,85,.4);color:var(--red);font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;">🗑 EXCLUSÃO PENDENTE</div>`:''}
+    `}
+    <div class="proj-card-header" style="padding:${p.coverImage?'0 0 10px':'0 0 10px'}">
+      <div class="proj-dot" style="background:${p.color}"></div>
+      <div class="proj-name">${p.name}</div>
+      <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
+        ${isMgr&&!isDeletion&&!isArchived?`<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}
+      </div>
+    </div>
+    ${p.client?`<div class="proj-client" style="padding-left:20px;margin-bottom:8px;">👤 ${p.client}</div>`:''}
+    ${isDeletion&&delReq?`<div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:8px 12px;margin-bottom:10px;border-radius:3px;font-family:var(--M);font-size:10px;"><span style="color:var(--red);">MOTIVO:</span> <span style="color:var(--dim)">${delReq.reason}</span><br><span style="color:var(--dim);">Solicitado por <strong style="color:var(--cream)">${delReq.requestedByName}</strong></span></div>`:''}
+    ${p.description?`<div style="font-size:13px;color:var(--dim);margin-bottom:10px;padding-left:20px;">${p.description}</div>`:''}
+    <div style="padding:0 4px 4px">
+      <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:10px;color:var(--dim);">
+        <span>PROGRESSO</span><span style="color:${p.color}">${pct}%</span>
+      </div>
+      <div class="proj-bar"><div class="proj-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+    </div>
+    <div class="proj-stats" style="padding:0 4px">
+      <div class="proj-stat"><div class="proj-stat-v" style="color:${p.color}">${pt.length}</div><div class="proj-stat-l">Total</div></div>
+      <div class="proj-stat"><div class="proj-stat-v" style="color:var(--green)">${done}</div><div class="proj-stat-l">Feitas</div></div>
+      <div class="proj-stat"><div class="proj-stat-v" style="color:var(--cyan)">${active}</div><div class="proj-stat-l">Ativas</div></div>
+      <div class="proj-stat"><div class="proj-stat-v" style="color:var(--red)">${overdue}</div><div class="proj-stat-l">Atraso</div></div>
+    </div>
+    ${dl?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;padding:0 4px">📅 Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>`:''}
+    <div class="proj-acts" onclick="event.stopPropagation()">
+      ${!isArchived?`<button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN</button>`:''}
+      ${isMgr&&isDeletion&&delReq&&delReq.requestedBy!==me.uid?`<button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${delReq.id}')">🗑 CONFIRMAR EXCLUSÃO</button><button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${delReq.id}')">✕ CANCELAR</button>`:''}
+      ${isMgr&&isDeletion&&delReq?.requestedBy===me.uid?`<span style="font-family:var(--M);font-size:9px;color:var(--dim);">Aguardando outro ADM</span>`:''}
+      ${isMgr&&!isDeletion&&!isArchived?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button><button class="btn btn-danger btn-sm" onclick="openDeleteProject('${p.id}')">🗑 EXCLUIR</button>`:''}
+      ${isMgr&&isArchived?`<button class="btn btn-ghost btn-sm" onclick="unarchiveProject('${p.id}')">📂 DESARQUIVAR</button>`:''}
+    </div>
+    </div>
+  </div>`;
+}
+
 async function renderProjects(){
   await refresh();
   const isMgr=meData?.access==='manager';
@@ -1504,97 +2101,65 @@ async function renderProjects(){
     ?`<button class="btn btn-primary" onclick="openCreateProject()">+ NOVO PROJETO</button>`
     :`<button class="btn btn-ghost" onclick="openRequestProject()">+ SOLICITAR PROJETO</button>`;
 
-  // ── Seção de pendentes (só ADM vê) ──────────────────────────────
-  const pendingProjs=projects.filter(p=>p.status==='pending'&&!p.archived);
-  let pendingHtml='';
-  if(isMgr&&pendingProjs.length){
-    pendingHtml=`<div style="margin-bottom:24px;">
-      <div class="sec">⏳ AGUARDANDO APROVAÇÃO</div>
-      ${pendingProjs.map(p=>`<div class="ac" style="margin-bottom:10px;">
-        <div class="ac-head"><div>
-          <div class="ac-meta">SOLICITADO POR: <strong>${p.requestedBy||'—'}</strong></div>
-          <div class="ac-title">${p.name}</div>
-        </div><div class="proj-dot" style="background:${p.color};width:12px;height:12px;border-radius:50%;margin-top:4px;flex-shrink:0"></div></div>
-        ${p.client?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;">👤 ${p.client}</div>`:''}
-        ${p.description?`<div class="detail-block db-r"><div class="detail-txt">${p.description}</div></div>`:''}
-        <div class="ac-acts">
-          <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')">✓ APROVAR</button>
-          <button class="btn btn-danger btn-sm" onclick="openRejectProject('${p.id}')">✕ REJEITAR</button>
-        </div>
-      </div>`).join('')}
-    </div>`;
-  }
+  // Update deletion badge count on tab
+  const delSnap=await db.collection('projectDeletionRequests').where('status','==','pending').get();
+  const delReqs=delSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const delCount=$('del-req-count');
+  if(delCount){delCount.textContent=delReqs.length;delCount.classList.toggle('hidden',delReqs.length===0);}
 
-  // ── Projetos rejeitados do próprio membro ────────────────────────
-  let rejectedHtml='';
-  if(!isMgr){
-    const myRejected=projects.filter(p=>p.status==='rejected'&&!p.archived&&p.createdById===me.uid);
-    if(myRejected.length){
-      rejectedHtml=`<div style="margin-bottom:24px;">
-        <div class="sec" style="color:var(--red)">✕ PROJETOS REJEITADOS</div>
-        ${myRejected.map(p=>`<div class="ac" style="border-color:var(--red)33;margin-bottom:10px;">
+  let html='';
+
+  if(projFV==='active'){
+    // ── Pendentes de aprovação (só ADM vê no topo) ──
+    const pendingProjs=projects.filter(p=>p.status==='pending'&&!p.archived);
+    if(isMgr&&pendingProjs.length){
+      html+=`<div style="margin-bottom:24px;"><div class="sec">⏳ AGUARDANDO APROVAÇÃO</div>
+        ${pendingProjs.map(p=>`<div class="ac" style="margin-bottom:10px;">
           <div class="ac-head"><div>
+            <div class="ac-meta">SOLICITADO POR: <strong>${p.requestedBy||'—'}</strong></div>
             <div class="ac-title">${p.name}</div>
-          </div><span class="badge" style="background:var(--red)22;color:var(--red);">REJEITADO</span></div>
-          <div style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-top:8px;border-radius:4px;">
-            <div style="font-family:var(--M);font-size:10px;color:var(--red);margin-bottom:4px;">// MOTIVO DA REJEIÇÃO</div>
-            <div style="font-size:13px;color:var(--dim);">${p.rejectionReason||'—'}</div>
+          </div><div class="proj-dot" style="background:${p.color};width:12px;height:12px;border-radius:50%;flex-shrink:0"></div></div>
+          ${p.client?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;">👤 ${p.client}</div>`:''}
+          ${p.description?`<div class="detail-block db-r"><div class="detail-txt">${p.description}</div></div>`:''}
+          <div class="ac-acts">
+            <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')">✓ APROVAR</button>
+            <button class="btn btn-danger btn-sm" onclick="openRejectProject('${p.id}')">✕ REJEITAR</button>
           </div>
         </div>`).join('')}
       </div>`;
     }
-    // Pendentes do próprio membro (aguardando)
-    const myPending=projects.filter(p=>p.status==='pending'&&!p.archived&&p.createdById===me.uid);
-    if(myPending.length){
-      rejectedHtml=`<div style="margin-bottom:24px;">
-        <div class="sec" style="color:#F5C518">⏳ SUAS SOLICITAÇÕES PENDENTES</div>
-        ${myPending.map(p=>`<div class="ac" style="margin-bottom:10px;opacity:.75;">
-          <div class="ac-head"><div>
-            <div class="ac-title">${p.name}</div>
-          </div><span class="badge" style="background:#F5C51822;color:#F5C518;">AGUARDANDO</span></div>
-          ${p.description?`<div style="font-size:13px;color:var(--dim);margin-top:6px;">${p.description}</div>`:''}
-        </div>`).join('')}
-      </div>`+rejectedHtml;
+    // Membro: seus projetos rejeitados/pendentes
+    if(!isMgr){
+      const myRej=projects.filter(p=>p.status==='rejected'&&!p.archived&&p.createdById===me.uid);
+      const myPend=projects.filter(p=>p.status==='pending'&&!p.archived&&p.createdById===me.uid);
+      if(myPend.length) html+=`<div style="margin-bottom:24px;"><div class="sec" style="color:#F5C518">⏳ SUAS SOLICITAÇÕES PENDENTES</div>${myPend.map(p=>`<div class="ac" style="margin-bottom:10px;opacity:.75;"><div class="ac-head"><div><div class="ac-title">${p.name}</div></div><span class="badge" style="background:#F5C51822;color:#F5C518;">AGUARDANDO</span></div>${p.description?`<div style="font-size:13px;color:var(--dim);margin-top:6px;">${p.description}</div>`:''}</div>`).join('')}</div>`;
+      if(myRej.length) html+=`<div style="margin-bottom:24px;"><div class="sec" style="color:var(--red)">✕ PROJETOS REJEITADOS</div>${myRej.map(p=>`<div class="ac" style="border-color:var(--red)33;margin-bottom:10px;"><div class="ac-head"><div><div class="ac-title">${p.name}</div></div><span class="badge" style="background:var(--red)22;color:var(--red);">REJEITADO</span></div><div style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-top:8px;border-radius:4px;"><div style="font-family:var(--M);font-size:10px;color:var(--red);margin-bottom:4px;">// MOTIVO</div><div style="font-size:13px;color:var(--dim);">${p.rejectionReason||'—'}</div></div></div>`).join('')}</div>`;
     }
+    // Projetos ativos
+    const activeProjs=projects.filter(p=>!p.archived&&p.status==='active');
+    // Exclude projects that have a pending deletion request
+    const delProjIds=new Set(delReqs.map(r=>r.projectId));
+    const list=activeProjs.filter(p=>!delProjIds.has(p.id));
+    html+=list.length
+      ?`<div class="proj-grid">${list.map(p=>projCard(p,isMgr)).join('')}</div>`
+      :`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS ATIVOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr?'primary':'ghost'} btn-sm" onclick="${isMgr?'openCreateProject()':'openRequestProject()'}">+ ${isMgr?'CRIAR PROJETO':'SOLICITAR PROJETO'}</button></div>`;
+
+  }else if(projFV==='deletion'){
+    if(!isMgr){html=`<div class="empty"><div class="empty-icon">🔒</div><h3>ACESSO RESTRITO</h3></div>`;$('projects-list').innerHTML=html;return;}
+    const delProjIds=delReqs.map(r=>r.projectId);
+    const delProjs=projects.filter(p=>delProjIds.includes(p.id));
+    html=delProjs.length
+      ?`<div class="proj-grid">${delProjs.map(p=>{const req=delReqs.find(r=>r.projectId===p.id);return projCard(p,isMgr,req);}).join('')}</div>`
+      :`<div class="empty"><div class="empty-icon">✅</div><h3>NENHUMA EXCLUSÃO PENDENTE</h3></div>`;
+
+  }else if(projFV==='archived'){
+    const archivedProjs=projects.filter(p=>p.archived);
+    html=archivedProjs.length
+      ?`<div class="proj-grid">${archivedProjs.map(p=>projCard(p,isMgr)).join('')}</div>`
+      :`<div class="empty"><div class="empty-icon">📦</div><h3>NENHUM PROJETO ARQUIVADO</h3></div>`;
   }
 
-  // ── Lista principal (apenas ativos) ─────────────────────────────
-  const list=projects.filter(p=>!p.archived&&p.status==='active');
-  $('projects-list').innerHTML=pendingHtml+rejectedHtml+(list.length?list.map(p=>{
-    const pt=tasks.filter(t=>t.projectId===p.id&&!['rejected'].includes(t.status));
-    const done=pt.filter(t=>t.status==='done').length;
-    const active=pt.filter(t=>['active','in_progress'].includes(t.status)).length;
-    const overdue=pt.filter(t=>isOverdue(t)).length;
-    const pct=pt.length?Math.round((done/pt.length)*100):0;
-    const dl=p.deadline?.toDate?p.deadline.toDate():p.deadline?new Date(p.deadline):null;
-    return`<div class="proj-card" style="border-color:${p.color}33">
-      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${p.color},transparent)"></div>
-      <div class="proj-card-header">
-        <div class="proj-dot" style="background:${p.color}"></div>
-        <div class="proj-name">${p.name}</div>
-        <div style="display:flex;gap:5px;">${isMgr?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}</div>
-      </div>
-      ${p.client?`<div class="proj-client" style="padding-left:20px;margin-bottom:8px;">👤 ${p.client}</div>`:''}
-      ${p.description?`<div style="font-size:13px;color:var(--dim);margin-bottom:10px;padding-left:20px;">${p.description}</div>`:''}
-      <div class="proj-bar-wrap" style="padding:0 0 4px">
-        <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:10px;color:var(--dim);">
-          <span>PROGRESSO</span><span style="color:${p.color}">${pct}%</span>
-        </div>
-        <div class="proj-bar"><div class="proj-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-      </div>
-      <div class="proj-stats">
-        <div class="proj-stat"><div class="proj-stat-v" style="color:${p.color}">${pt.length}</div><div class="proj-stat-l">Total</div></div>
-        <div class="proj-stat"><div class="proj-stat-v" style="color:var(--green)">${done}</div><div class="proj-stat-l">Feitas</div></div>
-        <div class="proj-stat"><div class="proj-stat-v" style="color:var(--cyan)">${active}</div><div class="proj-stat-l">Ativas</div></div>
-        <div class="proj-stat"><div class="proj-stat-v" style="color:var(--red)">${overdue}</div><div class="proj-stat-l">Atraso</div></div>
-      </div>
-      ${dl?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;">📅 Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>`:''}
-      <div class="proj-acts">
-        <button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN</button>
-        ${isMgr?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:''}
-      </div>
-    </div>`;
-  }).join(''):`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS ATIVOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr?'primary':'ghost'} btn-sm" onclick="${isMgr?'openCreateProject()':'openRequestProject()'}">+ ${isMgr?'CRIAR PROJETO':'SOLICITAR PROJETO'}</button></div>`);
+  $('projects-list').innerHTML=html;
 }
 
 async function renderKanban(){
@@ -1655,6 +2220,8 @@ function kanbanCard(t){
       <span class="kc-prio bp-${t.priority}">${PL[t.priority]}</span>
       <span style="font-family:var(--M);font-size:9px;color:var(--gold);">+${t.xpReward}</span>
     </div>
+    ${(t.tags||[]).length?`<div style="margin-top:5px;display:flex;gap:3px;flex-wrap:wrap;">${(t.tags||[]).map(x=>`<span class="tag-pill${tagFV.includes(x)?' active':''}" onclick="event.stopPropagation();filterByTag(${JSON.stringify(x)})">${x}</span>`).join('')}</div>`:''}
+    ${(()=>{const subs=t.subtasks||[];if(!subs.length)return'';const pct=calcProgress(subs);const done=subs.filter(x=>x.done).length;return`<div style="margin-top:7px;"><div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:8px;color:var(--dim);margin-bottom:3px;"><span>${done}/${subs.length} subtasks</span><span style="color:${pct===100?'var(--green)':'var(--cyan)'};">${pct}%</span></div><div style="height:2px;background:var(--bg3);border-radius:1px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--cyan)'};border-radius:1px;"></div></div></div>`;})()}
   </div>`;
 }
 
@@ -1670,6 +2237,8 @@ async function renderMyTasks(){
   await loadTasks();
   let t=filterByGlobalProj(tasks.filter(x=>x.assigneeId===me.uid));
   if(myFV!=='all')t=t.filter(x=>x.status===myFV);
+  $('my-tag-bar').innerHTML=buildTagBar(t);
+  t=applyTagFilter(t);
   $('my-list').innerHTML=t.length?t.map((t,i)=>taskCard(t,i,true)).join(''):`<div class="empty"><div class="empty-icon">🎯</div><h3>SEM MISSÕES</h3><p>Nenhuma task encontrada</p></div>`;
 }
 
@@ -1678,6 +2247,8 @@ async function renderAllTasks(){
   $('all-tabs').innerHTML=`<button class="ftab ${allFV==='all'?'active':''}" onclick="allFilter('all',this)">TODOS</button>`+users.map(u=>`<button class="ftab ${allFV===u.uid?'active':''}" onclick="allFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
   let t=filterByGlobalProj(tasks.filter(x=>x.status!=='rejected'));
   if(allFV!=='all')t=t.filter(x=>x.assigneeId===allFV);
+  $('all-tag-bar').innerHTML=buildTagBar(t);
+  t=applyTagFilter(t);
   $('all-list').innerHTML=t.length?t.map((t,i)=>taskCard(t,i,false)).join(''):`<div class="empty"><div class="empty-icon">📋</div><h3>SEM TASKS</h3></div>`;
 }
 
@@ -1707,20 +2278,99 @@ async function renderApprovals(){
   await loadTasks();
   const pend=tasks.filter(t=>t.status==='pending_approval');
   const col=id=>projColor(id);
-  $('appr-list').innerHTML=pend.length?pend.map(t=>{
-    const dl=fmtDate(t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null);
-    const pc=col(t.projectId);
-    return`<div class="ac"><div class="ac-head">
-      <div>
-        <div class="ac-meta"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:${pc};display:inline-block"></span>${t.projectName||'—'}</span> · DE: <strong>${t.createdByName}</strong> → <strong>${t.assigneeName}</strong></div>
-        <div class="ac-title">${t.title}</div>
+
+  // Project assignment requests
+  const assignSnap=await db.collection('projectAssignmentRequests').where('status','==','pending').get();
+  const assignReqs=assignSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+  // Project deletion requests — exclude ones requested by ME (can't self-approve)
+  const delSnap=await db.collection('projectDeletionRequests').where('status','==','pending').get();
+  const delReqs=delSnap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>r.requestedBy!==me.uid);
+
+  let html='';
+
+  // Deletion requests section
+  if(delReqs.length){
+    html+=`<div class="sec" style="color:var(--red);">🗑 EXCLUSÕES DE PROJETO PENDENTES</div>`;
+    html+=delReqs.map(r=>`<div class="ac" style="border-color:rgba(255,70,85,.3);margin-bottom:10px;">
+      <div class="ac-head">
+        <div>
+          <div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div>
+          <div class="ac-title">${r.projectName}</div>
+        </div>
+        <span class="badge" style="background:rgba(255,70,85,.15);color:var(--red);">EXCLUSÃO</span>
       </div>
-      <span class="badge bp-${t.priority}">${PL[t.priority]}</span></div>
-      <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${t.problem}</div></div>
-      <div class="detail-block db-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt">${t.resolution}</div></div>
-      <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:8px;">📅 Deadline: <strong style="color:var(--cream)">${dl}</strong> &nbsp;✨ <strong style="color:var(--gold)">+${t.xpReward} XP</strong></div>
-      <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveTask('${t.id}')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${t.id}')">✕ REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">DETALHES</button></div></div>`;
-  }).join(''):`<div class="empty"><div class="empty-icon">✅</div><h3>TUDO APROVADO</h3></div>`;
+      <div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:10px 14px;border-radius:3px;margin:8px 0;font-size:13px;color:var(--dim);">
+        <div style="font-family:var(--M);font-size:9px;color:var(--red);margin-bottom:4px;">// MOTIVO</div>
+        ${r.reason}
+      </div>
+      <div style="font-family:var(--M);font-size:9px;color:rgba(255,70,85,.6);margin-bottom:8px;">⚠ As tasks vinculadas serão desvinculadas mas não excluídas</div>
+      <div class="ac-acts">
+        <button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${r.id}')">🗑 APROVAR EXCLUSÃO</button>
+        <button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${r.id}')">✕ REJEITAR</button>
+      </div>
+    </div>`).join('');
+  }
+
+  // Assignment requests section
+  if(assignReqs.length){
+    html+=`<div class="sec" style="color:#F5C518;margin-top:${delReqs.length?'16px':'0'};">📁 ATRIBUIÇÕES DE PROJETO PENDENTES</div>`;
+    html+=assignReqs.map(r=>`<div class="ac" style="border-color:#F5C51833;margin-bottom:10px;">
+      <div class="ac-head">
+        <div>
+          <div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div>
+          <div class="ac-title">${r.taskTitle}</div>
+        </div>
+        <span class="badge" style="background:#F5C51822;color:#F5C518;">VÍNCULO</span>
+      </div>
+      <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin:8px 0;">
+        📁 Projeto: <strong style="color:var(--cyan)">${r.projectName||'— Sem projeto —'}</strong>
+      </div>
+      <div class="ac-acts">
+        <button class="btn btn-success btn-sm" onclick="approveAssignment('${r.id}')">✓ APROVAR</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectAssignment('${r.id}')">✕ REJEITAR</button>
+      </div>
+    </div>`).join('');
+  }
+
+  // Task approvals section
+  if(pend.length){
+    html+=`<div class="sec" style="margin-top:${(delReqs.length||assignReqs.length)?'16px':'0'};">✅ TASKS AGUARDANDO APROVAÇÃO</div>`;
+    html+=pend.map(t=>{
+      const dl=fmtDate(t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null);
+      const pc=col(t.projectId);
+      return`<div class="ac"><div class="ac-head">
+        <div>
+          <div class="ac-meta"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:${pc};display:inline-block"></span>${t.projectName||'—'}</span> · DE: <strong>${t.createdByName}</strong> → <strong>${t.assigneeName}</strong></div>
+          <div class="ac-title">${t.title}</div>
+        </div>
+        <span class="badge bp-${t.priority}">${PL[t.priority]}</span></div>
+        <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${t.problem}</div></div>
+        <div class="detail-block db-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt">${t.resolution}</div></div>
+        <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:8px;">📅 Deadline: <strong style="color:var(--cream)">${dl}</strong> &nbsp;✨ <strong style="color:var(--gold)">+${t.xpReward} XP</strong></div>
+        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveTask('${t.id}')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${t.id}')">✕ REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">DETALHES</button></div></div>`;
+    }).join('');
+  }
+
+  $('appr-list').innerHTML=html||`<div class="empty"><div class="empty-icon">✅</div><h3>TUDO APROVADO</h3></div>`;
+}
+
+async function approveAssignment(reqId){
+  const snap=await db.collection('projectAssignmentRequests').doc(reqId).get();
+  const r=snap.data();if(!r)return;
+  const proj=projects.find(p=>p.id===r.projectId);
+  await db.collection('tasks').doc(r.taskId).update({
+    projectId:r.projectId||null,
+    projectName:proj?.name||null
+  });
+  await db.collection('projectAssignmentRequests').doc(reqId).update({status:'approved'});
+  await log('project_update',`${meData.displayName} aprovou vínculo de task "${r.taskTitle}" ao projeto "${r.projectName||'nenhum'}"`);
+  toast('Vínculo aprovado!',true);
+}
+
+async function rejectAssignment(reqId){
+  await db.collection('projectAssignmentRequests').doc(reqId).update({status:'rejected'});
+  toast('Vínculo rejeitado.',false);
 }
 
 async function renderMembers(){
@@ -1905,10 +2555,175 @@ async function openTask(id){
     if(t.status==='in_progress'&&t.assigneeId===me.uid){acts+=`<button class="btn btn-success btn-sm" onclick="completeTask('${id}')">✓ CONCLUIR</button>`;if(overdue)acts+=`<span class="xp-penalty">⚠ -${XP_PENALTY[t.priority]} XP atraso</span>`;}
     if(t.status==='done')acts+=`<span style="color:var(--green);font-family:var(--M);font-size:11px;">✓ CONCLUÍDA</span>`;
     if(isMgr&&isPending){acts+=`<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')">✕ REJEITAR</button>`;}
+    // Edit button: manager edits any non-done task; member edits only tasks they created that aren't done
+    const canEdit=!['done','rejected'].includes(t.status)&&(isMgr||(t.createdById===me.uid&&t.status!=='pending_approval'));
+    if(canEdit)acts+=`<button class="btn btn-info btn-sm" onclick="openEditTask('${id}')">✏ EDITAR</button>`;
     if(isMgr||(t.createdById===me.uid&&!['done','pending_approval'].includes(t.status)))acts+=`<button class="btn btn-danger btn-sm" onclick="deleteTask('${id}')">🗑</button>`;
+    // Assign to project — available to everyone on non-done tasks
+    if(!['done','rejected'].includes(t.status))acts+=`<button class="btn btn-ghost btn-sm" onclick="openAssignProject('${id}')" style="color:var(--cyan);">📁 PROJETO</button>`;
   }
   $('md-acts').innerHTML=acts;
+  renderSubtasks(t);
   renderComments(await loadComments(id));showModal('m-task');
+}
+
+// ══════════════════════════════════════════════
+//  SUBTASKS
+// ══════════════════════════════════════════════
+let stWeight=75;
+
+function calcProgress(subtasks){
+  if(!subtasks||!subtasks.length)return 0;
+  const total=subtasks.reduce((s,x)=>s+(x.weight||1),0);
+  const done=subtasks.filter(x=>x.done).reduce((s,x)=>s+(x.weight||1),0);
+  return total>0?Math.round((done/total)*100):0;
+}
+
+function renderSubtasks(t){
+  const subs=t.subtasks||[];
+  const pct=calcProgress(subs);
+  const bar=$('md-sub-progress');
+  const barFill=$('md-sub-bar');
+  const pctLabel=$('md-sub-pct');
+  if(subs.length){
+    bar.style.display='block';
+    barFill.style.width=pct+'%';
+    barFill.style.background=pct===100?'var(--green)':'var(--cyan)';
+    pctLabel.textContent=pct+'%';
+  }else{
+    bar.style.display='none';
+    pctLabel.textContent='';
+  }
+  const totalW=subs.reduce((s,x)=>s+(x.weight||1),0);
+  $('md-subtasks').innerHTML=subs.map((s,i)=>{
+    const normPct=totalW>0?Math.round(((s.weight||1)/totalW)*100):0;
+    return`<div class="subtask-item${s.done?' done':''}" id="sti-${i}">
+      <div class="st-check${s.done?' done':''}" onclick="toggleSubtask(${i})">${s.done?'✓':''}</div>
+      <div class="st-title">${s.title}</div>
+      <div class="st-weight">${normPct}%</div>
+      <button class="st-del" onclick="deleteSubtask(${i})">✕</button>
+    </div>`;
+  }).join('')||`<div style="font-family:var(--M);font-size:10px;color:var(--dim);padding:6px 0;">Nenhuma subtask ainda.</div>`;
+}
+
+function selectWeight(btn,w){
+  stWeight=w;
+  document.querySelectorAll('.st-w-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function openAddSubtask(){
+  stWeight=75;
+  document.querySelectorAll('.st-w-btn').forEach(b=>b.classList.toggle('active',b.textContent==='75%'));
+  $('st-title').value='';
+  show('subtask-form');
+  $('st-title').focus();
+}
+
+async function saveSubtask(){
+  const title=$('st-title').value.trim();
+  if(!title)return;
+  const t=tasks.find(x=>x.id===selTask);if(!t)return;
+  const subs=[...(t.subtasks||[]),{title,weight:stWeight,done:false,createdAt:Date.now()}];
+  await db.collection('tasks').doc(selTask).update({subtasks:subs});
+  t.subtasks=subs;
+  hide('subtask-form');$('st-title').value='';
+  renderSubtasks(t);
+  renderCurView();
+}
+
+async function toggleSubtask(idx){
+  const t=tasks.find(x=>x.id===selTask);if(!t)return;
+  const subs=(t.subtasks||[]).map((s,i)=>i===idx?{...s,done:!s.done}:s);
+  await db.collection('tasks').doc(selTask).update({subtasks:subs});
+  t.subtasks=subs;
+  renderSubtasks(t);
+  renderCurView();
+}
+
+async function deleteSubtask(idx){
+  const t=tasks.find(x=>x.id===selTask);if(!t)return;
+  const subs=(t.subtasks||[]).filter((_,i)=>i!==idx);
+  await db.collection('tasks').doc(selTask).update({subtasks:subs});
+  t.subtasks=subs;
+  renderSubtasks(t);
+  renderCurView();
+}
+
+function openEditTask(id){
+  editingTaskId=id;
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  const isMgr=meData?.access==='manager';
+
+  // Populate project select
+  const projOpts=projects.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  $('et-project').innerHTML=`<option value="">— Sem projeto —</option>${projOpts}`;
+  $('et-project').value=t.projectId||'';
+
+  // Populate assignee select — only manager can change assignee
+  $('et-assignee').innerHTML=users.map(u=>`<option value="${u.uid}">${u.displayName}</option>`).join('');
+  $('et-assignee').value=t.assigneeId;
+  $('et-assignee').disabled=!isMgr;
+  $('et-assignee').style.opacity=isMgr?'1':'0.5';
+  $('et-assignee').title=isMgr?'':'Apenas gerentes podem trocar o responsável';
+
+  // Fill fields
+  $('et-title').value=t.title||'';
+  $('et-problem').value=t.problem||'';
+  $('et-resolution').value=t.resolution||'';
+  $('et-priority').value=t.priority||'medium';
+  $('et-tags').value=(t.tags||[]).join(', ');
+
+  // Deadline
+  const dl=t.deadline?.toDate?t.deadline.toDate():t.deadline?new Date(t.deadline):null;
+  $('et-deadline').value=dl?dl.toISOString().split('T')[0]:'';
+
+  // Show notice if manager (XP will recalculate)
+  $('et-notice').classList.toggle('hidden',!isMgr);
+
+  closeModal('m-task');
+  showModal('m-edit-task');
+}
+
+async function doEditTask(){
+  if(!editingTaskId)return;
+  const t=tasks.find(x=>x.id===editingTaskId);if(!t)return;
+  const isMgr=meData?.access==='manager';
+
+  const title=$('et-title').value.trim();
+  const problem=$('et-problem').value.trim();
+  const resolution=$('et-resolution').value.trim();
+  const deadline=$('et-deadline').value;
+
+  if(!title||!problem||!resolution){toast('Preencha título, problema e resolução',false);return;}
+  if(!deadline){toast('Informe o deadline',false);return;}
+
+  const priority=$('et-priority').value;
+  const projectId=$('et-project').value||null;
+  const proj=projectId?projects.find(p=>p.id===projectId):null;
+  const assigneeId=isMgr?$('et-assignee').value:t.assigneeId;
+  const assignee=users.find(u=>u.uid===assigneeId);
+  const tags=$('et-tags').value.split(',').map(x=>x.trim()).filter(Boolean);
+
+  const upd={
+    title,problem,resolution,priority,tags,
+    deadline:new Date(deadline+'T00:00:00'),
+    xpReward:XP_REWARD[priority],
+    projectId:projectId||null,
+    projectName:proj?.name||null,
+  };
+  if(isMgr){
+    upd.assigneeId=assigneeId;
+    upd.assigneeName=assignee?.displayName||t.assigneeName;
+  }
+
+  await db.collection('tasks').doc(editingTaskId).update(upd);
+  await log('task_update',`${meData.displayName} editou a task "${title}"`);
+  closeModal('m-edit-task');
+  editingTaskId=null;
+  toast('Task atualizada!',true);
+  await refresh();
+  renderCurView();
 }
 
 async function openCreate(){
@@ -1930,16 +2745,19 @@ async function openCreate(){
 // ══════════════════════════════════════════════
 const NAV_ORDER=['dashboard','projects','kanban','my-tasks','all-tasks','history','approvals','members','notifications','profile','activity','patchnotes'];
 async function go(v){
+  const mgrOnly=['activity','approvals','members'];
+  if(mgrOnly.includes(v)&&meData?.access!=='manager')v='dashboard';
   curView=v;closeSidebar();
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   $('view-'+v)?.classList.add('active');
-  document.querySelectorAll('.nav-item')[NAV_ORDER.indexOf(v)]?.classList.add('active');
+  const navKey=v==='project-detail'?'projects':v;
+  document.querySelectorAll('.nav-item')[NAV_ORDER.indexOf(navKey)]?.classList.add('active');
   await renderCurView();
 }
 
 async function renderCurView(){
-  const map={dashboard:renderDash,projects:renderProjects,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,notifications:renderNotifications,profile:renderProfile,activity:renderActivity,patchnotes:renderPatchNotes};
+  const map={dashboard:renderDash,projects:renderProjects,'project-detail':renderProjectDetail,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,notifications:renderNotifications,profile:renderProfile,activity:renderActivity,patchnotes:renderPatchNotes};
   await map[curView]?.();
 }
 
@@ -1949,7 +2767,11 @@ function histFilter(val,btn){histFV=val;document.querySelectorAll('#hist-tabs .f
 
 async function updBadge(){
   await loadTasks();
-  const n=tasks.filter(t=>t.status==='pending_approval').length;
+  const taskPending=tasks.filter(t=>t.status==='pending_approval').length;
+  const assignSnap=await db.collection('projectAssignmentRequests').where('status','==','pending').get();
+  const delSnap=await db.collection('projectDeletionRequests').where('status','==','pending').get();
+  const delForMe=delSnap.docs.filter(d=>d.data().requestedBy!==me.uid).length;
+  const n=taskPending+assignSnap.size+delForMe;
   const b=$('appr-badge');b.textContent=n;b.classList.toggle('hidden',n===0);
 }
 
@@ -1990,9 +2812,9 @@ async function renderNotifications(){
     $('notif-list').innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><h3>TUDO LIMPO</h3><p>Nenhuma notificação ainda</p></div>`;
     return;
   }
-  const ICONS={rejection:'✕',task_approved:'✓',task_assigned:'⚡',project_approved:'✓',project_rejected:'✕',mention:'💬'};
-  const COLORS={rejection:'var(--red)',task_approved:'var(--green)',task_assigned:'var(--cyan)',project_approved:'var(--green)',project_rejected:'var(--red)',mention:'var(--gold)'};
-  const LABELS={rejection:'Task rejeitada',task_approved:'Task aprovada',task_assigned:'Task atribuída a você',project_approved:'Projeto aprovado',project_rejected:'Projeto rejeitado',mention:'Menção'};
+  const ICONS={rejection:'✕',task_approved:'✓',task_assigned:'⚡',project_approved:'✓',project_rejected:'✕',mention:'💬',deadline_warning:'⏰',delete_request:'🗑',delete_approved:'✓',delete_rejected:'✕'};
+  const COLORS={rejection:'var(--red)',task_approved:'var(--green)',task_assigned:'var(--cyan)',project_approved:'var(--green)',project_rejected:'var(--red)',mention:'var(--gold)',deadline_warning:'#F5C518',delete_request:'var(--red)',delete_approved:'var(--green)',delete_rejected:'var(--red)'};
+  const LABELS={rejection:'Task rejeitada',task_approved:'Task aprovada',task_assigned:'Task atribuída a você',project_approved:'Projeto aprovado',project_rejected:'Projeto rejeitado',mention:'Menção',deadline_warning:'⚠ Prazo próximo',delete_request:'Solicitação de exclusão',delete_approved:'Exclusão aprovada',delete_rejected:'Exclusão rejeitada'};
   $('notif-list').innerHTML=notifs.map(n=>{
     const col=COLORS[n.type]||'var(--dim)';
     const icon=ICONS[n.type]||'•';
