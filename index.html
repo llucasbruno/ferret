@@ -462,6 +462,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
         <div class="nav-section">GESTÃO</div>
         <div class="nav-item mgr-only hidden" onclick="go('approvals')"><span class="nav-icon">🔔</span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
         <div class="nav-item mgr-only hidden" onclick="go('members')"><span class="nav-icon">👥</span><span>Membros</span></div>
+        <div class="nav-item member-only hidden" onclick="go('notifications')"><span class="nav-icon">🔔</span><span>Notificações</span><span class="nav-badge hidden" id="notif-badge">0</span></div>
         <div class="nav-section">PESSOAL</div>
         <div class="nav-item" onclick="go('profile')"><span class="nav-icon">👤</span><span>Meu Perfil</span></div>
         <div class="nav-item" onclick="go('activity')"><span class="nav-icon">📜</span><span>Log</span></div>
@@ -491,9 +492,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <div class="view" id="view-projects">
         <div class="page-head">
           <div><div class="page-title">PROJ<span>ETOS</span></div><div class="page-sub">// CLIENTES & CAMPANHAS</div></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary mgr-only hidden" onclick="openCreateProject()">+ NOVO PROJETO</button>
-          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="proj-head-acts"></div>
         </div>
         <div class="proj-grid" id="projects-list"></div>
       </div>
@@ -555,7 +554,10 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 
       <!-- MEMBERS -->
       <div class="view" id="view-members">
-        <div class="page-head"><div><div class="page-title">GESTÃO DE <span>MEMBROS</span></div><div class="page-sub">// CARGOS E PERMISSÕES</div></div></div>
+        <div class="page-head">
+          <div><div class="page-title">GESTÃO DE <span>MEMBROS</span></div><div class="page-sub">// CARGOS E PERMISSÕES</div></div>
+          <button class="btn btn-danger btn-sm" onclick="openResetXP()" style="align-self:flex-start;">⚠ RESETAR XP</button>
+        </div>
         <div id="members-list"></div>
       </div>
 
@@ -570,7 +572,37 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
       <!-- ACTIVITY -->
       <div class="view" id="view-activity">
         <div class="page-head"><div><div class="page-title">LOG DE <span>ATIVIDADES</span></div><div class="page-sub">// HISTÓRICO DO ESTÚDIO</div></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <select id="act-filter-member" onchange="renderActivity()" class="field" style="max-width:180px;margin:0;">
+            <option value="all">👤 Todos os membros</option>
+          </select>
+          <select id="act-filter-type" onchange="renderActivity()" class="field" style="max-width:200px;margin:0;">
+            <option value="all">🗂 Todos os tipos</option>
+            <option value="task">📋 Tasks</option>
+            <option value="project">📁 Projetos</option>
+            <option value="xp">✨ XP & Ranks</option>
+            <option value="member">👤 Membros</option>
+            <option value="acesso" class="mgr-only">🔑 Acessos</option>
+            <option value="system">⚙ Sistema</option>
+          </select>
+        </div>
+        <!-- Seção de acessos — só ADM vê -->
+        <div id="act-acesso-section" class="mgr-only hidden" style="margin-bottom:20px;">
+          <div class="sec">🔑 ACESSOS RECENTES</div>
+          <div id="act-acesso-list"></div>
+        </div>
+        <div class="sec" id="act-geral-label">ATIVIDADES</div>
         <div id="act-list"></div>
+        <div style="text-align:center;margin-top:16px;" id="act-load-more"></div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="view" id="view-notifications">
+        <div class="page-head">
+          <div><div class="page-title">NOTIFI<span>CAÇÕES</span></div><div class="page-sub">// ATUALIZAÇÕES PARA VOCÊ</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="markAllRead()" style="align-self:flex-start;">✓ MARCAR TUDO COMO LIDO</button>
+        </div>
+        <div id="notif-list"></div>
       </div>
 
       <!-- PATCH NOTES -->
@@ -669,6 +701,74 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
   </div>
 </div>
 
+<!-- MODAL: EDITAR XP -->
+<div class="overlay hidden" id="m-edit-xp">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--gold)">XP</span></div>
+      <button class="modal-close" onclick="closeModal('m-edit-xp')">✕</button>
+    </div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div id="edit-xp-name" style="font-family:var(--R);font-size:18px;font-weight:700;color:var(--cream);margin-bottom:4px;"></div>
+      <div id="edit-xp-current" style="font-family:var(--M);font-size:11px;color:var(--gold);"></div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Novo valor de XP</label>
+      <input type="number" id="edit-xp-value" min="0" placeholder="Ex: 1000">
+    </div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Tarefas concluídas</label>
+      <input type="number" id="edit-xp-tasks" min="0" placeholder="Ex: 5">
+    </div></div>
+    <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:-8px;margin-bottom:12px;">
+      Deixe em branco para manter o valor atual.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('m-edit-xp')">CANCELAR</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="doResetXPSingle()">🔄 ZERAR</button>
+      <button class="btn btn-primary" onclick="saveEditXP()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RESETAR XP -->
+<div class="overlay hidden" id="m-reset-xp">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">RESETAR <span style="color:var(--red)">XP</span></div>
+      <button class="modal-close" onclick="closeModal('m-reset-xp')">✕</button>
+    </div>
+    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;">⚠ AÇÃO IRREVERSÍVEL</div>
+      <div style="font-size:13px;color:var(--dim);">Isso vai zerar o XP e o contador de tarefas concluídas de <strong style="color:var(--cream)">todos os membros</strong>. O histórico de tasks não será afetado.</div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Digite <strong style="color:var(--red)">RESETAR</strong> para confirmar</label>
+      <input type="text" id="reset-confirm-input" placeholder="RESETAR" oninput="$('btn-confirm-reset').disabled=this.value!=='RESETAR'">
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-reset-xp')">CANCELAR</button>
+      <button class="btn btn-danger" id="btn-confirm-reset" disabled onclick="doResetXP()">RESETAR TUDO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJEITAR PROJETO -->
+<div class="overlay hidden" id="m-reject-proj">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject-proj')">✕</button>
+    </div>
+    <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:12px;">O solicitante será notificado com o motivo.</div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição *</label><textarea id="rej-proj-reason" rows="4" placeholder="Explique o motivo da rejeição..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject-proj')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doRejectProject()">REJEITAR PROJETO</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: NOVO PROJETO -->
 <div class="overlay hidden" id="m-project">
   <div class="modal" style="max-width:500px">
@@ -744,6 +844,37 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-pn')">CANCELAR</button>
       <button class="btn btn-primary" onclick="doCreatePN()">📢 PUBLICAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PERFIL -->
+<div class="overlay hidden" id="m-profile">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--red)">PERFIL</span></div>
+      <button class="modal-close" onclick="closeModal('m-profile')">✕</button>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:20px;">
+      <div style="position:relative;width:80px;height:80px;">
+        <div id="ep-avatar-preview" style="width:80px;height:80px;clip-path:var(--clip-md);background:var(--bg3);border:3px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--R);font-size:30px;font-weight:700;color:var(--red);overflow:hidden;cursor:pointer;" onclick="$('ep-file').click()" title="Clique para enviar foto"></div>
+        <div style="position:absolute;bottom:-6px;right:-6px;background:var(--red);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid var(--bg2);" onclick="$('ep-file').click()">📷</div>
+        <input type="file" id="ep-file" accept="image/*" style="display:none" onchange="handleProfileUpload(this)">
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="ep-name" placeholder="Seu nome"></div></div>
+    <div class="field-grid one"><div class="field">
+      <label>URL da Foto</label>
+      <input type="url" id="ep-photo" placeholder="https://..." oninput="previewProfilePhoto(this.value)">
+      <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:6px;">
+        <span>ou</span>
+        <button class="btn btn-ghost btn-sm" onclick="$('ep-file').click()" style="padding:3px 10px;font-size:10px;">📁 UPLOAD DO PC</button>
+        <span id="ep-file-name" style="color:var(--cyan);font-size:10px;"></span>
+      </div>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-profile')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveProfile()">SALVAR</button>
     </div>
   </div>
 </div>
@@ -830,6 +961,7 @@ async function onAuth(user){
     if(!d.exists){await auth.signOut();show('auth-screen');return;}
     meData={uid:user.uid,...d.data()};
     await applyOverduePenalties();
+    await log('login',`${meData.displayName} fez login`);
     await boot();
   }else{me=null;meData=null;show('auth-screen');hide('main-app');}
 }
@@ -880,18 +1012,69 @@ async function doRegister(){
     await log('register',`${name} entrou no estúdio como ${access==='manager'?'CEO 👑':'Membro'}`);
   }catch(ex){err.textContent=ex.message;err.style.display='block';}
 }
-function doLogout(){return auth.signOut();}
+async function doLogout(){
+  stopListeners();
+  await log('logout',`${meData?.displayName} fez logout`);
+  return auth.signOut();
+}
 
 // ══════════════════════════════════════════════
-//  DATA LAYER
+//  DATA LAYER — REAL-TIME LISTENERS
 // ══════════════════════════════════════════════
+let _unsub=[];
+function stopListeners(){_unsub.forEach(u=>u());_unsub=[];}
+
+function startListeners(){
+  stopListeners();
+  // Tasks
+  _unsub.push(db.collection('tasks').orderBy('createdAt','desc').onSnapshot(s=>{
+    tasks=s.docs.map(d=>({id:d.id,...d.data()}));
+    _onDataChange();
+  }));
+  // Users
+  _unsub.push(db.collection('users').onSnapshot(s=>{
+    users=s.docs.map(d=>({uid:d.id,...d.data()}));
+    // Keep meData in sync
+    const me_=users.find(u=>u.uid===me?.uid);
+    if(me_){meData={...meData,...me_};updateSidebar();}
+    _onDataChange();
+  }));
+  // Projects
+  _unsub.push(db.collection('projects').orderBy('createdAt','asc').onSnapshot(s=>{
+    projects=s.docs.map(d=>({id:d.id,...d.data()}));
+    buildGlobalProjSel();
+    _onDataChange();
+  }));
+  // Notifications badge (current user only)
+  _unsub.push(db.collection('notifications').where('toUid','==',me.uid).onSnapshot(s=>{
+    const n=s.docs.filter(d=>!d.data().read).length;
+    const b=$('notif-badge');if(b){b.textContent=n;b.classList.toggle('hidden',n===0);}
+  }));
+}
+
+let _changeTimer=null;
+function _onDataChange(){
+  // Debounce — wait 120ms after last change before re-rendering
+  clearTimeout(_changeTimer);
+  _changeTimer=setTimeout(()=>{
+    renderCurView();
+    updBadge();
+  },120);
+}
+
 async function loadUsers(){const s=await db.collection('users').get();users=s.docs.map(d=>({uid:d.id,...d.data()}));}
 async function loadTasks(){const s=await db.collection('tasks').orderBy('createdAt','desc').get();tasks=s.docs.map(d=>({id:d.id,...d.data()}));}
 async function loadProjects(){const s=await db.collection('projects').orderBy('createdAt','asc').get();projects=s.docs.map(d=>({id:d.id,...d.data()}));}
 async function refresh(){await Promise.all([loadTasks(),loadUsers(),loadProjects()]);}
-async function addXP(uid,amt){
-  await db.collection('users').doc(uid).update({xp:firebase.firestore.FieldValue.increment(amt)});
-  if(uid===me?.uid){meData.xp=Math.max(0,(meData.xp||0)+amt);updateSidebar();}
+async function addXP(uid,amt,countTask=false){
+  const upd={xp:firebase.firestore.FieldValue.increment(amt)};
+  if(countTask&&amt>0)upd.tasksCompleted=firebase.firestore.FieldValue.increment(1);
+  await db.collection('users').doc(uid).update(upd);
+  if(uid===me?.uid){
+    meData.xp=Math.max(0,(meData.xp||0)+amt);
+    if(countTask&&amt>0)meData.tasksCompleted=(meData.tasksCompleted||0)+1;
+    updateSidebar();
+  }
 }
 async function log(action,details){
   if(!me)return;
@@ -939,6 +1122,7 @@ function openEditProject(id){
 async function saveProject(){
   const name=$('proj-name').value.trim();
   if(!name){toast('Informe o nome do projeto',false);return;}
+  const isMgr=meData.access==='manager';
   const data={name,client:$('proj-client').value.trim(),description:$('proj-desc').value.trim(),color:$('proj-color').value,
     startDate:$('proj-start').value?new Date($('proj-start').value+'T00:00:00'):null,
     deadline:$('proj-deadline').value?new Date($('proj-deadline').value+'T00:00:00'):null};
@@ -949,9 +1133,16 @@ async function saveProject(){
   }else{
     data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
     data.createdById=me.uid;
+    data.requestedBy=meData.displayName;
+    data.status=isMgr?'active':'pending';
     await db.collection('projects').add(data);
-    await log('project_create',`${meData.displayName} criou o projeto "${name}"`);
-    toast('Projeto criado!',true);
+    if(isMgr){
+      await log('project_create',`${meData.displayName} criou o projeto "${name}"`);
+      toast('Projeto criado!',true);
+    }else{
+      await log('project_create',`${meData.displayName} solicitou o projeto "${name}" (aguardando aprovação)`);
+      toast('Solicitação enviada! Aguardando aprovação.',true);
+    }
   }
   closeModal('m-project');await refresh();buildGlobalProjSel();renderCurView();
 }
@@ -960,30 +1151,62 @@ async function archiveProject(id){
   await db.collection('projects').doc(id).update({archived:true});
   await refresh();buildGlobalProjSel();renderCurView();toast('Projeto arquivado');
 }
+function openRequestProject(){
+  editProjId=null;
+  $('m-proj-modal-title').innerHTML='SOLICITAR <span style="color:var(--red)">PROJETO</span>';
+  ['proj-name','proj-client','proj-desc'].forEach(id=>$(id).value='');
+  $('proj-color').value='#FF4655';
+  const today=new Date().toISOString().split('T')[0];
+  $('proj-start').value=today;$('proj-deadline').value='';
+  showModal('m-project');
+}
+async function approveProject(id){
+  const snap=await db.collection('projects').doc(id).get();
+  const p={id,...snap.data()};
+  await db.collection('projects').doc(id).update({status:'active',rejectionReason:null});
+  await log('project_update',`${meData.displayName} aprovou o projeto "${p.name}"`);
+  await saveNotif(p.createdById,'project_approved',p.name);
+  toast('Projeto aprovado!',true);await refresh();buildGlobalProjSel();renderCurView();
+}
+let rejProjId=null;
+function openRejectProject(id){rejProjId=id;$('rej-proj-reason').value='';showModal('m-reject-proj');}
+async function doRejectProject(){
+  const reason=$('rej-proj-reason').value.trim();
+  if(!reason){toast('Informe o motivo',false);return;}
+  const snap=await db.collection('projects').doc(rejProjId).get();
+  const p={id:rejProjId,...snap.data()};
+  await db.collection('projects').doc(rejProjId).update({status:'rejected',rejectionReason:reason});
+  await saveNotif(p.createdById,'project_rejected',p.name,{reason});
+  await log('project_update',`${meData.displayName} rejeitou o projeto "${p.name}": ${reason}`);
+  closeModal('m-reject-proj');toast('Projeto rejeitado');await refresh();buildGlobalProjSel();renderCurView();
+}
 
 // ══════════════════════════════════════════════
 //  TASK ACTIONS
 // ══════════════════════════════════════════════
 async function doCreate(){
-  const fields=['t-title','t-problem','t-resolution','t-deadline','t-assignee','t-project'];
-  if(fields.some(id=>!$(id).value.trim())){toast('Preencha os campos obrigatórios',false);return;}
+  const required=['t-title','t-problem','t-resolution','t-deadline','t-assignee'];
+  if(required.some(id=>!$(id).value.trim())){toast('Preencha os campos obrigatórios',false);return;}
   const title=$('t-title').value.trim(),problem=$('t-problem').value.trim(),resolution=$('t-resolution').value.trim(),
     deadline=$('t-deadline').value,priority=$('t-priority').value,
-    assigneeId=$('t-assignee').value,projectId=$('t-project').value;
-  const assignee=users.find(u=>u.uid===assigneeId),proj=projects.find(p=>p.id===projectId);
+    assigneeId=$('t-assignee').value,projectId=$('t-project').value||null;
+  const assignee=users.find(u=>u.uid===assigneeId),proj=projectId?projects.find(p=>p.id===projectId):null;
   const isMgr=meData.access==='manager';
   await db.collection('tasks').add({
     title,problem,resolution,deadline:new Date(deadline+'T00:00:00'),priority,assigneeId,
     assigneeName:assignee?.displayName||'—',createdById:me.uid,createdByName:meData.displayName,
-    projectId,projectName:proj?.name||'—',
+    projectId:projectId||null,projectName:proj?.name||null,
     status:isMgr?'active':'pending_approval',
     tags:$('t-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
     xpReward:XP_REWARD[priority],level:tasks.filter(t=>t.assigneeId===assigneeId).length+1,
     createdAt:firebase.firestore.FieldValue.serverTimestamp(),
     completedAt:null,approvedById:isMgr?me.uid:null,rejectionReason:null,
   });
-  await log(isMgr?'task_create':'task_pending',isMgr?`${meData.displayName} criou "${title}" [${proj?.name||'—'}]`:`${meData.displayName} submeteu "${title}" para aprovação`);
+  const projLabel=proj?`[${proj.name}]`:'[sem projeto]';
+  await log(isMgr?'task_create':'task_pending',isMgr?`${meData.displayName} criou "${title}" ${projLabel}`:`${meData.displayName} submeteu "${title}" para aprovação`);
   closeModal('m-create');toast(isMgr?'Task criada!':'Enviada para aprovação!',true);
+  // Notify assignee if task was created by someone else and activated directly
+  if(isMgr&&assigneeId!==me.uid)await saveNotif(assigneeId,'task_assigned',title);
   await refresh();renderCurView();
 }
 
@@ -997,16 +1220,19 @@ async function completeTask(id){
   const t=tasks.find(x=>x.id===id);if(!t)return;
   const overdue=isOverdue(t),pen=overdue?XP_PENALTY[t.priority]:0,xp=Math.max(0,t.xpReward-pen);
   await db.collection('tasks').doc(id).update({status:'done',completedAt:firebase.firestore.FieldValue.serverTimestamp()});
-  if(xp>0)await addXP(t.assigneeId,xp);
+  if(xp>0)await addXP(t.assigneeId,xp,true);
+  else await addXP(t.assigneeId,0,true); // conta a task mesmo sem XP
   await log(overdue?'xp_penalty':'task_done',overdue?`${meData.displayName} completou "${t.title}" com atraso (+${xp} XP, -${pen} penalidade)`:`${meData.displayName} completou "${t.title}" (+${xp} XP)`);
   toast(overdue?`Concluída com atraso! +${xp} XP (-${pen})`:`Missão concluída! +${xp} XP 🏆`,true);
   closeModal('m-task');await refresh();renderCurView();
 }
 
 async function approveTask(id){
-  const t=tasks.find(x=>x.id===id);
+  const snap=await db.collection('tasks').doc(id).get();
+  const t={id,...snap.data()};
   await db.collection('tasks').doc(id).update({status:'active',approvedById:me.uid,rejectionReason:null});
-  await log('task_approve',`${meData.displayName} aprovou "${t?.title}"`);
+  await log('task_approve',`${meData.displayName} aprovou "${t.title}"`);
+  await saveNotif(t.assigneeId,'task_approved',t.title);
   toast('Task aprovada!',true);await refresh();renderCurView();updBadge();
 }
 
@@ -1014,10 +1240,11 @@ function openReject(id){rejTask=id;$('rej-reason').value='';showModal('m-reject'
 async function doReject(){
   const reason=$('rej-reason').value.trim();
   if(!reason){toast('Informe o motivo',false);return;}
-  const t=tasks.find(x=>x.id===rejTask);
+  const snap=await db.collection('tasks').doc(rejTask).get();
+  const t={id:rejTask,...snap.data()};
   await db.collection('tasks').doc(rejTask).update({status:'rejected',rejectionReason:reason});
-  await db.collection('notifications').add({toUid:t.assigneeId,fromName:meData.displayName,taskTitle:t?.title,reason,type:'rejection',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-  await log('task_reject',`${meData.displayName} rejeitou "${t?.title}": ${reason}`);
+  await saveNotif(t.assigneeId,'rejection',t.title,{reason});
+  await log('task_reject',`${meData.displayName} rejeitou "${t.title}": ${reason}`);
   toast('Task rejeitada');closeModal('m-reject');await refresh();renderCurView();updBadge();
 }
 
@@ -1038,8 +1265,37 @@ async function doComment(){
 // Drag & Drop (Kanban)
 async function moveTaskStatus(id,newStatus){
   const t=tasks.find(x=>x.id===id);if(!t||t.status===newStatus)return;
-  // Guard: completing a task via drag
+  // Block members from moving pending_approval tasks
+  if(t.status==='pending_approval'&&meData?.access!=='manager'){
+    toast('Task aguardando aprovação do ADM',false);return;
+  }
+  // Completing via drag
   if(newStatus==='done'){await completeTask(id);return;}
+  // Moving back FROM done → revert XP and tasksCompleted
+  if(t.status==='done'){
+    const overdue=t.completedAt&&t.deadline?(new Date(t.completedAt?.toDate?t.completedAt.toDate():t.completedAt)>new Date(t.deadline?.toDate?t.deadline.toDate():t.deadline)):false;
+    const pen=overdue?XP_PENALTY[t.priority]:0;
+    const xpGained=Math.max(0,t.xpReward-pen);
+    if(xpGained>0){
+      await db.collection('users').doc(t.assigneeId).update({
+        xp:firebase.firestore.FieldValue.increment(-xpGained),
+        tasksCompleted:firebase.firestore.FieldValue.increment(-1)
+      });
+      if(t.assigneeId===me?.uid){
+        meData.xp=Math.max(0,(meData.xp||0)-xpGained);
+        meData.tasksCompleted=Math.max(0,(meData.tasksCompleted||1)-1);
+        updateSidebar();
+      }
+    }else{
+      // XP was 0 (full penalty) but still decrement counter
+      await db.collection('users').doc(t.assigneeId).update({tasksCompleted:firebase.firestore.FieldValue.increment(-1)});
+      if(t.assigneeId===me?.uid){meData.tasksCompleted=Math.max(0,(meData.tasksCompleted||1)-1);updateSidebar();}
+    }
+    await db.collection('tasks').doc(id).update({status:newStatus,completedAt:null});
+    await log('task_start',`${meData.displayName} reabriu "${t.title}" → ${SL[newStatus]} (XP revertido)`);
+    toast('Task reaberta. XP revertido.',false);
+    await refresh();renderKanban();return;
+  }
   if(newStatus==='in_progress'&&t.status==='active'){await startTask(id);return;}
   await db.collection('tasks').doc(id).update({status:newStatus});
   await log('task_start',`${meData.displayName} moveu "${t.title}" para ${SL[newStatus]}`);
@@ -1049,6 +1305,49 @@ async function moveTaskStatus(id,newStatus){
 // ══════════════════════════════════════════════
 //  CARGO
 // ══════════════════════════════════════════════
+function openEditXP(uid){
+  const u=users.find(x=>x.uid===uid);if(!u)return;
+  cargoUID=uid;
+  $('edit-xp-name').textContent=u.displayName;
+  $('edit-xp-current').textContent=`XP atual: ${u.xp||0} · Feitas: ${u.tasksCompleted||0}`;
+  $('edit-xp-value').value=u.xp||0;
+  $('edit-xp-tasks').value=u.tasksCompleted||0;
+  showModal('m-edit-xp');
+}
+async function saveEditXP(){
+  const u=users.find(x=>x.uid===cargoUID);if(!u)return;
+  const xpVal=$('edit-xp-value').value;
+  const tasksVal=$('edit-xp-tasks').value;
+  const upd={};
+  if(xpVal!=='')upd.xp=Math.max(0,parseInt(xpVal)||0);
+  if(tasksVal!=='')upd.tasksCompleted=Math.max(0,parseInt(tasksVal)||0);
+  if(!Object.keys(upd).length){closeModal('m-edit-xp');return;}
+  await db.collection('users').doc(cargoUID).update(upd);
+  await log('cargo_update',`${meData.displayName} ajustou XP de ${u.displayName} → ${upd.xp??u.xp} XP, ${upd.tasksCompleted??u.tasksCompleted} feitas`);
+  closeModal('m-edit-xp');
+  toast(`XP de ${u.displayName} atualizado!`,true);
+}
+async function doResetXPSingle(){
+  const u=users.find(x=>x.uid===cargoUID);if(!u)return;
+  await db.collection('users').doc(cargoUID).update({xp:0,tasksCompleted:0});
+  await log('cargo_update',`${meData.displayName} zerou XP de ${u.displayName}`);
+  closeModal('m-edit-xp');
+  toast(`XP de ${u.displayName} zerado!`,true);
+}
+function openResetXP(){
+  $('reset-confirm-input').value='';
+  $('btn-confirm-reset').disabled=true;
+  showModal('m-reset-xp');
+}
+async function doResetXP(){
+  closeModal('m-reset-xp');
+  const snap=await db.collection('users').get();
+  const batch=db.batch();
+  snap.docs.forEach(d=>batch.update(d.ref,{xp:0,tasksCompleted:0}));
+  await batch.commit();
+  await log('cargo_update',`${meData.displayName} resetou o XP e tarefas concluídas de todos os membros`);
+  toast('XP e Feitas zerados com sucesso!',true);
+}
 function openCargo(uid){
   cargoUID=uid;const u=users.find(x=>x.uid===uid);if(!u)return;
   $('m-cargo-name').textContent=u.displayName;
@@ -1067,9 +1366,39 @@ async function saveCargo(){
 // ══════════════════════════════════════════════
 //  RENDER HELPERS
 // ══════════════════════════════════════════════
+const LOG_META={
+  register:      {icon:'🆕',color:'var(--cyan)',  cat:'acesso'},
+  login:         {icon:'🔑',color:'var(--green)', cat:'acesso'},
+  logout:        {icon:'🚪',color:'var(--dim)',   cat:'acesso'},
+  task_create:   {icon:'➕',color:'var(--green)', cat:'task'},
+  task_pending:  {icon:'⏳',color:'#F5C518',      cat:'task'},
+  task_approve:  {icon:'✅',color:'var(--green)', cat:'task'},
+  task_reject:   {icon:'❌',color:'var(--red)',   cat:'task'},
+  task_start:    {icon:'▶️',color:'var(--cyan)',  cat:'task'},
+  task_done:     {icon:'🏆',color:'var(--gold)',  cat:'task'},
+  task_delete:   {icon:'🗑️',color:'var(--red)',   cat:'task'},
+  xp_penalty:    {icon:'📉',color:'var(--red)',   cat:'xp'},
+  cargo_update:  {icon:'✏️',color:'var(--cyan)',  cat:'member'},
+  project_create:{icon:'📁',color:'var(--cyan)',  cat:'project'},
+  project_update:{icon:'✏️',color:'#F5C518',      cat:'project'},
+  patch_note:    {icon:'📰',color:'var(--cyan)',  cat:'system'},
+};
+
 function renderLogs(logs){
   if(!logs.length)return`<div class="empty"><div class="empty-icon">📜</div><h3>SEM ATIVIDADE</h3></div>`;
-  return logs.map(l=>`<div class="al-item"><div class="al-dot">${LI[l.action]||'•'}</div><div><div class="al-txt">${l.details}</div><div class="al-time">${fmtTime(l.createdAt)}</div></div></div>`).join('');
+  return logs.map(l=>{
+    const m=LOG_META[l.action]||{icon:'•',color:'var(--dim)',cat:'system'};
+    return`<div class="al-item" style="border-left:3px solid ${m.color}33;padding:10px 14px;margin-bottom:6px;background:var(--bg2);border-radius:0 4px 4px 0;">
+      <div class="al-dot" style="background:${m.color}22;color:${m.color};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">${m.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="al-txt" style="color:var(--cream);">${l.details}</div>
+        <div style="display:flex;gap:8px;margin-top:3px;flex-wrap:wrap;">
+          <span class="al-time">${fmtTime(l.createdAt)}</span>
+          <span style="font-family:var(--M);font-size:9px;color:${m.color};letter-spacing:1px;">${(l.action||'').toUpperCase().replace(/_/g,' ')}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderComments(cmts){
@@ -1093,9 +1422,12 @@ function taskCard(t,i,isMe){
   const col=projColor(t.projectId);
   const pname=t.projectName||projName(t.projectId);
   const statusBadge=overdue?`<span class="badge bs-overdue">ATRASADA</span>`:`<span class="badge bs-${t.status}">${SL[t.status]||t.status}</span>`;
+  const isMgrCard=meData?.access==='manager';
   let acts='';
-  if(t.status==='active'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')">▶ INICIAR</button>`;
-  if(t.status==='in_progress'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')">✓ CONCLUIR</button>`;
+  if(t.status!=='pending_approval'||isMgrCard){
+    if(t.status==='active'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')">▶ INICIAR</button>`;
+    if(t.status==='in_progress'&&t.assigneeId===me?.uid)acts+=`<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')">✓ CONCLUIR</button>`;
+  }
   const rejBlock=t.status==='rejected'&&t.rejectionReason?`<div class="rej-notice"><div class="rej-notice-lbl">// MOTIVO DA REJEIÇÃO</div><div style="font-size:13px;color:var(--dim)">${t.rejectionReason}</div></div>`:'';
   return`<div class="tc p-${t.priority} s-${overdue?'overdue':t.status}${overdue?' overdue':''}" onclick="openTask('${t.id}')">
     <div class="tc-head">
@@ -1138,9 +1470,9 @@ async function renderDash(){
 
   // Ranking
   const stats=users.map(u=>{
-    const ut=tasks.filter(t=>t.assigneeId===u.uid&&!['rejected','pending_approval'].includes(t.status));
-    const done=ut.filter(t=>t.status==='done').length,overdue=ut.filter(t=>isOverdue(t)).length;
-    return{...u,done,overdue,total:ut.length};
+    const ut=tasks.filter(t=>t.assigneeId===u.uid&&!['rejected','pending_approval','done'].includes(t.status));
+    const overdue=ut.filter(t=>isOverdue(t)).length;
+    return{...u,overdue,total:ut.length};
   }).sort((a,b)=>(b.xp||0)-(a.xp||0));
 
   $('rank-grid').innerHTML=stats.map((u,i)=>{
@@ -1152,7 +1484,7 @@ async function renderDash(){
       <div><div class="rm-name">${u.displayName}</div><div class="rm-role">${u.cargo||'—'}</div>
       <div class="rank-badge" style="background:${r.color}20;color:${r.color};border:1px solid ${r.color}40;">${r.icon} ${r.name}</div></div></div>
       <div class="rm-stats">
-        <div class="rm-stat"><div class="rm-sv">${u.done}</div><div class="rm-sl">Feitas</div></div>
+        <div class="rm-stat"><div class="rm-sv">${u.tasksCompleted||0}</div><div class="rm-sl">Feitas</div></div>
         <div class="rm-stat"><div class="rm-sv" style="color:${u.overdue>0?'var(--red)':'var(--cream)'}">${u.overdue}</div><div class="rm-sl">Atraso</div></div>
         <div class="rm-stat"><div class="rm-sv" style="color:${i===0?'var(--gold)':'var(--cream)'}">${u.xp||0}</div><div class="rm-sl">XP</div></div>
       </div>
@@ -1167,8 +1499,68 @@ async function renderDash(){
 
 async function renderProjects(){
   await refresh();
-  const list=projects.filter(p=>!p.archived);
-  $('projects-list').innerHTML=list.length?list.map(p=>{
+  const isMgr=meData?.access==='manager';
+  $('proj-head-acts').innerHTML=isMgr
+    ?`<button class="btn btn-primary" onclick="openCreateProject()">+ NOVO PROJETO</button>`
+    :`<button class="btn btn-ghost" onclick="openRequestProject()">+ SOLICITAR PROJETO</button>`;
+
+  // ── Seção de pendentes (só ADM vê) ──────────────────────────────
+  const pendingProjs=projects.filter(p=>p.status==='pending'&&!p.archived);
+  let pendingHtml='';
+  if(isMgr&&pendingProjs.length){
+    pendingHtml=`<div style="margin-bottom:24px;">
+      <div class="sec">⏳ AGUARDANDO APROVAÇÃO</div>
+      ${pendingProjs.map(p=>`<div class="ac" style="margin-bottom:10px;">
+        <div class="ac-head"><div>
+          <div class="ac-meta">SOLICITADO POR: <strong>${p.requestedBy||'—'}</strong></div>
+          <div class="ac-title">${p.name}</div>
+        </div><div class="proj-dot" style="background:${p.color};width:12px;height:12px;border-radius:50%;margin-top:4px;flex-shrink:0"></div></div>
+        ${p.client?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;">👤 ${p.client}</div>`:''}
+        ${p.description?`<div class="detail-block db-r"><div class="detail-txt">${p.description}</div></div>`:''}
+        <div class="ac-acts">
+          <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')">✓ APROVAR</button>
+          <button class="btn btn-danger btn-sm" onclick="openRejectProject('${p.id}')">✕ REJEITAR</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Projetos rejeitados do próprio membro ────────────────────────
+  let rejectedHtml='';
+  if(!isMgr){
+    const myRejected=projects.filter(p=>p.status==='rejected'&&!p.archived&&p.createdById===me.uid);
+    if(myRejected.length){
+      rejectedHtml=`<div style="margin-bottom:24px;">
+        <div class="sec" style="color:var(--red)">✕ PROJETOS REJEITADOS</div>
+        ${myRejected.map(p=>`<div class="ac" style="border-color:var(--red)33;margin-bottom:10px;">
+          <div class="ac-head"><div>
+            <div class="ac-title">${p.name}</div>
+          </div><span class="badge" style="background:var(--red)22;color:var(--red);">REJEITADO</span></div>
+          <div style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-top:8px;border-radius:4px;">
+            <div style="font-family:var(--M);font-size:10px;color:var(--red);margin-bottom:4px;">// MOTIVO DA REJEIÇÃO</div>
+            <div style="font-size:13px;color:var(--dim);">${p.rejectionReason||'—'}</div>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    }
+    // Pendentes do próprio membro (aguardando)
+    const myPending=projects.filter(p=>p.status==='pending'&&!p.archived&&p.createdById===me.uid);
+    if(myPending.length){
+      rejectedHtml=`<div style="margin-bottom:24px;">
+        <div class="sec" style="color:#F5C518">⏳ SUAS SOLICITAÇÕES PENDENTES</div>
+        ${myPending.map(p=>`<div class="ac" style="margin-bottom:10px;opacity:.75;">
+          <div class="ac-head"><div>
+            <div class="ac-title">${p.name}</div>
+          </div><span class="badge" style="background:#F5C51822;color:#F5C518;">AGUARDANDO</span></div>
+          ${p.description?`<div style="font-size:13px;color:var(--dim);margin-top:6px;">${p.description}</div>`:''}
+        </div>`).join('')}
+      </div>`+rejectedHtml;
+    }
+  }
+
+  // ── Lista principal (apenas ativos) ─────────────────────────────
+  const list=projects.filter(p=>!p.archived&&p.status==='active');
+  $('projects-list').innerHTML=pendingHtml+rejectedHtml+(list.length?list.map(p=>{
     const pt=tasks.filter(t=>t.projectId===p.id&&!['rejected'].includes(t.status));
     const done=pt.filter(t=>t.status==='done').length;
     const active=pt.filter(t=>['active','in_progress'].includes(t.status)).length;
@@ -1180,7 +1572,7 @@ async function renderProjects(){
       <div class="proj-card-header">
         <div class="proj-dot" style="background:${p.color}"></div>
         <div class="proj-name">${p.name}</div>
-        <div style="display:flex;gap:5px;">${meData?.access==='manager'?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}</div>
+        <div style="display:flex;gap:5px;">${isMgr?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>`:''}</div>
       </div>
       ${p.client?`<div class="proj-client" style="padding-left:20px;margin-bottom:8px;">👤 ${p.client}</div>`:''}
       ${p.description?`<div style="font-size:13px;color:var(--dim);margin-bottom:10px;padding-left:20px;">${p.description}</div>`:''}
@@ -1199,10 +1591,10 @@ async function renderProjects(){
       ${dl?`<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;">📅 Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>`:''}
       <div class="proj-acts">
         <button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN</button>
-        ${meData?.access==='manager'?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:''}
+        ${isMgr?`<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button>`:''}
       </div>
     </div>`;
-  }).join(''):`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p>${meData?.access==='manager'?`<button class="btn btn-primary btn-sm" onclick="openCreateProject()">+ CRIAR PRIMEIRO PROJETO</button>`:''}</div>`;
+  }).join(''):`<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS ATIVOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr?'primary':'ghost'} btn-sm" onclick="${isMgr?'openCreateProject()':'openRequestProject()'}">+ ${isMgr?'CRIAR PROJETO':'SOLICITAR PROJETO'}</button></div>`);
 }
 
 async function renderKanban(){
@@ -1243,11 +1635,13 @@ function kanbanCard(t){
   const col=projColor(t.projectId);
   const pname=t.projectName||projName(t.projectId);
   const av=assignee?.photoURL?`<img src="${assignee.photoURL}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block">`:(assignee?.displayName[0]||'?');
-  return`<div class="kc p-${t.priority}" draggable="true"
-    ondragstart="dragTask='${t.id}';this.classList.add('dragging')"
-    ondragend="this.classList.remove('dragging')"
-    onclick="openTask('${t.id}')">
-    <span class="kc-drag-handle">⠿</span>
+  const isMgr=meData?.access==='manager';
+  const isPending=t.status==='pending_approval';
+  const locked=isPending&&!isMgr;
+  return`<div class="kc p-${t.priority}${locked?' locked':''}" ${locked?'':`draggable="true" ondragstart="dragTask='${t.id}';this.classList.add('dragging')" ondragend="this.classList.remove('dragging')"`}
+    onclick="openTask('${t.id}')" style="${locked?'opacity:.55;cursor:default;':''}" title="${locked?'Aguardando aprovação do ADM':''}">
+    <span class="kc-drag-handle" style="${locked?'opacity:.3;cursor:not-allowed;':''}">⠿</span>
+    ${locked?`<div style="font-family:var(--M);font-size:9px;color:#F5C518;margin-bottom:5px;letter-spacing:1px;">⏳ AGUARDANDO APROVAÇÃO</div>`:''}
     <div class="kc-proj"><div class="kc-proj-dot" style="background:${col}"></div><span style="color:${col}">${pname}</span></div>
     <div class="kc-title">${t.title}</div>
     <div class="kc-meta">
@@ -1334,14 +1728,21 @@ async function renderMembers(){
   $('members-list').innerHTML=users.map(u=>{
     const r=rank(u.xp||0);
     const av=u.photoURL?`<img src="${u.photoURL}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block">`:(u.displayName[0]||'?');
+    const xpPct_=xpPct(u.xp||0);
     return`<div class="member-card">
       <div class="avatar" style="width:42px;height:42px;font-size:17px;">${av}</div>
-      <div class="member-info">
+      <div class="member-info" style="flex:1;">
         <div class="member-name">${u.displayName}</div>
         <div class="member-role">${u.cargo||'—'} · <span style="color:${u.access==='manager'?'var(--gold)':'var(--cyan)'};">${u.access==='manager'?'GERENTE':'MEMBRO'}</span></div>
-        <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:2px;">${r.icon} ${r.name} · ${u.xp||0} XP · ${u.email}</div>
+        <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:2px;">${r.icon} <span style="color:${r.color}">${r.name}</span> · <strong style="color:var(--gold)">${u.xp||0} XP</strong> · ${u.tasksCompleted||0} feitas</div>
+        <div style="margin-top:5px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${xpPct_}%;background:${r.color};transition:width .3s;"></div>
+        </div>
       </div>
-      <button class="btn btn-info btn-sm" onclick="openCargo('${u.uid}')">✏ CARGO</button>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm" onclick="openEditXP('${u.uid}')" style="color:var(--gold);">✨ XP</button>
+        <button class="btn btn-info btn-sm" onclick="openCargo('${u.uid}')">✏ CARGO</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1349,13 +1750,22 @@ async function renderMembers(){
 async function renderProfile(){
   await loadTasks();
   const mt=tasks.filter(t=>t.assigneeId===me.uid);
-  const done=mt.filter(t=>t.status==='done').length,active=mt.filter(t=>['active','in_progress'].includes(t.status)).length;
+  const active=mt.filter(t=>['active','in_progress'].includes(t.status)).length;
   const pend=mt.filter(t=>t.status==='pending_approval').length,overdue=mt.filter(t=>isOverdue(t)).length;
+  const done=meData.tasksCompleted||0; // persisted count — never affected by deletions
   const r=rank(meData.xp||0),n=nextRank(meData.xp||0),p=xpPct(meData.xp||0);
   const av=meData.photoURL?`<img src="${meData.photoURL}" onerror="this.style.display='none';this.parentNode.textContent='${meData.displayName[0]||'?'}'" style="width:100%;height:100%;object-fit:cover;display:block">`:(meData.displayName[0]||'?');
-  $('p-hero').innerHTML=`<div class="p-avatar">${av}</div>
+  $('p-hero').innerHTML=`<div class="p-avatar" style="cursor:pointer;position:relative;" onclick="openEditProfile()" title="Editar perfil">
+      ${av}
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;border-radius:inherit;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+        <span style="font-size:18px;">✏</span>
+      </div>
+    </div>
     <div style="flex:1;min-width:180px;">
-      <div class="p-name">${meData.displayName}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="p-name">${meData.displayName}</div>
+        <button class="btn btn-ghost btn-sm" onclick="openEditProfile()" style="padding:4px 10px;font-size:10px;opacity:.7;">✏ EDITAR</button>
+      </div>
       <div class="p-role">${meData.cargo||'—'} · ${meData.access==='manager'?'GERENTE':'MEMBRO'}</div>
       <div class="p-rank" style="background:${r.color}20;color:${r.color};border:1px solid ${r.color}40;">${r.icon} ${r.name}</div>
       <div class="p-xp-lbl"><span>${meData.xp||0} XP total</span><span>${n?`→ ${n.name} (${p}%)`:'RANK MÁXIMO ✨'}</span></div>
@@ -1368,7 +1778,109 @@ async function renderProfile(){
   ].map(s=>`<div class="stat-card"><div class="stat-v" style="color:${s.c}">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
 }
 
-async function renderActivity(){$('act-list').innerHTML=renderLogs(await loadLog(50));}
+let actLimit=50;
+async function renderActivity(){
+  const isMgr=meData?.access==='manager';
+  const memberSel=$('act-filter-member');
+  const typeSel=$('act-filter-type');
+  if(memberSel&&memberSel.options.length<=1){
+    users.forEach(u=>{const o=document.createElement('option');o.value=u.uid;o.textContent=u.displayName;memberSel.appendChild(o);});
+  }
+  let logs=await loadLog(200);
+  const ACCESS_ACTIONS=['login','logout','register'];
+
+  // ── Seção de acessos (só ADM) ──────────────────
+  const acSec=$('act-acesso-section');
+  if(isMgr){
+    acSec.classList.remove('hidden');
+    const acessos=logs.filter(l=>ACCESS_ACTIONS.includes(l.action)).slice(0,20);
+    $('act-acesso-list').innerHTML=renderLogs(acessos);
+  }
+
+  // ── Log geral: remove acessos pra todos ─────────
+  logs=logs.filter(l=>!ACCESS_ACTIONS.includes(l.action));
+
+  const memVal=memberSel?.value||'all';
+  if(memVal!=='all')logs=logs.filter(l=>l.userId===memVal);
+  const typeVal=typeSel?.value||'all';
+  if(typeVal!=='all'){
+    const catMap={
+      task:['task_create','task_pending','task_approve','task_reject','task_start','task_done','task_delete'],
+      project:['project_create','project_update'],
+      xp:['xp_penalty','task_done'],
+      member:['cargo_update'],
+      acesso:ACCESS_ACTIONS,
+      system:['patch_note']
+    };
+    logs=logs.filter(l=>(catMap[typeVal]||[]).includes(l.action));
+  }
+  $('act-list').innerHTML=renderLogs(logs.slice(0,actLimit));
+  const more=$('act-load-more');
+  if(more){more.innerHTML=logs.length>actLimit?`<button class="btn btn-ghost btn-sm" onclick="actLimit+=50;renderActivity()">VER MAIS (${logs.length-actLimit} restantes)</button>`:'';}
+}
+
+// ══════════════════════════════════════════════
+//  EDIT PROFILE
+// ══════════════════════════════════════════════
+function openEditProfile(){
+  $('ep-name').value=meData.displayName||'';
+  $('ep-photo').value=meData.photoURL&&!meData.photoURL.startsWith('data:')?meData.photoURL:'';
+  $('ep-file-name').textContent='';
+  $('ep-file').value='';
+  previewProfilePhoto(meData.photoURL||'');
+  showModal('m-profile');
+}
+
+function previewProfilePhoto(url){
+  const el=$('ep-avatar-preview');
+  if(url){
+    el.innerHTML=`<img src="${url}" onerror="this.style.display='none';this.parentNode.textContent='${meData.displayName[0]||'?'}'" style="width:100%;height:100%;object-fit:cover;display:block">`;
+  }else{
+    el.textContent=meData.displayName[0]||'?';
+  }
+}
+
+function handleProfileUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('Imagem muito grande (máx 5MB)',false);return;}
+  $('ep-file-name').textContent=file.name;
+  $('ep-photo').value=''; // clear URL field when file is chosen
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      // Resize to max 200x200 using canvas
+      const MAX=200;
+      const scale=Math.min(MAX/img.width,MAX/img.height,1);
+      const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const b64=canvas.toDataURL('image/jpeg',.85);
+      previewProfilePhoto(b64);
+      // store base64 temporarily on the input element
+      input._b64=b64;
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveProfile(){
+  const name=$('ep-name').value.trim();
+  if(!name){toast('Informe o nome',false);return;}
+  // Priority: uploaded file > URL field > keep existing
+  const fileInput=$('ep-file');
+  const photo=fileInput._b64||$('ep-photo').value.trim()||meData.photoURL||'';
+  await db.collection('users').doc(me.uid).update({displayName:name,photoURL:photo});
+  meData.displayName=name;meData.photoURL=photo;
+  fileInput._b64=null;
+  closeModal('m-profile');
+  updateSidebar();
+  toast('Perfil atualizado!',true);
+  await renderProfile();
+}
 
 // ══════════════════════════════════════════════
 //  OPEN TASK MODAL
@@ -1386,20 +1898,23 @@ async function openTask(id){
   $('md-assignee').textContent=t.assigneeName;$('md-xp').textContent=`+${t.xpReward} XP`;
   if(t.status==='rejected'&&t.rejectionReason){show('md-rejection');$('md-rejection-txt').textContent=t.rejectionReason;}else{hide('md-rejection');}
   $('md-badges').innerHTML=`<span class="badge bp-${t.priority}">${PL[t.priority]}</span>${overdue?'<span class="badge bs-overdue">ATRASADA</span>':`<span class="badge bs-${t.status}">${SL[t.status]||t.status}</span>`}${(t.tags||[]).map(x=>`<span class="badge" style="background:rgba(255,255,255,.06);color:var(--dim);border:1px solid rgba(255,255,255,.08);">${x}</span>`).join('')}`;
-  const isMgr=meData?.access==='manager';let acts='';
-  if(t.status==='active'&&t.assigneeId===me.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="startTask('${id}')">▶ INICIAR</button>`;
-  if(t.status==='in_progress'&&t.assigneeId===me.uid){acts+=`<button class="btn btn-success btn-sm" onclick="completeTask('${id}')">✓ CONCLUIR</button>`;if(overdue)acts+=`<span class="xp-penalty">⚠ -${XP_PENALTY[t.priority]} XP atraso</span>`;}
-  if(t.status==='done')acts+=`<span style="color:var(--green);font-family:var(--M);font-size:11px;">✓ CONCLUÍDA</span>`;
-  if(isMgr&&t.status==='pending_approval'){acts+=`<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')">✕ REJEITAR</button>`;}
-  if(isMgr||(t.createdById===me.uid&&t.status!=='done'))acts+=`<button class="btn btn-danger btn-sm" onclick="deleteTask('${id}')">🗑</button>`;
+  const isMgr=meData?.access==='manager';const isPending=t.status==='pending_approval';let acts='';
+  if(isPending&&!isMgr){acts=`<div style="font-family:var(--M);font-size:11px;color:#F5C518;background:#F5C51811;border:1px solid #F5C51833;padding:8px 12px;border-radius:4px;">⏳ Aguardando aprovação do administrador</div>`;}
+  else{
+    if(t.status==='active'&&t.assigneeId===me.uid)acts+=`<button class="btn btn-warn btn-sm" onclick="startTask('${id}')">▶ INICIAR</button>`;
+    if(t.status==='in_progress'&&t.assigneeId===me.uid){acts+=`<button class="btn btn-success btn-sm" onclick="completeTask('${id}')">✓ CONCLUIR</button>`;if(overdue)acts+=`<span class="xp-penalty">⚠ -${XP_PENALTY[t.priority]} XP atraso</span>`;}
+    if(t.status==='done')acts+=`<span style="color:var(--green);font-family:var(--M);font-size:11px;">✓ CONCLUÍDA</span>`;
+    if(isMgr&&isPending){acts+=`<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')">✕ REJEITAR</button>`;}
+    if(isMgr||(t.createdById===me.uid&&!['done','pending_approval'].includes(t.status)))acts+=`<button class="btn btn-danger btn-sm" onclick="deleteTask('${id}')">🗑</button>`;
+  }
   $('md-acts').innerHTML=acts;
   renderComments(await loadComments(id));showModal('m-task');
 }
 
 async function openCreate(){
   await refresh();
-  $('t-project').innerHTML=projects.filter(p=>!p.archived).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  if(!$('t-project').innerHTML){$('t-project').innerHTML='<option value="">Sem projetos</option>';toast('Crie um projeto primeiro',false);return;}
+  const projOpts=projects.filter(p=>!p.archived&&p.status!=='pending').map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  $('t-project').innerHTML=`<option value="">— Sem projeto —</option>${projOpts}`;
   if(globalProjFV!=='all')$('t-project').value=globalProjFV;
   $('t-assignee').innerHTML=users.map(u=>`<option value="${u.uid}">${u.displayName}</option>`).join('');
   $('t-assignee').value=me.uid;
@@ -1413,7 +1928,7 @@ async function openCreate(){
 // ══════════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════════
-const NAV_ORDER=['dashboard','projects','kanban','my-tasks','all-tasks','history','approvals','members','profile','activity','patchnotes'];
+const NAV_ORDER=['dashboard','projects','kanban','my-tasks','all-tasks','history','approvals','members','notifications','profile','activity','patchnotes'];
 async function go(v){
   curView=v;closeSidebar();
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
@@ -1424,7 +1939,7 @@ async function go(v){
 }
 
 async function renderCurView(){
-  const map={dashboard:renderDash,projects:renderProjects,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,profile:renderProfile,activity:renderActivity,patchnotes:renderPatchNotes};
+  const map={dashboard:renderDash,projects:renderProjects,kanban:renderKanban,'my-tasks':renderMyTasks,'all-tasks':renderAllTasks,history:renderHistory,approvals:renderApprovals,members:renderMembers,notifications:renderNotifications,profile:renderProfile,activity:renderActivity,patchnotes:renderPatchNotes};
   await map[curView]?.();
 }
 
@@ -1438,6 +1953,86 @@ async function updBadge(){
   const b=$('appr-badge');b.textContent=n;b.classList.toggle('hidden',n===0);
 }
 
+async function updNotifBadge(){
+  if(!me)return;
+  const s=await db.collection('notifications').where('toUid','==',me.uid).get();
+  const n=s.docs.filter(d=>d.data().read===false).length;
+  const b=$('notif-badge');b.textContent=n;b.classList.toggle('hidden',n===0);
+}
+
+async function saveNotif(toUid,type,title,extra={}){
+  if(!toUid){console.warn('[saveNotif] toUid vazio, abortando');return;}
+  const payload={toUid,type,taskTitle:title,fromName:meData.displayName,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),...extra};
+  console.log('[saveNotif] Salvando notificação →',payload);
+  try{
+    const ref=await db.collection('notifications').add(payload);
+    console.log('[saveNotif] Salvo com sucesso, id:',ref.id);
+  }catch(err){
+    console.error('[saveNotif] ERRO ao salvar:',err);
+  }
+}
+
+async function renderNotifications(){
+  $('notif-list').innerHTML=`<div style="color:var(--dim);font-family:var(--M);font-size:11px;padding:12px 0;">Carregando...</div>`;
+  const s=await db.collection('notifications').where('toUid','==',me.uid).get();
+  const notifs=s.docs.map(d=>({id:d.id,...d.data()}))
+    .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))
+    .slice(0,60);
+  // Mark all as read on open — capture wasUnread before mutating
+  const unreadIds=notifs.filter(n=>!n.read).map(n=>n.id);
+  if(unreadIds.length){
+    const batch=db.batch();
+    unreadIds.forEach(id=>batch.update(db.collection('notifications').doc(id),{read:true}));
+    await batch.commit();
+    $('notif-badge').classList.add('hidden');
+  }
+  if(!notifs.length){
+    $('notif-list').innerHTML=`<div class="empty"><div class="empty-icon">🔔</div><h3>TUDO LIMPO</h3><p>Nenhuma notificação ainda</p></div>`;
+    return;
+  }
+  const ICONS={rejection:'✕',task_approved:'✓',task_assigned:'⚡',project_approved:'✓',project_rejected:'✕',mention:'💬'};
+  const COLORS={rejection:'var(--red)',task_approved:'var(--green)',task_assigned:'var(--cyan)',project_approved:'var(--green)',project_rejected:'var(--red)',mention:'var(--gold)'};
+  const LABELS={rejection:'Task rejeitada',task_approved:'Task aprovada',task_assigned:'Task atribuída a você',project_approved:'Projeto aprovado',project_rejected:'Projeto rejeitado',mention:'Menção'};
+  $('notif-list').innerHTML=notifs.map(n=>{
+    const col=COLORS[n.type]||'var(--dim)';
+    const icon=ICONS[n.type]||'•';
+    const label=LABELS[n.type]||n.type;
+    const time=n.createdAt?.toDate?n.createdAt.toDate():null;
+    const wasUnread=unreadIds.includes(n.id);
+    return`<div style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;margin-bottom:8px;background:${wasUnread?'rgba(255,255,255,.04)':'transparent'};border-radius:4px;border-left:3px solid ${col};">
+      <div style="width:32px;height:32px;background:${col}22;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${col};flex-shrink:0;">${icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-family:var(--M);font-size:10px;color:${col};letter-spacing:1px;">${label}</span>
+          ${wasUnread?`<span style="width:6px;height:6px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;"></span>`:''}
+        </div>
+        <div style="font-family:var(--R);font-size:14px;font-weight:600;color:var(--cream);margin-bottom:4px;">${n.taskTitle||'—'}</div>
+        <div style="font-family:var(--M);font-size:10px;color:var(--dim);">DE: <strong style="color:var(--cream);">${n.fromName||'—'}</strong>${time?` · ${fmtDate(time)}`:''}</div>
+        ${n.reason?`<div style="margin-top:8px;background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:8px 12px;border-radius:3px;font-size:13px;color:var(--dim);">${n.reason}</div>`:''}
+      </div>
+      <button onclick="deleteNotif('${n.id}')" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:14px;padding:4px;opacity:.5;flex-shrink:0;" title="Excluir notificação" onmouseover="this.style.opacity=1;this.style.color='var(--red)'" onmouseout="this.style.opacity=.5;this.style.color='var(--dim)'">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+async function markAllRead(){
+  const s=await db.collection('notifications').where('toUid','==',me.uid).get();
+  const unread=s.docs.filter(d=>!d.data().read);
+  if(!unread.length){toast('Nenhuma notificação não lida');return;}
+  const batch=db.batch();
+  unread.forEach(d=>batch.update(d.ref,{read:true}));
+  await batch.commit();
+  $('notif-badge').classList.add('hidden');
+  toast('Tudo marcado como lido!',true);
+  renderNotifications();
+}
+
+async function deleteNotif(id){
+  await db.collection('notifications').doc(id).delete();
+  await updNotifBadge();
+  renderNotifications();
+}
+
 function updateSidebar(){
   if(!meData)return;
   const av=$('sb-av');
@@ -1446,7 +2041,10 @@ function updateSidebar(){
   $('sb-name').textContent=meData.displayName;
   const r=rank(meData.xp||0),p=xpPct(meData.xp||0);
   $('sb-rank').textContent=`${r.icon} ${r.name}`;$('sb-rank').style.color=r.color;$('sb-xp').style.width=p+'%';
-  document.querySelectorAll('.mgr-only').forEach(el=>el.classList.toggle('hidden',meData.access!=='manager'));
+  const isMgr=meData.access==='manager';
+  document.querySelectorAll('.mgr-only').forEach(el=>el.classList.toggle('hidden',!isMgr));
+  document.querySelectorAll('.member-only').forEach(el=>el.classList.toggle('hidden',isMgr));
+  if(!isMgr)updNotifBadge();
 }
 
 function saveConfig(){
@@ -1530,8 +2128,9 @@ async function renderPatchNotes(){
 async function boot(){
   updateSidebar();show('main-app');hide('auth-screen');
   await refresh();buildGlobalProjSel();
-  await go('dashboard');await updBadge();
-  setInterval(updBadge,30000);
+  await go('dashboard');
+  startListeners(); // real-time updates
+  await updBadge();
 }
 
 // ══════════════════════════════════════════════
