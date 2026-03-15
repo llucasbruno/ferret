@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FERRET STUDIOS — MISSION CONTROL</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<!-- Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+<!-- Styles -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loader">
+  <div style="font-family:var(--R);font-size:22px;letter-spacing:5px;color:var(--cream)">FERRET <span style="color:var(--red)">STUDIOS</span></div>
+  <div class="spin"></div>
+  <div style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:3px;">INICIALIZANDO...</div>
+</div>
+
+<!-- CONFIG -->
+<div id="config-screen" class="screen hidden">
+  <div class="cfg-box">
+    <div class="logo-text">FERRET <span>STUDIOS</span></div>
+    <h2>// CONFIGURAÇÃO FIREBASE</h2>
+    <div class="cfg-info">
+      1. Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      2. Crie um projeto → Ative <strong>Firestore</strong> + <strong>Authentication (Email/Password)</strong><br>
+      3. Em Configurações do Projeto → Cole as credenciais<br>
+      4. Regras Firestore: <strong>allow read, write: if request.auth != null;</strong>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>API Key</label><input id="c-apiKey" placeholder="AIzaSy..."></div>
+      <div class="field"><label>Auth Domain</label><input id="c-authDomain" placeholder="projeto.firebaseapp.com"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Project ID</label><input id="c-projectId" placeholder="meu-projeto-id"></div>
+      <div class="field"><label>Storage Bucket</label><input id="c-storageBucket" placeholder="projeto.appspot.com"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Messaging Sender ID</label><input id="c-messagingSenderId" placeholder="123456789012"></div>
+      <div class="field"><label>App ID</label><input id="c-appId" placeholder="1:123:web:abc123"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;margin-top:10px;justify-content:center;">⚡ INICIALIZAR</button>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen" class="screen hidden">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="logo-text glitch">FERRET <span>STUDIOS</span></div>
+      <div class="sub">// MISSION CONTROL v3.0</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login',this)">LOGIN</button>
+      <button class="auth-tab" onclick="switchTab('register',this)">CADASTRO</button>
+    </div>
+    <div class="auth-form active" id="f-login">
+      <div class="form-row field"><label>Email</label><input type="email" id="l-email" placeholder="agent@ferretstudios.com"></div>
+      <div class="form-row field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="err" id="l-err"></div>
+      <button class="btn btn-primary" onclick="doLogin()" style="width:100%;margin-top:10px;justify-content:center;">ACESSAR</button>
+    </div>
+    <div class="auth-form" id="f-register">
+      <div class="field-grid">
+        <div class="field"><label>Nome</label><input type="text" id="r-name" placeholder="Seu nome"></div>
+        <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="email@..."></div>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Senha</label><input type="password" id="r-pass" placeholder="••••••••"></div>
+        <div class="field"><label>Cargo</label><input type="text" id="r-cargo" placeholder="Motion Designer"></div>
+      </div>
+      <div class="field-grid one"><div class="field"><label>URL da Foto (opcional)</label><input type="url" id="r-photo" placeholder="https://..."></div></div>
+      <div class="err" id="r-err"></div>
+      <button class="btn btn-primary" onclick="doRegister()" style="width:100%;margin-top:10px;justify-content:center;">CRIAR CONTA</button>
+    </div>
+    <div style="margin-top:16px;text-align:center;">
+      <button class="btn btn-ghost btn-sm" onclick="resetConfig()" style="font-size:10px;opacity:.5;">⚙ Reconfigurar Firebase</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="screen hidden">
+
+  <!-- Topbar global -->
+  <div id="topbar">
+    <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="tb-title logo-text" style="font-size:15px;letter-spacing:4px">FERRET <span>STUDIOS</span></div>
+    <div class="tb-proj-filter" id="topbar-proj-filter">
+      <span style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;">PROJETO:</span>
+      <select id="global-proj-sel" onchange="setGlobalProject(this.value)">
+        <option value="all">TODOS</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <nav id="sidebar">
+      <div class="sb-header">
+        <div class="sb-logo logo-text" style="font-size:15px">FERRET <span>STUDIOS</span></div>
+        <div class="sb-tag">// MISSION CONTROL</div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-user-inner">
+          <div class="avatar" id="sb-av" style="width:38px;height:38px;font-size:16px;"></div>
+          <div style="flex:1;min-width:0;">
+            <div class="sb-name" id="sb-name">—</div>
+            <div class="sb-rank" id="sb-rank">—</div>
+            <div class="xp-mini"><div class="xp-fill" id="sb-xp" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="sb-nav">
+        <div class="nav-section">VISÃO GERAL</div>
+        <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span>Dashboard</span></div>
+        <div class="nav-item" onclick="go('projects')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Projetos</span></div>
+        <div class="nav-item" onclick="go('kanban')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg></span><span>Kanban</span></div>
+        <div class="nav-section">TASKS</div>
+        <div class="nav-item" onclick="go('my-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>Minhas Tasks</span></div>
+        <div class="nav-item" onclick="go('all-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span>Todas as Tasks</span></div>
+        <div class="nav-item" onclick="go('history')"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span><span>Histórico</span></div>
+        <div class="nav-item" onclick="go('actions')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>Actions</span></div>
+        <div class="nav-section">GESTÃO</div>
+        <div class="nav-item mgr-only hidden" onclick="go('approvals')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
+        <div class="nav-item mgr-only hidden" onclick="go('members')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Membros</span></div>
+        <div class="nav-item" onclick="go('notifications')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>Notificações</span><span class="nav-badge hidden" id="notif-badge">0</span></div>
+        <div class="nav-section">PESSOAL</div>
+        <div class="nav-item" onclick="go('profile')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Meu Perfil</span></div>
+        <div class="nav-item mgr-only" onclick="go('activity')"><span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Log</span></div>
+        <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>Atualizações</span></div>
+      </div>
+      <div class="sb-footer">
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
+      </div>
+    </nav>
+
+    <main id="content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="page-head">
+          <div><div class="page-title">DASH<span>BOARD</span></div><div class="page-sub">// VISÃO GERAL DO ESTÚDIO</div></div>
+        </div>
+        <div class="metrics-bar" id="dash-metrics"></div>
+        <div class="sec">PROJETOS ATIVOS</div>
+        <div id="dash-projects" style="margin-bottom:22px;"></div>
+        <div class="sec">RANKING DO ESTÚDIO</div>
+        <div class="rank-grid" id="rank-grid"></div>
+        <div class="sec" style="margin-top:20px;">ATIVIDADE RECENTE</div>
+        <div id="dash-activity"></div>
+      </div>
+
+      <!-- PROJETOS -->
+      <div class="view" id="view-projects">
+        <div class="page-head">
+          <div><div class="page-title">PROJ<span>ETOS</span></div><div class="page-sub">// CLIENTES & CAMPANHAS</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="proj-head-acts"></div>
+        </div>
+        <div class="ftabs" id="proj-tabs" style="margin-bottom:16px;">
+          <button class="ftab active" onclick="projFilter('active',this)">ATIVOS</button>
+          <button class="ftab" onclick="projFilter('deletion',this)">EXCLUSÃO PENDENTE&nbsp;<span id="del-req-count" class="hidden" style="background:var(--red);color:#fff;font-family:var(--M);font-size:9px;padding:1px 6px;border-radius:10px;">0</span></button>
+          <button class="ftab" onclick="projFilter('archived',this)">ARQUIVADOS</button>
+        </div>
+        <div id="projects-list"></div>
+      </div>
+
+      <!-- PROJETO DETALHE -->
+      <div class="view" id="view-project-detail">
+        <!-- Header dinâmico do projeto (preenchido pelo JS) -->
+        <div id="pd-header"></div>
+        <!-- Mini Kanban -->
+        <div class="sec">KANBAN DO PROJETO</div>
+        <div id="pd-kanban" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;margin-bottom:24px;"></div>
+        <!-- Lista de tasks -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec" style="margin:0;">TODAS AS TASKS</div>
+          <button class="btn btn-primary btn-sm" onclick="openCreateForProject()">+ NOVA TASK</button>
+        </div>
+        <div id="pd-tasks"></div>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="view" id="view-kanban">
+        <div class="kanban-header">
+          <div>
+            <div class="page-title" style="font-size:22px;">KAN<span>BAN</span></div>
+            <div class="page-sub">// FLUXO DE TRABALHO</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <div class="kanban-proj-sel" id="kanban-proj-sel"></div>
+            <button class="btn btn-primary btn-sm" onclick="openCreate()">+ NOVA TASK</button>
+          </div>
+        </div>
+        <div class="kanban-board" id="kanban-board"></div>
+      </div>
+
+      <!-- MY TASKS -->
+      <div class="view" id="view-my-tasks">
+        <div class="page-head">
+          <div><div class="page-title">MINHAS <span>TASKS</span></div><div class="page-sub">// SUAS MISSÕES</div></div>
+          <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
+        </div>
+        <div class="ftabs" id="my-tabs">
+          <button class="ftab active" onclick="myFilter('all',this)">TODAS</button>
+          <button class="ftab" onclick="myFilter('active',this)">ATIVAS</button>
+          <button class="ftab" onclick="myFilter('in_progress',this)">EM PROGRESSO</button>
+          <button class="ftab" onclick="myFilter('done',this)">CONCLUÍDAS</button>
+          <button class="ftab" onclick="myFilter('pending_approval',this)">AGUARDANDO</button>
+          <button class="ftab" onclick="myFilter('rejected',this)">REJEITADAS</button>
+        </div>
+        <div id="my-tag-bar"></div>
+        <div class="tasks" id="my-list"></div>
+      </div>
+
+      <!-- ALL TASKS -->
+      <div class="view" id="view-all-tasks">
+        <div class="page-head">
+          <div><div class="page-title">TODAS AS <span>TASKS</span></div><div class="page-sub">// MISSÕES DO ESTÚDIO</div></div>
+          <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
+        </div>
+        <div class="ftabs" id="all-tabs"></div>
+        <div id="all-tag-bar"></div>
+        <div class="tasks" id="all-list"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="view" id="view-history">
+        <div class="page-head"><div><div class="page-title">HISTÓRICO <span>CONCLUÍDAS</span></div><div class="page-sub">// MISSÕES COMPLETADAS</div></div></div>
+        <div class="ftabs" id="hist-tabs"><button class="ftab active" onclick="histFilter('all',this)">TODOS</button></div>
+        <div id="hist-list"></div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="view" id="view-actions">
+        <div class="page-head">
+          <div><div class="page-title">ACTION <span>PLAN</span></div><div class="page-sub">// PROBLEMAS & PLANOS DE AÇÃO</div></div>
+          <button class="btn btn-primary" onclick="openCreateAction()">+ NOVO PLANO</button>
+        </div>
+        <div class="ftabs" id="ap-tabs">
+          <button class="ftab active" onclick="apFilter('all',this)">TODOS</button>
+          <button class="ftab" onclick="apFilter('pending_approval',this)">AGUARDANDO</button>
+          <button class="ftab" onclick="apFilter('identified',this)">IDENTIFICADO</button>
+          <button class="ftab" onclick="apFilter('analyzing',this)">EM ANÁLISE</button>
+          <button class="ftab" onclick="apFilter('executing',this)">EM EXECUÇÃO</button>
+          <button class="ftab" onclick="apFilter('monitoring',this)">MONITORANDO</button>
+          <button class="ftab" onclick="apFilter('resolved',this)">RESOLVIDOS</button>
+        </div>
+        <div id="ap-summary" style="margin-bottom:16px;"></div>
+        <div id="ap-list"></div>
+      </div>
+
+      <!-- APPROVALS -->
+      <div class="view" id="view-approvals">
+        <div class="page-head"><div><div class="page-title">FILA DE <span>APROVAÇÃO</span></div><div class="page-sub">// AGUARDANDO REVISÃO</div></div></div>
+        <div id="appr-list"></div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="view" id="view-members">
+        <div class="page-head">
+          <div><div class="page-title">GESTÃO DE <span>MEMBROS</span></div><div class="page-sub">// CARGOS E PERMISSÕES</div></div>
+          <button class="btn btn-danger btn-sm" onclick="openResetXP()" style="align-self:flex-start;">⚠ RESETAR XP</button>
+        </div>
+        <div id="members-list"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="view-profile">
+        <div class="page-head"><div><div class="page-title">MEU <span>PERFIL</span></div><div class="page-sub">// STATUS DO AGENTE</div></div></div>
+        <div class="profile-hero" id="p-hero"></div>
+        <div class="sec">ESTATÍSTICAS</div>
+        <div class="stats-grid" id="p-stats"></div>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div class="view" id="view-activity">
+        <div class="page-head"><div><div class="page-title">LOG DE <span>ATIVIDADES</span></div><div class="page-sub">// HISTÓRICO DO ESTÚDIO</div></div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <select id="act-filter-member" onchange="renderActivity()" class="field" style="max-width:180px;margin:0;">
+            <option value="all">👤 Todos os membros</option>
+          </select>
+          <select id="act-filter-type" onchange="renderActivity()" class="field" style="max-width:200px;margin:0;">
+            <option value="all">🗂 Todos os tipos</option>
+            <option value="task">📋 Tasks</option>
+            <option value="project">📁 Projetos</option>
+            <option value="xp">✨ XP & Ranks</option>
+            <option value="member">👤 Membros</option>
+            <option value="acesso" class="mgr-only">🔑 Acessos</option>
+            <option value="system">⚙ Sistema</option>
+          </select>
+        </div>
+        <!-- Seção de acessos — só ADM vê -->
+        <div id="act-acesso-section" class="mgr-only hidden" style="margin-bottom:20px;">
+          <div class="sec">🔑 ACESSOS RECENTES</div>
+          <div id="act-acesso-list"></div>
+        </div>
+        <div class="sec" id="act-geral-label">ATIVIDADES</div>
+        <div id="act-list"></div>
+        <div style="text-align:center;margin-top:16px;" id="act-load-more"></div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="view" id="view-notifications">
+        <div class="page-head">
+          <div><div class="page-title">NOTIFI<span>CAÇÕES</span></div><div class="page-sub">// ATUALIZAÇÕES PARA VOCÊ</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="markAllRead()" style="align-self:flex-start;">✓ MARCAR TUDO COMO LIDO</button>
+        </div>
+        <div id="notif-list"></div>
+      </div>
+
+      <!-- PATCH NOTES -->
+      <div class="view" id="view-patchnotes">
+        <div class="page-head">
+          <div><div class="page-title">NOTAS DE <span>ATUALIZAÇÃO</span></div><div class="page-sub">// CHANGELOG DO SISTEMA</div></div>
+          <button class="btn btn-primary mgr-only hidden" onclick="openCreatePN()" style="align-self:flex-start;">+ NOVA NOTA</button>
+        </div>
+        <div id="pn-list"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL: NOVA TASK -->
+<div class="overlay hidden" id="m-create">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div class="modal-title">NOVA <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-create')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Título *</label><input type="text" id="t-title" placeholder="Ex: Criar identidade visual"></div>
+      <div class="field"><label>Projeto *</label><select id="t-project"></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Responsável *</label><select id="t-assignee"></select></div>
+      <div class="field"><label>Prioridade</label>
+        <select id="t-priority">
+          <option value="low">Baixa (+80 XP)</option>
+          <option value="medium" selected>Média (+150 XP)</option>
+          <option value="high">Alta (+300 XP)</option>
+          <option value="critical">Crítica (+700 XP)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Problema / Desafio *</label><textarea id="t-problem" rows="3" placeholder="Descreva o problema..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Resolução / Plano *</label><textarea id="t-resolution" rows="3" placeholder="Como será resolvido..."></textarea></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Deadline *</label><input type="date" id="t-deadline"></div>
+      <div class="field"><label>Tags (vírgula)</label><input type="text" id="t-tags" placeholder="branding, social..."></div>
+    </div>
+    <div class="notice hidden" id="appr-notice">⚠ Sua task será enviada para aprovação antes de ser ativada.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-create')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doCreate()">CRIAR TASK</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TASK DETAIL -->
+<div class="overlay hidden" id="m-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="md-title">—</div>
+      <button class="modal-close" onclick="closeModal('m-task')">✕</button>
+    </div>
+    <div id="md-proj-info" style="margin-bottom:12px;font-family:var(--M);font-size:10px;color:var(--dim);display:flex;align-items:center;gap:6px;"></div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;" id="md-badges"></div>
+    <div class="task-detail-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt" id="md-problem">—</div></div>
+    <div class="task-detail-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt" id="md-resolution">—</div></div>
+    <div id="md-rejection" class="hidden" style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-bottom:8px;">
+      <div class="detail-lbl" style="color:var(--red)">// MOTIVO DA REJEIÇÃO</div>
+      <div class="detail-txt" id="md-rejection-txt">—</div>
+    </div>
+    <div style="display:flex;gap:14px;margin:12px 0;font-family:var(--M);font-size:11px;color:var(--dim);flex-wrap:wrap;">
+      <span>📅 <strong id="md-deadline" style="color:var(--cream)">—</strong></span>
+      <span>👤 <strong id="md-assignee" style="color:var(--cream)">—</strong></span>
+      <span>✨ <strong id="md-xp" style="color:var(--gold)">—</strong></span>
+    </div>
+    <div id="md-acts" style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;"></div>
+    <!-- SUBTASKS -->
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="sec" style="font-size:10px;margin:0;">SUBTASKS <span id="md-sub-pct" style="color:var(--cyan);margin-left:6px;"></span></div>
+        <button class="btn btn-ghost btn-sm" onclick="openAddSubtask()" id="btn-add-subtask" style="font-size:10px;">+ ADICIONAR</button>
+      </div>
+      <div id="md-sub-progress" style="height:4px;background:var(--bg3);border-radius:2px;margin-bottom:10px;overflow:hidden;display:none;">
+        <div id="md-sub-bar" style="height:100%;background:var(--cyan);border-radius:2px;transition:width .3s;width:0%"></div>
+      </div>
+      <div id="md-subtasks"></div>
+      <!-- form inline -->
+      <div id="subtask-form" class="hidden" style="background:var(--bg3);border-radius:4px;padding:12px;margin-top:8px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="st-title" placeholder="Ex: Storyboard" style="flex:1;" onkeydown="if(event.key==='Enter')saveSubtask()">
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;">PESO:</span>
+          <button class="st-w-btn" onclick="selectWeight(this,25)">25%</button>
+          <button class="st-w-btn" onclick="selectWeight(this,50)">50%</button>
+          <button class="st-w-btn active" onclick="selectWeight(this,75)">75%</button>
+          <button class="st-w-btn" onclick="selectWeight(this,100)">100%</button>
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim);margin-left:4px;">→ os pesos são normalizados automaticamente</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" onclick="saveSubtask()">SALVAR</button>
+          <button class="btn btn-ghost btn-sm" onclick="hide('subtask-form');$('st-title').value=''">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+    <div class="cmts">
+      <div class="sec" style="font-size:10px;">COMENTÁRIOS</div>
+      <div id="md-cmts"></div>
+      <div class="cmt-row">
+        <div class="cmt-input-wrap">
+          <div id="mdd-task" class="mention-dropdown hidden"></div>
+          <input type="text" id="cmt-in" placeholder="Comentário... @nome para mencionar" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;clip-path:var(--clip-sm)"
+            oninput="mentionInput(this,'mdd-task')"
+            onkeydown="mentionKey(event,this,'mdd-task')">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="doComment()">ENVIAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR TASK -->
+<div class="overlay hidden" id="m-edit-task">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-edit-task')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Título *</label><input type="text" id="et-title" placeholder="Ex: Criar identidade visual"></div>
+      <div class="field"><label>Projeto</label><select id="et-project"></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Responsável</label><select id="et-assignee"></select></div>
+      <div class="field"><label>Prioridade</label>
+        <select id="et-priority">
+          <option value="low">Baixa (+80 XP)</option>
+          <option value="medium">Média (+150 XP)</option>
+          <option value="high">Alta (+300 XP)</option>
+          <option value="critical">Crítica (+700 XP)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Problema / Desafio *</label><textarea id="et-problem" rows="3" placeholder="Descreva o problema..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Resolução / Plano *</label><textarea id="et-resolution" rows="3" placeholder="Como será resolvido..."></textarea></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Deadline *</label><input type="date" id="et-deadline"></div>
+      <div class="field"><label>Tags (vírgula)</label><input type="text" id="et-tags" placeholder="branding, social..."></div>
+    </div>
+    <div id="et-notice" class="hidden notice" style="margin-top:8px;">⚠ Alterar prioridade ou responsável recalcula o XP da task.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-edit-task')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doEditTask()">SALVAR ALTERAÇÕES</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJEITAR -->
+<div class="overlay hidden" id="m-reject">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">TASK</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject')">✕</button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doReject()">REJEITAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR XP -->
+<div class="overlay hidden" id="m-edit-xp">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--gold)">XP</span></div>
+      <button class="modal-close" onclick="closeModal('m-edit-xp')">✕</button>
+    </div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div id="edit-xp-name" style="font-family:var(--R);font-size:18px;font-weight:700;color:var(--cream);margin-bottom:4px;"></div>
+      <div id="edit-xp-current" style="font-family:var(--M);font-size:11px;color:var(--gold);"></div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Novo valor de XP</label>
+      <input type="number" id="edit-xp-value" min="0" placeholder="Ex: 1000">
+    </div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Tarefas concluídas</label>
+      <input type="number" id="edit-xp-tasks" min="0" placeholder="Ex: 5">
+    </div></div>
+    <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:-8px;margin-bottom:12px;">
+      Deixe em branco para manter o valor atual.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('m-edit-xp')">CANCELAR</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="doResetXPSingle()">🔄 ZERAR</button>
+      <button class="btn btn-primary" onclick="saveEditXP()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RESETAR XP -->
+<div class="overlay hidden" id="m-reset-xp">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">RESETAR <span style="color:var(--red)">XP</span></div>
+      <button class="modal-close" onclick="closeModal('m-reset-xp')">✕</button>
+    </div>
+    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;">⚠ AÇÃO IRREVERSÍVEL</div>
+      <div style="font-size:13px;color:var(--dim);">Isso vai zerar o XP e o contador de tarefas concluídas de <strong style="color:var(--cream)">todos os membros</strong>. O histórico de tasks não será afetado.</div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Digite <strong style="color:var(--red)">RESETAR</strong> para confirmar</label>
+      <input type="text" id="reset-confirm-input" placeholder="RESETAR" oninput="$('btn-confirm-reset').disabled=this.value!=='RESETAR'">
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-reset-xp')">CANCELAR</button>
+      <button class="btn btn-danger" id="btn-confirm-reset" disabled onclick="doResetXP()">RESETAR TUDO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SOLICITAR EXCLUSÃO DE PROJETO -->
+<div class="overlay hidden" id="m-delete-proj">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">EXCLUIR <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-delete-proj')">✕</button>
+    </div>
+    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;">⚠ REQUER APROVAÇÃO DE OUTRO ADM</div>
+      <div style="font-size:13px;color:var(--dim);">A exclusão de <strong style="color:var(--cream)" id="del-proj-name">—</strong> precisará ser aprovada por outro administrador. As tasks vinculadas <strong style="color:var(--cream)">não serão deletadas</strong>, apenas desvinculadas do projeto.</div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Motivo da exclusão *</label>
+      <input type="text" id="del-proj-reason" placeholder="Ex: Projeto cancelado pelo cliente">
+    </div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-delete-proj')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="submitDeleteProject()">SOLICITAR EXCLUSÃO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ATRIBUIR TASK A PROJETO -->
+<div class="overlay hidden" id="m-assign-project">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">ATRIBUIR A <span style="color:var(--cyan)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-assign-project')">✕</button>
+    </div>
+    <div id="assign-task-info" style="background:var(--bg3);border-radius:4px;padding:10px 14px;margin-bottom:16px;font-family:var(--M);font-size:11px;color:var(--dim);"></div>
+    <div class="field-grid one"><div class="field">
+      <label>Selecionar Projeto</label>
+      <select id="assign-proj-select"></select>
+    </div></div>
+    <div id="assign-member-notice" class="hidden" style="background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-family:var(--M);font-size:10px;color:#F5C518;">
+      ⏳ Como membro, esta atribuição precisará de aprovação do ADM antes de ser efetivada.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-assign-project')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveAssignProject()">ATRIBUIR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJEITAR PROJETO -->
+<div class="overlay hidden" id="m-reject-proj">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject-proj')">✕</button>
+    </div>
+    <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:12px;">O solicitante será notificado com o motivo.</div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição *</label><textarea id="rej-proj-reason" rows="4" placeholder="Explique o motivo da rejeição..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject-proj')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doRejectProject()">REJEITAR PROJETO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVO PROJETO -->
+<div class="overlay hidden" id="m-project">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title" id="m-proj-modal-title">NOVO <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-project')">✕</button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome do Projeto *</label><input type="text" id="proj-name" placeholder="Ex: Campanha Nike Q1"></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Cliente</label><input type="text" id="proj-client" placeholder="Nome do cliente"></div>
+      <div class="field"><label>Cor</label>
+        <select id="proj-color">
+          <option value="#FF4655">🔴 Vermelho</option>
+          <option value="#00C4B4">🟢 Ciano</option>
+          <option value="#FFD700">🟡 Dourado</option>
+          <option value="#FF8C42">🟠 Laranja</option>
+          <option value="#88CCFF">🔵 Azul</option>
+          <option value="#44FF99">💚 Verde</option>
+          <option value="#CC88FF">💜 Roxo</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Descrição</label><textarea id="proj-desc" rows="2" placeholder="Breve descrição do projeto..."></textarea></div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Imagem de Capa <span style="color:var(--dim);font-weight:400;">(URL)</span></label>
+      <input type="text" id="proj-cover" placeholder="https://..." oninput="previewCover(this.value)">
+      <div id="proj-cover-preview" style="margin-top:8px;height:80px;border-radius:4px;background:var(--bg3);background-size:cover;background-position:center;display:none;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,var(--bg2));"></div>
+      </div>
+    </div></div>
+    <div class="field-grid">
+      <div class="field"><label>Data de Início</label><input type="date" id="proj-start"></div>
+      <div class="field"><label>Deadline</label><input type="date" id="proj-deadline"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-project')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveProject()">SALVAR PROJETO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR CARGO -->
+<div class="overlay hidden" id="m-cargo">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--red)">CARGO</span></div>
+      <button class="modal-close" onclick="closeModal('m-cargo')">✕</button>
+    </div>
+    <div id="m-cargo-name" style="font-family:var(--R);font-size:16px;font-weight:700;margin-bottom:14px;color:var(--cyan)">—</div>
+    <div class="field-grid one"><div class="field"><label>Cargo / Função</label><input type="text" id="cargo-input" placeholder="Motion Designer"></div></div>
+    <div class="field-grid one"><div class="field"><label>Nível de Acesso</label>
+      <select id="access-input"><option value="member">Membro</option><option value="manager">Gerente (ADM)</option></select>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-cargo')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveCargo()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVA NOTA DE ATUALIZAÇÃO -->
+<div class="overlay hidden" id="m-pn">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <div class="modal-title">NOVA <span style="color:var(--red)">ATUALIZAÇÃO</span></div>
+      <button class="modal-close" onclick="closeModal('m-pn')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Versão *</label><input type="text" id="pn-version" placeholder="v1.1"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="pn-type">
+          <option value="new">🟢 Nova Funcionalidade</option>
+          <option value="improve">💠 Melhoria</option>
+          <option value="fix">🔴 Correção de Bug</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Título *</label><input type="text" id="pn-title" placeholder="Ex: Sistema de Aprovações de Tasks"></div></div>
+    <div class="field-grid one"><div class="field"><label>Descrição Completa *</label><textarea id="pn-body" rows="8" placeholder="Descreva o que foi adicionado, corrigido ou melhorado. Você pode usar quebras de linha para organizar."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-pn')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doCreatePN()">📢 PUBLICAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PERFIL -->
+<div class="overlay hidden" id="m-profile">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--red)">PERFIL</span></div>
+      <button class="modal-close" onclick="closeModal('m-profile')">✕</button>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:20px;">
+      <div style="position:relative;width:80px;height:80px;">
+        <div id="ep-avatar-preview" style="width:80px;height:80px;clip-path:var(--clip-md);background:var(--bg3);border:3px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--R);font-size:30px;font-weight:700;color:var(--red);overflow:hidden;cursor:pointer;" onclick="$('ep-file').click()" title="Clique para enviar foto"></div>
+        <div style="position:absolute;bottom:-6px;right:-6px;background:var(--red);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid var(--bg2);" onclick="$('ep-file').click()">📷</div>
+        <input type="file" id="ep-file" accept="image/*" style="display:none" onchange="handleProfileUpload(this)">
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="ep-name" placeholder="Seu nome"></div></div>
+    <div class="field-grid one"><div class="field">
+      <label>URL da Foto</label>
+      <input type="url" id="ep-photo" placeholder="https://..." oninput="previewProfilePhoto(this.value)">
+      <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:6px;">
+        <span>ou</span>
+        <button class="btn btn-ghost btn-sm" onclick="$('ep-file').click()" style="padding:3px 10px;font-size:10px;">📁 UPLOAD DO PC</button>
+        <span id="ep-file-name" style="color:var(--cyan);font-size:10px;"></span>
+      </div>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-profile')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveProfile()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: NOVO/EDITAR ACTION PLAN ══ -->
+<div class="overlay hidden" id="m-action">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-head">
+      <div class="modal-title" id="m-action-title">NOVO <span style="color:var(--red)">PLANO DE AÇÃO</span></div>
+      <button class="modal-close" onclick="closeModal('m-action')">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Título do Problema *</label><input type="text" id="ap-title" placeholder="Ex: Alta taxa de revisão"></div>
+      <div class="field"><label>Projeto Vinculado</label><select id="ap-project"></select></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Severidade do Impacto</label>
+        <select id="ap-severity">
+          <option value="critical">🔴 Crítico — impacto grave imediato</option>
+          <option value="moderate" selected>🟠 Moderado — impacto significativo</option>
+          <option value="low">🟡 Leve — impacto gerenciável</option>
+        </select>
+      </div>
+      <div class="field"><label>Prioridade de Resolução</label>
+        <select id="ap-priority">
+          <option value="critical">Crítica — resolver agora</option>
+          <option value="high">Alta — resolver esta semana</option>
+          <option value="medium" selected>Média — resolver este mês</option>
+          <option value="low">Baixa — quando possível</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Descrição do Problema *</label><textarea id="ap-problem" rows="3" placeholder="Descreva o problema..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Causa Raiz (opcional)</label><textarea id="ap-rootcause" rows="2" placeholder="Por que esse problema ocorreu?"></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Solução Proposta *</label><textarea id="ap-solution" rows="3" placeholder="Como vai ser resolvido?"></textarea></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Responsável Principal *</label><select id="ap-owner" onchange="renderApParticipantsWrap()"></select></div>
+      <div class="field"><label>Deadline *</label><input type="date" id="ap-deadline"></div>
+    </div>
+    <div class="field-grid one"><div class="field">
+      <label>Participantes</label>
+      <div id="ap-participants-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);min-height:44px;border-radius:2px;"></div>
+      <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:4px;">Clique para adicionar/remover</div>
+    </div></div>
+    <div style="margin-bottom:14px;">
+      <div style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:8px;">SUB-AÇÕES</div>
+      <div id="ap-subactions-list" style="margin-bottom:8px;"></div>
+      <div style="display:flex;gap:6px;">
+        <div class="field" style="flex:1;margin:0;"><input type="text" id="ap-subaction-input" placeholder="Ex: Realizar reunião de alinhamento..." onkeydown="if(event.key==='Enter'){event.preventDefault();addApSubaction()}"></div>
+        <button class="btn btn-info btn-sm" onclick="addApSubaction()">+ ADD</button>
+      </div>
+    </div>
+    <div class="notice hidden" id="ap-appr-notice">⚠ Seu plano será enviado para aprovação dos ADMs antes de ser ativado.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-action')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveAction()">SALVAR PLANO</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: DETALHE ACTION PLAN ══ -->
+<div class="overlay hidden" id="m-action-detail">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div style="flex:1;min-width:0;">
+        <div class="modal-title" id="apd-title" style="font-size:18px;">—</div>
+        <div id="apd-proj" style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:3px;"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('m-action-detail')">✕</button>
+    </div>
+    <div id="apd-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
+    <div id="apd-status-btns" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;align-items:center;"></div>
+    <div class="task-detail-p" style="margin-bottom:8px;"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt" id="apd-problem">—</div></div>
+    <div id="apd-rootcause-block" class="hidden" style="background:rgba(255,215,0,.05);border-left:3px solid var(--gold);padding:10px 14px;margin-bottom:8px;">
+      <div class="detail-lbl" style="color:var(--gold);">// CAUSA RAIZ</div><div class="detail-txt" id="apd-rootcause">—</div>
+    </div>
+    <div class="task-detail-r" style="margin-bottom:8px;"><div class="detail-lbl">// SOLUÇÃO PROPOSTA</div><div class="detail-txt" id="apd-solution">—</div></div>
+    <div id="apd-rejection-block" class="hidden" style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-bottom:8px;">
+      <div class="detail-lbl" style="color:var(--red);">// MOTIVO DA REJEIÇÃO</div><div class="detail-txt" id="apd-rejection-txt">—</div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-family:var(--M);font-size:11px;color:var(--dim);margin:12px 0 14px;">
+      <span>📅 <strong id="apd-deadline" style="color:var(--cream)">—</strong></span>
+      <span>👤 <strong id="apd-owner" style="color:var(--cream)">—</strong></span>
+      <span id="apd-participants-info"></span>
+    </div>
+    <div id="apd-subactions-wrap" style="margin-bottom:16px;"></div>
+    <div id="apd-acts" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;"></div>
+    <div class="cmts">
+      <div class="sec" style="font-size:10px;">COMENTÁRIOS</div>
+      <div id="apd-cmts"></div>
+      <div class="cmt-row">
+        <div class="cmt-input-wrap">
+          <div id="mdd-action" class="mention-dropdown hidden"></div>
+          <input type="text" id="apcmt-in" placeholder="Comentário... @nome para mencionar" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;clip-path:var(--clip-sm)"
+            oninput="mentionInput(this,'mdd-action')"
+            onkeydown="mentionKey(event,this,'mdd-action')">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="doActionComment()">ENVIAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REJEITAR ACTION PLAN ══ -->
+<div class="overlay hidden" id="m-reject-action">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">PLANO</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject-action')">✕</button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-action-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject-action')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doRejectAction()">REJEITAR</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ JS MODULES ══ -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/mentions.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/kanban.js"></script>
+<script src="js/members.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/activity.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/patchnotes.js"></script>
+
+<script>
+// ══ INIT ══
+localStorage.setItem('fs_cfg', JSON.stringify(FB_CONFIG));
+initFB(FB_CONFIG);
+</script>
+</body>
+</html>
