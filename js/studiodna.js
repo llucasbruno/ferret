@@ -163,14 +163,22 @@ async function renderStudioDNA() {
   const allDocs = customDocs.length ? customDocs : DNA_DOCS_DEFAULT;
 
   $('dna-grid').innerHTML = allDocs.map(doc => `
-    <div class="dna-card" onclick="openDNADoc('${doc.id}')" style="border-color:${doc.color}33;">
+    <div class="proj-card" onclick="openDNADoc('${doc.id}')" style="cursor:pointer;">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${doc.color},transparent);"></div>
-      <span class="dna-card-icon">${doc.icon}</span>
-      <div class="dna-card-title">${doc.title}</div>
-      <div class="dna-card-sub">${doc.subtitle}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
-        <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;">${doc.sections?.length || 0} SEÇÕES</span>
-        <span class="dna-card-cta" style="background:${doc.color}18;color:${doc.color};border:1px solid ${doc.color}33;">VER DOCUMENTO →</span>
+      <div class="proj-card-header">
+        <div style="font-size:22px;">${doc.icon}</div>
+        <div class="proj-name" style="color:var(--cream);font-size:16px;">${doc.title}</div>
+      </div>
+      <div style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:14px;">${doc.subtitle}</div>
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
+        ${doc.sections.map(s => `<div style="display:flex;align-items:center;gap:6px;font-family:var(--M);font-size:10px;color:var(--dim);">
+          <span style="width:5px;height:5px;border-radius:50%;background:${doc.color};flex-shrink:0;display:inline-block;"></span>
+          ${s.heading}
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);">
+        <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;">${doc.sections.length} SEÇÕES</span>
+        <span style="font-family:var(--M);font-size:9px;color:${doc.color};letter-spacing:2px;">ABRIR →</span>
       </div>
     </div>
   `).join('');
