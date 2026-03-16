@@ -2,9 +2,9 @@
 //  FEEDBACK.JS — Bug Report e Sugestões
 // ══════════════════════════════════════════════
 
-const EMAILJS_SERVICE_ID  = 'service_v5m774r';
+
 const EMAILJS_TEMPLATE_ID = 'template_qzne6sj';
-const EMAILJS_PUBLIC_KEY  = 'hXXhnJQSBGrG1zVp8';
+
 
 function openFeedback() {
   $('fb-tipo').value = 'Bug';

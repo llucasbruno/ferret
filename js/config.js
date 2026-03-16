@@ -62,3 +62,8 @@ const LOG_META = {
   project_update: { icon: '✏️', color: '#F5C518',       cat: 'project' },
   patch_note:     { icon: '📰', color: 'var(--cyan)',   cat: 'system'  },
 };
+
+
+// ── EmailJS ──────────────────────────────────
+const EMAILJS_SERVICE_ID = 'service_v5m774r';
+const EMAILJS_PUBLIC_KEY = 'hXXhnJQSBGrG1zVp8';
