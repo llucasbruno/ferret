@@ -53,12 +53,33 @@ function openCargo(uid) {
   showModal('m-cargo');
 }
 async function saveCargo() {
-  const cargo = $('cargo-input').value.trim(), access = $('access-input').value;
+  const cargo  = $('cargo-input').value.trim();
+  const access = $('access-input').value;
   if (!cargo) { toast('Informe o cargo', false); return; }
-  await db.collection('users').doc(cargoUID).update({ cargo, access });
+
   const u = users.find(x => x.uid === cargoUID);
+
+  await db.collection('users').doc(cargoUID).update({ cargo, access });
   await log('cargo_update', `${meData.displayName} atualizou cargo de ${u?.displayName} para "${cargo}"`);
-  toast('Cargo atualizado!', true); closeModal('m-cargo'); await refresh(); renderCurView();
+
+  // Notifica o membro sobre mudança de cargo
+  const accessLabel = access === 'manager' ? 'Gerente (ADM) 👑' : 'Membro';
+  await saveNotif(cargoUID, 'cargo_update',
+    `Seu cargo foi atualizado para "${cargo}"`,
+    { fromName: meData.displayName, reason: `Nível de acesso: ${accessLabel}` }
+  );
+
+  // Se o membro alterado for o próprio usuário logado, atualiza permissões imediatamente
+  if (cargoUID === me.uid) {
+    meData.access = access;
+    meData.cargo  = cargo;
+    updateSidebar();
+  }
+
+  toast('Cargo atualizado!', true);
+  closeModal('m-cargo');
+  await refresh();
+  renderCurView();
 }
 
 // ── Render members ───────────────────────────

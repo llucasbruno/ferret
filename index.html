@@ -14,6 +14,9 @@
 <!-- Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <!-- Styles -->
 <link rel="stylesheet" href="style.css">
 </head>
@@ -139,6 +142,7 @@
         <div class="nav-item" onclick="go('profile')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Meu Perfil</span></div>
         <div class="nav-item mgr-only" onclick="go('activity')"><span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Log</span></div>
         <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>Atualizações</span></div>
+        <div class="nav-item member-only" onclick="openFeedback()"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Feedback</span></div>
       </div>
       <div class="sb-footer">
         <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
@@ -828,6 +832,38 @@
   </div>
 </div>
 
+<!-- MODAL: FEEDBACK -->
+<div class="overlay hidden" id="m-feedback">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">ENVIAR <span style="color:var(--red)">FEEDBACK</span></div>
+      <button class="modal-close" onclick="closeModal('m-feedback')">✕</button>
+    </div>
+    <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:18px;">Reporte um bug ou sugira uma melhoria. Sua mensagem vai direto para o time.</div>
+    <div class="field-grid one"><div class="field">
+      <label>Tipo *</label>
+      <select id="fb-tipo">
+        <option value="Bug">🐛 Bug — algo não está funcionando</option>
+        <option value="Sugestão">💡 Sugestão — ideia de melhoria</option>
+        <option value="Outro">📋 Outro</option>
+      </select>
+    </div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Título *</label>
+      <input type="text" id="fb-titulo" placeholder="Resumo curto do problema ou ideia">
+    </div></div>
+    <div class="field-grid one"><div class="field">
+      <label>Descrição *</label>
+      <textarea id="fb-descricao" rows="5" placeholder="Descreva com detalhes. Para bugs, explique o que aconteceu e o que esperava que acontecesse."></textarea>
+    </div></div>
+    <div class="err" id="fb-err" style="display:none;"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('m-feedback')">CANCELAR</button>
+      <button class="btn btn-primary" id="fb-btn" onclick="doSendFeedback()">ENVIAR</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <!-- ══ JS MODULES ══ -->
@@ -847,6 +883,7 @@
 <script src="js/activity.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/patchnotes.js"></script>
+<script src="js/feedback.js"></script>
 
 <script>
 // ══ INIT ══
