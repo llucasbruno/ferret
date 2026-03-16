@@ -165,11 +165,16 @@ async function renderStudioDNA() {
   $('dna-grid').innerHTML = allDocs.map(doc => `
     <div class="dna-card" onclick="openDNADoc('${doc.id}')" style="border-color:${doc.color}33;">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${doc.color},transparent);"></div>
-      <div class="dna-card-icon">${doc.icon}</div>
-      <div class="dna-card-title">${doc.title}</div>
-      <div class="dna-card-sub">${doc.subtitle}</div>
-      <div style="margin-top:14px;font-family:var(--M);font-size:9px;color:${doc.color};letter-spacing:1px;">
-        ${doc.sections?.length || 0} SEÇÕES →
+      <div class="dna-card-inner">
+        <div class="dna-card-header">
+          <div class="dna-card-icon" style="background:${doc.color}18;color:${doc.color};">${doc.icon}</div>
+          <div class="dna-card-title" style="color:var(--cream)">${doc.title}</div>
+        </div>
+        <div class="dna-card-sub">${doc.subtitle}</div>
+      </div>
+      <div class="dna-card-footer">
+        <span class="dna-card-sections">${doc.sections?.length || 0} SEÇÕES</span>
+        <span class="dna-card-cta" style="color:${doc.color};">LER DOCUMENTO <span style="font-size:12px;">→</span></span>
       </div>
     </div>
   `).join('');
