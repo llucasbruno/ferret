@@ -42,7 +42,7 @@ function buildGlobalProjSel() {
 }
 
 // ── Navigation ───────────────────────────────
-const NAV_ORDER = ['dashboard', 'projects', 'kanban', 'my-tasks', 'all-tasks', 'history', 'actions', 'approvals', 'members', 'notifications', 'profile', 'activity', 'patchnotes'];
+const NAV_ORDER = ['dashboard', 'projects', 'kanban', 'my-tasks', 'all-tasks', 'history', 'actions', 'approvals', 'members', 'notifications', 'profile', 'activity', 'patchnotes', 'studiodna'];
 
 async function go(v) {
   const mgrOnly = ['activity', 'approvals', 'members'];
@@ -71,7 +71,8 @@ async function renderCurView() {
     notifications: renderNotifications,
     profile: renderProfile,
     activity: renderActivity,
-    patchnotes: renderPatchNotes
+    patchnotes: renderPatchNotes,
+    studiodna: renderStudioDNA
   };
   await map[curView]?.();
 }
