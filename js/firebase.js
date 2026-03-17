@@ -103,9 +103,3 @@ function saveConfig() {
   hide('config-screen');
   initFB(cfg);
 }
-
-function resetConfig() {
-  localStorage.removeItem('fs_cfg');
-  auth?.signOut().catch(() => {});
-  show('config-screen'); hide('auth-screen'); hide('main-app');
-}
