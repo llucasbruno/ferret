@@ -100,8 +100,8 @@ async function renderMembers() {
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="btn btn-ghost btn-sm" onclick="openEditXP('${u.uid}')" style="color:var(--gold);">✨ XP</button>
-        <button class="btn btn-info btn-sm" onclick="openCargo('${u.uid}')">✏ CARGO</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditXP('${u.uid}')" style="color:var(--gold);"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> XP</button>
+        <button class="btn btn-info btn-sm" onclick="openCargo('${u.uid}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> CARGO</button>
       </div>
     </div>`;
   }).join('');
@@ -120,13 +120,13 @@ async function renderProfile() {
   $('p-hero').innerHTML = `<div class="p-avatar" style="cursor:pointer;position:relative;" onclick="openEditProfile()" title="Editar perfil">
       ${av}
       <div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;border-radius:inherit;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
-        <span style="font-size:18px;">✏</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" style="stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </div>
     </div>
     <div style="flex:1;min-width:180px;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div class="p-name">${meData.displayName}</div>
-        <button class="btn btn-ghost btn-sm" onclick="openEditProfile()" style="padding:4px 10px;font-size:10px;opacity:.7;">✏ EDITAR</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditProfile()" style="padding:4px 10px;font-size:10px;opacity:.7;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> EDITAR</button>
       </div>
       <div class="p-role">${meData.cargo || '—'} · ${meData.access === 'manager' ? 'GERENTE' : 'MEMBRO'}</div>
       <div class="p-rank" style="background:${r.color}20;color:${r.color};border:1px solid ${r.color}40;">${r.icon} ${r.name}</div>

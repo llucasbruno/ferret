@@ -221,11 +221,11 @@ async function openActionDetail(id) {
 
   let acts = '';
   if (isMgr && ap.status === 'pending_approval') {
-    acts += `<button class="btn btn-success btn-sm" onclick="approveAction('${id}')">✓ APROVAR</button>`;
-    acts += `<button class="btn btn-danger btn-sm" onclick="openRejectAction('${id}')">✕ REJEITAR</button>`;
+    acts += `<button class="btn btn-success btn-sm" onclick="approveAction('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button>`;
+    acts += `<button class="btn btn-danger btn-sm" onclick="openRejectAction('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button>`;
   }
-  if ((isMgr || ap.createdById === me.uid) && ap.status !== 'rejected') acts += `<button class="btn btn-info btn-sm" onclick="openEditAction('${id}')">✏ EDITAR</button>`;
-  if (isMgr || ap.createdById === me.uid) acts += `<button class="btn btn-danger btn-sm" onclick="deleteAction('${id}')">🗑 EXCLUIR</button>`;
+  if ((isMgr || ap.createdById === me.uid) && ap.status !== 'rejected') acts += `<button class="btn btn-info btn-sm" onclick="openEditAction('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> EDITAR</button>`;
+  if (isMgr || ap.createdById === me.uid) acts += `<button class="btn btn-danger btn-sm" onclick="deleteAction('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> EXCLUIR</button>`;
   $('apd-acts').innerHTML = acts;
 
   const cmts  = await db.collection('actionComments').where('actionId', '==', id).get();
@@ -260,11 +260,11 @@ async function renderActions() {
 
   $('ap-summary').innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;">
     ${Object.entries(counts).filter(([, n]) => n > 0).map(([s, n]) => `<div style="background:${apStatusColor(s)}15;border:1px solid ${apStatusColor(s)}40;padding:4px 12px;border-radius:20px;font-family:var(--M);font-size:10px;color:${apStatusColor(s)};">${AP_STATUS_LABEL[s]} <strong>${n}</strong></div>`).join('')}
-    ${odCnt > 0 ? `<div style="background:rgba(255,70,85,.12);border:1px solid rgba(255,70,85,.35);padding:4px 12px;border-radius:20px;font-family:var(--M);font-size:10px;color:var(--red);">⚠ VENCIDOS <strong>${odCnt}</strong></div>` : ''}
+    ${odCnt > 0 ? `<div style="background:rgba(255,70,85,.12);border:1px solid rgba(255,70,85,.35);padding:4px 12px;border-radius:20px;font-family:var(--M);font-size:10px;color:var(--red);"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> VENCIDOS <strong>${odCnt}</strong></div>` : ''}
   </div>`;
 
   if (!aps.length) {
-    $('ap-list').innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><h3>SEM PLANOS DE AÇÃO</h3><p style="margin-bottom:12px">${apFV === 'all' ? 'Crie o primeiro plano de ação' : 'Nenhum plano com este status'}</p>${apFV === 'all' ? `<button class="btn btn-primary btn-sm" onclick="openCreateAction()">+ CRIAR PLANO</button>` : ''}</div>`;
+    $('ap-list').innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div><h3>SEM PLANOS DE AÇÃO</h3><p style="margin-bottom:12px">${apFV === 'all' ? 'Crie o primeiro plano de ação' : 'Nenhum plano com este status'}</p>${apFV === 'all' ? `<button class="btn btn-primary btn-sm" onclick="openCreateAction()">+ CRIAR PLANO</button>` : ''}</div>`;
     return;
   }
 
@@ -289,7 +289,7 @@ async function renderActions() {
       ${ap.projectId ? `<div style="display:flex;align-items:center;gap:5px;font-family:var(--M);font-size:9px;color:var(--dim);margin-bottom:8px;"><span style="width:7px;height:7px;border-radius:50%;background:${projColor(ap.projectId)};display:inline-block;flex-shrink:0;"></span>${ap.projectName}</div>` : ''}
       <div class="ap-foot">
         <div class="ap-participants">${avs}${allM.length > 5 ? `<span style="font-family:var(--M);font-size:9px;color:var(--dim);margin-left:8px;">+${allM.length - 5}</span>` : ''}</div>
-        <span>📅 <strong style="color:${isOD ? 'var(--red)' : 'var(--cream)'}">${fmtDate(dl)}${isOD ? ' ⚠' : ''}</strong></span>
+        <span><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <strong style="color:${isOD ? 'var(--red)' : 'var(--cream)'}">${fmtDate(dl)}${isOD ? ' ⚠' : ''}</strong></span>
         ${subs.length ? `<span style="color:var(--cyan);">✓ ${sd}/${subs.length}</span>` : ''}
       </div>
       ${subs.length ? `<div class="ap-progress"><div class="ap-progress-fill" style="width:${pct}%;background:${pct === 100 ? 'var(--green)' : 'var(--cyan)'}"></div></div>` : ''}

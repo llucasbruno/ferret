@@ -63,14 +63,14 @@ async function openTask(id) {
   if (isPending && !isMgr) {
     acts = `<div style="font-family:var(--M);font-size:11px;color:#F5C518;background:#F5C51811;border:1px solid #F5C51833;padding:8px 12px;border-radius:4px;">⏳ Aguardando aprovação do administrador</div>`;
   } else {
-    if (t.status === 'active'      && t.assigneeId === me.uid) acts += `<button class="btn btn-warn btn-sm" onclick="startTask('${id}')">▶ INICIAR</button>`;
-    if (t.status === 'in_progress' && t.assigneeId === me.uid) { acts += `<button class="btn btn-success btn-sm" onclick="completeTask('${id}')">✓ CONCLUIR</button>`; if (overdue) acts += `<span class="xp-penalty">⚠ -${XP_PENALTY[t.priority]} XP atraso</span>`; }
+    if (t.status === 'active'      && t.assigneeId === me.uid) acts += `<button class="btn btn-warn btn-sm" onclick="startTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> INICIAR</button>`;
+    if (t.status === 'in_progress' && t.assigneeId === me.uid) { acts += `<button class="btn btn-success btn-sm" onclick="completeTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> CONCLUIR</button>`; if (overdue) acts += `<span class="xp-penalty"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> -${XP_PENALTY[t.priority]} XP atraso</span>`; }
     if (t.status === 'done') acts += `<span style="color:var(--green);font-family:var(--M);font-size:11px;">✓ CONCLUÍDA</span>`;
-    if (isMgr && isPending) { acts += `<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')">✕ REJEITAR</button>`; }
+    if (isMgr && isPending) { acts += `<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button>`; }
     const canEdit = !['done', 'rejected'].includes(t.status) && (isMgr || (t.createdById === me.uid && t.status !== 'pending_approval'));
-    if (canEdit) acts += `<button class="btn btn-info btn-sm" onclick="openEditTask('${id}')">✏ EDITAR</button>`;
-    if (isMgr || (t.createdById === me.uid && !['done', 'pending_approval'].includes(t.status))) acts += `<button class="btn btn-danger btn-sm" onclick="deleteTask('${id}')">🗑</button>`;
-    if (!['done', 'rejected'].includes(t.status)) acts += `<button class="btn btn-ghost btn-sm" onclick="openAssignProject('${id}')" style="color:var(--cyan);">📁 PROJETO</button>`;
+    if (canEdit) acts += `<button class="btn btn-info btn-sm" onclick="openEditTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> EDITAR</button>`;
+    if (isMgr || (t.createdById === me.uid && !['done', 'pending_approval'].includes(t.status))) acts += `<button class="btn btn-danger btn-sm" onclick="deleteTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>`;
+    if (!['done', 'rejected'].includes(t.status)) acts += `<button class="btn btn-ghost btn-sm" onclick="openAssignProject('${id}')" style="color:var(--cyan);"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> PROJETO</button>`;
   }
   $('md-acts').innerHTML = acts;
   renderSubtasks(t);
@@ -293,8 +293,8 @@ function taskCard(t, i, isMe) {
   const isMgrCard = meData?.access === 'manager';
   let acts = '';
   if (t.status !== 'pending_approval' || isMgrCard) {
-    if (t.status === 'active'      && t.assigneeId === me?.uid) acts += `<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')">▶ INICIAR</button>`;
-    if (t.status === 'in_progress' && t.assigneeId === me?.uid) acts += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')">✓ CONCLUIR</button>`;
+    if (t.status === 'active'      && t.assigneeId === me?.uid) acts += `<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> INICIAR</button>`;
+    if (t.status === 'in_progress' && t.assigneeId === me?.uid) acts += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> CONCLUIR</button>`;
   }
   const rejBlock = t.status === 'rejected' && t.rejectionReason ? `<div class="rej-notice"><div class="rej-notice-lbl">// MOTIVO DA REJEIÇÃO</div><div style="font-size:13px;color:var(--dim)">${t.rejectionReason}</div></div>` : '';
   return `<div class="tc p-${t.priority} s-${overdue ? 'overdue' : t.status}${overdue ? ' overdue' : ''}" onclick="openTask('${t.id}')">
@@ -306,7 +306,7 @@ function taskCard(t, i, isMe) {
     <div class="tc-body"><div class="tc-title">${t.title}</div><div class="tc-desc">${t.problem}</div></div>
     ${(()=>{const subs=t.subtasks||[];if(!subs.length)return'';const pct=calcProgress(subs);const done=subs.filter(x=>x.done).length;return`<div style="padding:0 16px 8px;"><div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:9px;color:var(--dim);margin-bottom:4px;"><span>SUBTASKS ${done}/${subs.length}</span><span style="color:${pct===100?'var(--green)':'var(--cyan)'};">${pct}%</span></div><div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--cyan)'};border-radius:2px;transition:width .3s;"></div></div></div>`;})()}
     <div class="tc-foot">
-      <div class="tc-meta"><span class="${urgent ? 'urgent' : overdue ? 'overdue-txt' : ''}">📅 ${fmtDate(dl)}${overdue ? ' ⚠' : ''}</span>${tags}</div>
+      <div class="tc-meta"><span class="${urgent ? 'urgent' : overdue ? 'overdue-txt' : ''}"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${fmtDate(dl)}${overdue ? ' ⚠' : ''}</span>${tags}</div>
       <div class="tc-acts" onclick="event.stopPropagation()"><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">VER</button>${acts}</div>
     </div>
   </div>`;
@@ -319,7 +319,7 @@ async function renderMyTasks() {
   if (myFV !== 'all') t = t.filter(x => x.status === myFV);
   $('my-tag-bar').innerHTML = buildTagBar(t);
   t = applyTagFilter(t);
-  $('my-list').innerHTML = t.length ? t.map((t, i) => taskCard(t, i, true)).join('') : `<div class="empty"><div class="empty-icon">🎯</div><h3>SEM MISSÕES</h3><p>Nenhuma task encontrada</p></div>`;
+  $('my-list').innerHTML = t.length ? t.map((t, i) => taskCard(t, i, true)).join('') : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div><h3>SEM MISSÕES</h3><p>Nenhuma task encontrada</p></div>`;
 }
 
 async function renderAllTasks() {
@@ -329,7 +329,7 @@ async function renderAllTasks() {
   if (allFV !== 'all') t = t.filter(x => x.assigneeId === allFV);
   $('all-tag-bar').innerHTML = buildTagBar(t);
   t = applyTagFilter(t);
-  $('all-list').innerHTML = t.length ? t.map((t, i) => taskCard(t, i, false)).join('') : `<div class="empty"><div class="empty-icon">📋</div><h3>SEM TASKS</h3></div>`;
+  $('all-list').innerHTML = t.length ? t.map((t, i) => taskCard(t, i, false)).join('') : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg></div><h3>SEM TASKS</h3></div>`;
 }
 
 async function renderHistory() {
@@ -338,7 +338,7 @@ async function renderHistory() {
     users.map(u => `<button class="ftab ${histFV === u.uid ? 'active' : ''}" onclick="histFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
   let done = filterByGlobalProj(tasks.filter(t => t.status === 'done'));
   if (histFV !== 'all') done = done.filter(t => t.assigneeId === histFV);
-  if (!done.length) { $('hist-list').innerHTML = `<div class="empty"><div class="empty-icon">🏆</div><h3>SEM CONCLUÍDAS</h3></div>`; return; }
+  if (!done.length) { $('hist-list').innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div><h3>SEM CONCLUÍDAS</h3></div>`; return; }
   $('hist-list').innerHTML = `<table class="hist-table"><thead><tr><th>TASK</th><th>PROJETO</th><th>RESPONSÁVEL</th><th>PRIO</th><th>XP</th><th>CONCLUÍDA</th></tr></thead>
   <tbody>${done.map(t => {
     const col = projColor(t.projectId);
@@ -366,7 +366,7 @@ async function renderApprovals() {
   let html = '';
 
   if (apPending.length) {
-    html += `<div class="sec" style="color:var(--cyan);">🎯 ACTION PLANS AGUARDANDO APROVAÇÃO</div>`;
+    html += `<div class="sec" style="color:var(--cyan);"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:var(--cyan);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> ACTION PLANS AGUARDANDO APROVAÇÃO</div>`;
     html += apPending.map(ap => {
       const dl = fmtDate(ap.deadline?.toDate ? ap.deadline.toDate() : ap.deadline ? new Date(ap.deadline) : null);
       return `<div class="ac" style="border-color:rgba(0,196,180,.2);margin-bottom:10px;">
@@ -375,7 +375,7 @@ async function renderApprovals() {
         <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${ap.problem}</div></div>
         <div class="detail-block db-r"><div class="detail-lbl">// SOLUÇÃO</div><div class="detail-txt">${ap.solution}</div></div>
         <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin:8px 0;">📅 <strong style="color:var(--cream)">${dl}</strong> &nbsp;·&nbsp; 👤 <strong style="color:var(--cream)">${ap.ownerName}</strong></div>
-        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveAction('${ap.id}')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openRejectAction('${ap.id}')">✕ REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openActionDetail('${ap.id}')">VER DETALHES</button></div>
+        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveAction('${ap.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="openRejectAction('${ap.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openActionDetail('${ap.id}')">VER DETALHES</button></div>
       </div>`;
     }).join('');
   }
@@ -386,7 +386,7 @@ async function renderApprovals() {
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.projectName}</div></div><span class="badge" style="background:rgba(255,70,85,.15);color:var(--red);">EXCLUSÃO</span></div>
       <div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:10px 14px;border-radius:3px;margin:8px 0;font-size:13px;color:var(--dim);">${r.reason}</div>
       <div style="font-family:var(--M);font-size:9px;color:rgba(255,70,85,.6);margin-bottom:8px;">⚠ Tasks vinculadas serão desvinculadas</div>
-      <div class="ac-acts"><button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${r.id}')">🗑 APROVAR EXCLUSÃO</button><button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${r.id}')">✕ REJEITAR</button></div>
+      <div class="ac-acts"><button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${r.id}')">🗑 APROVAR EXCLUSÃO</button><button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${r.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button></div>
     </div>`).join('');
   }
 
@@ -395,7 +395,7 @@ async function renderApprovals() {
     html += assignReqs.map(r => `<div class="ac" style="border-color:#F5C51833;margin-bottom:10px;">
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.taskTitle}</div></div><span class="badge" style="background:#F5C51822;color:#F5C518;">VÍNCULO</span></div>
       <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:8px;">📁 Projeto: <strong style="color:var(--cyan)">${r.projectName || '— Sem projeto —'}</strong></div>
-      <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveAssignment('${r.id}')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="rejectAssignment('${r.id}')">✕ REJEITAR</button></div>
+      <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveAssignment('${r.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="rejectAssignment('${r.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button></div>
     </div>`).join('');
   }
 
@@ -409,10 +409,10 @@ async function renderApprovals() {
         <div class="ac-title">${t.title}</div></div><span class="badge bp-${t.priority}">${PL[t.priority]}</span></div>
         <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${t.problem}</div></div>
         <div class="detail-block db-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt">${t.resolution}</div></div>
-        <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:8px;">📅 Deadline: <strong style="color:var(--cream)">${dl}</strong> &nbsp;✨ <strong style="color:var(--gold)">+${t.xpReward} XP</strong></div>
-        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveTask('${t.id}')">✓ APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${t.id}')">✕ REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">DETALHES</button></div></div>`;
+        <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:8px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Deadline: <strong style="color:var(--cream)">${dl}</strong> &nbsp;✨ <strong style="color:var(--gold)">+${t.xpReward} XP</strong></div>
+        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveTask('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openTask('${t.id}')">DETALHES</button></div></div>`;
     }).join('');
   }
 
-  $('appr-list').innerHTML = html || `<div class="empty"><div class="empty-icon">✅</div><h3>TUDO APROVADO</h3></div>`;
+  $('appr-list').innerHTML = html || `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--green);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><h3>TUDO APROVADO</h3></div>`;
 }

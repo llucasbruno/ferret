@@ -59,7 +59,7 @@ async function renderDash() {
           </div>
         </div>`;
       }).join('')}</div>`
-    : `<div class="empty" style="padding:20px;"><div class="empty-icon">📁</div><h3>SEM PROJETOS</h3><p style="margin-bottom:10px">Crie o primeiro projeto para organizar as tasks</p>${meData?.access === 'manager' ? `<button class="btn btn-primary btn-sm" onclick="go('projects');openCreateProject()">+ CRIAR PROJETO</button>` : ''}</div>`;
+    : `<div class="empty" style="padding:20px;"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><h3>SEM PROJETOS</h3><p style="margin-bottom:10px">Crie o primeiro projeto para organizar as tasks</p>${meData?.access === 'manager' ? `<button class="btn btn-primary btn-sm" onclick="go('projects');openCreateProject()">+ CRIAR PROJETO</button>` : ''}</div>`;
 
   // Ranking
   const stats = users.map(u => {
@@ -69,7 +69,7 @@ async function renderDash() {
 
   $('rank-grid').innerHTML = stats.map((u, i) => {
     const r = rank(u.xp || 0), n = nextRank(u.xp || 0), p = xpPct(u.xp || 0);
-    const medal = i === 0 ? `<span style="color:var(--gold)">#1 👑</span>` : i === 1 ? `<span style="color:#C0C0C0">#2</span>` : i === 2 ? `<span style="color:#CD7F32">#3</span>` : `<span style="color:var(--dim)">#${i + 1}</span>`;
+    const medal = i === 0 ? `<span style="color:var(--gold)">#1 ★</span>` : i === 1 ? `<span style="color:#C0C0C0">#2</span>` : i === 2 ? `<span style="color:#CD7F32">#3</span>` : `<span style="color:var(--dim)">#${i + 1}</span>`;
     const av = u.photoURL ? `<img src="${u.photoURL}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block">` : (u.displayName[0] || '?');
     return `<div class="rm"><div class="rm-pos">${medal}</div>
       <div class="rm-head"><div class="avatar" style="width:42px;height:42px;font-size:17px;">${av}</div>

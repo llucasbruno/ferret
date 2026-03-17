@@ -236,11 +236,11 @@ async function renderProjectDetail() {
           <div style="width:14px;height:14px;border-radius:50%;background:${col};flex-shrink:0;"></div>
           <div class="page-title" style="font-size:26px;">${p.name}</div>
         </div>
-        ${p.client ? `<div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-left:24px;">👤 ${p.client}</div>` : ''}
+        ${p.client ? `<div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-left:24px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${p.client}</div>` : ''}
         ${p.description ? `<div style="font-size:13px;color:var(--dim);margin:8px 0 0 24px;line-height:1.5;">${p.description}</div>` : ''}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${isMgr ? `<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')">✏ EDITAR</button>` : ''}
+        ${isMgr ? `<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> EDITAR</button>` : ''}
         <button class="btn btn-primary btn-sm" onclick="openCreateForProject()">+ TASK</button>
         <button class="btn btn-ghost btn-sm" onclick="go('projects')">← VOLTAR</button>
       </div>
@@ -265,7 +265,7 @@ async function renderProjectDetail() {
       </div>
       ${colTasks.map(t => `<div onclick="openTask('${t.id}')" style="background:var(--bg3);border-radius:3px;padding:7px 9px;margin-bottom:5px;cursor:pointer;border-left:2px solid ${col.color};transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
         <div style="font-family:var(--R);font-size:12px;font-weight:600;color:var(--cream);margin-bottom:3px;">${t.title}</div>
-        <div style="font-family:var(--M);font-size:9px;color:var(--dim);">👤 ${t.assigneeName || '—'}</div>
+        <div style="font-family:var(--M);font-size:9px;color:var(--dim);"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${t.assigneeName || '—'}</div>
         ${(t.subtasks || []).length ? `<div style="margin-top:4px;height:2px;background:var(--bg2);border-radius:1px;overflow:hidden;"><div style="height:100%;width:${calcProgress(t.subtasks)}%;background:var(--cyan);"></div></div>` : ''}
       </div>`).join('') || `<div style="font-family:var(--M);font-size:9px;color:rgba(255,255,255,.1);text-align:center;padding:12px 0;">VAZIO</div>`}
     </div>`;
@@ -274,7 +274,7 @@ async function renderProjectDetail() {
   const allProjTasks = tasks.filter(t => t.projectId === p.id && t.status !== 'rejected');
   $('pd-tasks').innerHTML = allProjTasks.length
     ? allProjTasks.map((t, i) => taskCard(t, i, false)).join('')
-    : `<div class="empty"><div class="empty-icon">📋</div><h3>SEM TASKS</h3><p>Crie a primeira task deste projeto</p></div>`;
+    : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg></div><h3>SEM TASKS</h3><p>Crie a primeira task deste projeto</p></div>`;
 }
 
 // ── Render projects list ──────────────────────
@@ -301,11 +301,11 @@ async function renderProjects() {
             <div class="ac-meta">SOLICITADO POR: <strong>${p.requestedBy || '—'}</strong></div>
             <div class="ac-title">${p.name}</div>
           </div><div class="proj-dot" style="background:${p.color};width:12px;height:12px;border-radius:50%;flex-shrink:0"></div></div>
-          ${p.client ? `<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;">👤 ${p.client}</div>` : ''}
+          ${p.client ? `<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:6px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${p.client}</div>` : ''}
           ${p.description ? `<div class="detail-block db-r"><div class="detail-txt">${p.description}</div></div>` : ''}
           <div class="ac-acts">
-            <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')">✓ APROVAR</button>
-            <button class="btn btn-danger btn-sm" onclick="openRejectProject('${p.id}')">✕ REJEITAR</button>
+            <button class="btn btn-success btn-sm" onclick="approveProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button>
+            <button class="btn btn-danger btn-sm" onclick="openRejectProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button>
           </div>
         </div>`).join('')}
       </div>`;
@@ -321,21 +321,21 @@ async function renderProjects() {
     const list = activeProjs.filter(p => !delProjIds.has(p.id));
     html += list.length
       ? `<div class="proj-grid">${list.map(p => projCard(p, isMgr)).join('')}</div>`
-      : `<div class="empty"><div class="empty-icon">📁</div><h3>SEM PROJETOS ATIVOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr ? 'primary' : 'ghost'} btn-sm" onclick="${isMgr ? 'openCreateProject()' : 'openRequestProject()'}">+ ${isMgr ? 'CRIAR PROJETO' : 'SOLICITAR PROJETO'}</button></div>`;
+      : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><h3>SEM PROJETOS ATIVOS</h3><p style="margin-bottom:12px">Organize as tasks por projeto/cliente</p><button class="btn btn-${isMgr ? 'primary' : 'ghost'} btn-sm" onclick="${isMgr ? 'openCreateProject()' : 'openRequestProject()'}">+ ${isMgr ? 'CRIAR PROJETO' : 'SOLICITAR PROJETO'}</button></div>`;
 
   } else if (projFV === 'deletion') {
-    if (!isMgr) { html = `<div class="empty"><div class="empty-icon">🔒</div><h3>ACESSO RESTRITO</h3></div>`; $('projects-list').innerHTML = html; return; }
+    if (!isMgr) { html = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>ACESSO RESTRITO</h3></div>`; $('projects-list').innerHTML = html; return; }
     const delProjIds = delReqs.map(r => r.projectId);
     const delProjs   = projects.filter(p => delProjIds.includes(p.id));
     html = delProjs.length
       ? `<div class="proj-grid">${delProjs.map(p => { const req = delReqs.find(r => r.projectId === p.id); return projCard(p, isMgr, req); }).join('')}</div>`
-      : `<div class="empty"><div class="empty-icon">✅</div><h3>NENHUMA EXCLUSÃO PENDENTE</h3></div>`;
+      : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--green);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><h3>NENHUMA EXCLUSÃO PENDENTE</h3></div>`;
 
   } else if (projFV === 'archived') {
     const archivedProjs = projects.filter(p => p.archived);
     html = archivedProjs.length
       ? `<div class="proj-grid">${archivedProjs.map(p => projCard(p, isMgr)).join('')}</div>`
-      : `<div class="empty"><div class="empty-icon">📦</div><h3>NENHUM PROJETO ARQUIVADO</h3></div>`;
+      : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></div><h3>NENHUM PROJETO ARQUIVADO</h3></div>`;
   }
 
   $('projects-list').innerHTML = html;
@@ -355,21 +355,21 @@ function projCard(p, isMgr, delReq = null) {
     <div style="height:110px;background:url('${p.coverImage}') center/cover no-repeat;position:relative;flex-shrink:0;">
       <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--bg2) 100%);"></div>
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${isDeletion ? 'var(--red)' : p.color};"></div>
-      ${isDeletion ? `<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.85);color:#fff;font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;">🗑 EXCLUSÃO PENDENTE</div>` : ''}
+      ${isDeletion ? `<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.85);color:#fff;font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> EXCLUSÃO PENDENTE</div>` : ''}
     </div>
     <div style="padding:14px 16px 0;">` : `
     <div style="padding:20px 20px 0;position:relative;">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${isDeletion ? 'var(--red)' : 'linear-gradient(90deg,' + p.color + ',transparent)'};"></div>
-      ${isDeletion ? `<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.15);border:1px solid rgba(255,70,85,.4);color:var(--red);font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;">🗑 EXCLUSÃO PENDENTE</div>` : ''}
+      ${isDeletion ? `<div style="position:absolute;top:10px;right:10px;background:rgba(255,70,85,.15);border:1px solid rgba(255,70,85,.4);color:var(--red);font-family:var(--M);font-size:9px;padding:2px 8px;border-radius:2px;letter-spacing:1px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> EXCLUSÃO PENDENTE</div>` : ''}
     `}
     <div class="proj-card-header" style="padding:${p.coverImage ? '0 0 10px' : '0 0 10px'}">
       <div class="proj-dot" style="background:${p.color}"></div>
       <div class="proj-name">${p.name}</div>
       <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
-        ${isMgr && !isDeletion && !isArchived ? `<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;">✏</button>` : ''}
+        ${isMgr && !isDeletion && !isArchived ? `<button class="btn btn-ghost btn-sm" onclick="openEditProject('${p.id}')" style="padding:4px 8px;font-size:10px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>` : ''}
       </div>
     </div>
-    ${p.client ? `<div class="proj-client" style="padding-left:20px;margin-bottom:8px;">👤 ${p.client}</div>` : ''}
+    ${p.client ? `<div class="proj-client" style="padding-left:20px;margin-bottom:8px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${p.client}</div>` : ''}
     ${isDeletion && delReq ? `<div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:8px 12px;margin-bottom:10px;border-radius:3px;font-family:var(--M);font-size:10px;"><span style="color:var(--red);">MOTIVO:</span> <span style="color:var(--dim)">${delReq.reason}</span><br><span style="color:var(--dim);">Solicitado por <strong style="color:var(--cream)">${delReq.requestedByName}</strong></span></div>` : ''}
     ${p.description ? `<div style="font-size:13px;color:var(--dim);margin-bottom:10px;padding-left:20px;">${p.description}</div>` : ''}
     <div style="padding:0 4px 4px">
@@ -384,13 +384,13 @@ function projCard(p, isMgr, delReq = null) {
       <div class="proj-stat"><div class="proj-stat-v" style="color:var(--cyan)">${active}</div><div class="proj-stat-l">Ativas</div></div>
       <div class="proj-stat"><div class="proj-stat-v" style="color:var(--red)">${overdue}</div><div class="proj-stat-l">Atraso</div></div>
     </div>
-    ${dl ? `<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;padding:0 4px">📅 Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>` : ''}
+    ${dl ? `<div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:10px;padding:0 4px"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Deadline: <strong style="color:var(--cream)">${fmtDate(dl)}</strong></div>` : ''}
     <div class="proj-acts" onclick="event.stopPropagation()">
-      ${!isArchived ? `<button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()">🗂 KANBAN</button>` : ''}
-      ${isMgr && isDeletion && delReq && delReq.requestedBy !== me.uid ? `<button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${delReq.id}')">🗑 CONFIRMAR EXCLUSÃO</button><button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${delReq.id}')">✕ CANCELAR</button>` : ''}
+      ${!isArchived ? `<button class="btn btn-info btn-sm" onclick="go('kanban');kanbanProjFV='${p.id}';renderKanban()"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg> KANBAN</button>` : ''}
+      ${isMgr && isDeletion && delReq && delReq.requestedBy !== me.uid ? `<button class="btn btn-danger btn-sm" onclick="approveDeleteProject('${delReq.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> CONFIRMAR EXCLUSÃO</button><button class="btn btn-ghost btn-sm" onclick="rejectDeleteProject('${delReq.id}')">✕ CANCELAR</button>` : ''}
       ${isMgr && isDeletion && delReq?.requestedBy === me.uid ? `<span style="font-family:var(--M);font-size:9px;color:var(--dim);">Aguardando outro ADM</span>` : ''}
-      ${isMgr && !isDeletion && !isArchived ? `<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')">📦 ARQUIVAR</button><button class="btn btn-danger btn-sm" onclick="openDeleteProject('${p.id}')">🗑 EXCLUIR</button>` : ''}
-      ${isMgr && isArchived ? `<button class="btn btn-ghost btn-sm" onclick="unarchiveProject('${p.id}')">📂 DESARQUIVAR</button>` : ''}
+      ${isMgr && !isDeletion && !isArchived ? `<button class="btn btn-ghost btn-sm" onclick="archiveProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> ARQUIVAR</button><button class="btn btn-danger btn-sm" onclick="openDeleteProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> EXCLUIR</button>` : ''}
+      ${isMgr && isArchived ? `<button class="btn btn-ghost btn-sm" onclick="unarchiveProject('${p.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/></svg> DESARQUIVAR</button>` : ''}
     </div>
     </div>
   </div>`;

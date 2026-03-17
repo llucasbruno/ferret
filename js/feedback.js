@@ -2,9 +2,8 @@
 //  FEEDBACK.JS — Bug Report e Sugestões
 // ══════════════════════════════════════════════
 
-
+// EMAILJS_SERVICE_ID e EMAILJS_PUBLIC_KEY definidos em config.js
 const EMAILJS_TEMPLATE_ID = 'template_qzne6sj';
-
 
 function openFeedback() {
   $('fb-tipo').value = 'Bug';
@@ -61,4 +60,4 @@ async function doSendFeedback() {
     $('fb-btn').textContent = 'ENVIAR';
     $('fb-btn').disabled = false;
   }
-}
+} 

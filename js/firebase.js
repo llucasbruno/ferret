@@ -19,7 +19,14 @@ async function onAuth(user) {
     meData = { uid: user.uid, ...d.data() };
     await applyOverduePenalties();
     await checkDeadlineAlerts();
-    await log('login', `${meData.displayName} fez login`);
+
+    // Só registra login uma vez por sessão (evita spam em reloads)
+    const sessionKey = 'fs_logged_' + me.uid;
+    if (!sessionStorage.getItem(sessionKey)) {
+      sessionStorage.setItem(sessionKey, '1');
+      await log('login', `${meData.displayName} fez login`);
+    }
+
     await boot();
   } else {
     me = null; meData = null;

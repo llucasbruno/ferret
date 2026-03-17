@@ -4,7 +4,7 @@
 
 const EMAILJS_PN_TEMPLATE_ID = 'template_bo4ktef';
 
-const PN_TYPE_LABEL = { new: '🟢 Nova Funcionalidade', improve: '💠 Melhoria', fix: '🔴 Correção de Bug' };
+const PN_TYPE_LABEL = { new: 'Nova Funcionalidade', improve: 'Melhoria', fix: 'Correção de Bug' };
 const PN_TYPE_CLASS = { new: 'pn-new', improve: 'pn-improve', fix: 'pn-fix' };
 
 function openCreatePN() {
@@ -95,7 +95,7 @@ async function renderPatchNotes() {
   document.querySelectorAll('.mgr-only').forEach(el => el.classList.toggle('hidden', meData.access !== 'manager'));
 
   if (!notes.length) {
-    $('pn-list').innerHTML = `<div class="empty"><div class="empty-icon">📰</div><h3>SEM ATUALIZAÇÕES</h3><p>Nenhuma nota de atualização publicada ainda.</p>${isMgr ? '<br><button class="btn btn-primary btn-sm" onclick="openCreatePN()">+ PUBLICAR PRIMEIRA NOTA</button>' : ''}</div>`;
+    $('pn-list').innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>SEM ATUALIZAÇÕES</h3><p>Nenhuma nota de atualização publicada ainda.</p>${isMgr ? '<br><button class="btn btn-primary btn-sm" onclick="openCreatePN()">+ PUBLICAR PRIMEIRA NOTA</button>' : ''}</div>`;
     return;
   }
 
@@ -107,9 +107,9 @@ async function renderPatchNotes() {
         <span class="pn-tag ${PN_TYPE_CLASS[n.type] || 'pn-new'}">${PN_TYPE_LABEL[n.type] || 'NOVO'}</span>
       </div>
       <div class="pn-title">${n.title}</div>
-      <div class="pn-meta">📅 ${date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })} &nbsp;·&nbsp; ✍ ${n.authorName}</div>
+      <div class="pn-meta"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })} &nbsp;·&nbsp; ✍ ${n.authorName}</div>
       <div class="pn-body">${n.body}</div>
-      ${isMgr ? `<div style="margin-top:14px;"><button class="btn btn-danger btn-sm" onclick="deletePN('${n.id}')">🗑 EXCLUIR</button></div>` : ''}
+      ${isMgr ? `<div style="margin-top:14px;"><button class="btn btn-danger btn-sm" onclick="deletePN('${n.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> EXCLUIR</button></div>` : ''}
     </div>`;
   }).join('');
 }
