@@ -46,6 +46,13 @@ async function doCreate() {
 }
 
 // ── Task detail modal ────────────────────────
+async function moveFromModal(id, newStatus) {
+  await moveTaskStatus(id, newStatus);
+  await refresh();
+  const t = tasks.find(x => x.id === id);
+  if (t) openTask(id);
+}
+
 async function openTask(id) {
   selTask = id; const t = tasks.find(x => x.id === id); if (!t) return;
   const dl = t.deadline?.toDate ? t.deadline.toDate() : t.deadline ? new Date(t.deadline) : null;
@@ -58,8 +65,36 @@ async function openTask(id) {
   $('md-deadline').style.color = overdue ? 'var(--red)' : 'var(--cream)';
   $('md-assignee').textContent = t.assigneeName; $('md-xp').textContent = `+${t.xpReward} XP`;
   if (t.status === 'rejected' && t.rejectionReason) { show('md-rejection'); $('md-rejection-txt').textContent = t.rejectionReason; } else { hide('md-rejection'); }
-  $('md-badges').innerHTML = `<span class="badge bp-${t.priority}">${PL[t.priority]}</span>${overdue ? '<span class="badge bs-overdue">ATRASADA</span>' : `<span class="badge bs-${t.status}">${SL[t.status] || t.status}</span>`}${(t.tags || []).map(x => `<span class="badge" style="background:rgba(255,255,255,.06);color:var(--dim);border:1px solid rgba(255,255,255,.08);">${x}</span>`).join('')}`;
+  $('md-badges').innerHTML = `<span class="badge bp-${t.priority}">${PL[t.priority]}</span>${overdue ? '<span class="badge bs-overdue">ATRASADA</span>' : `<span class="badge bs-${t.status === 'finalized' ? 'finalized' : t.status}">${SL[t.status] || t.status}</span>`}${(t.tags || []).map(x => `<span class="badge" style="background:rgba(255,255,255,.06);color:var(--dim);border:1px solid rgba(255,255,255,.08);">${x}</span>`).join('')}`;
   const isMgr = meData?.access === 'manager'; const isPending = t.status === 'pending_approval'; let acts = '';
+
+  // Status flow mover
+  const FLOW = [
+    { id: 'pending_approval', label: 'AGUARDANDO', color: '#F5C518' },
+    { id: 'active',           label: 'A FAZER',    color: '#00C4B4' },
+    { id: 'in_progress',      label: 'PROGRESSO',  color: '#FF8C42' },
+    { id: 'done',             label: 'CONCLUÍDO',  color: '#44FF99' },
+    { id: 'finalized',        label: 'FINALIZADO', color: '#CC88FF' },
+  ];
+  const notMovable = ['archived', 'rejected'].includes(t.status);
+  $('md-status-flow').innerHTML = notMovable ? '' : FLOW.map(step => {
+    const isCurrent = t.status === step.id;
+    const isLocked  = step.id === 'finalized' && !isMgr;
+    const canClick   = !isCurrent && !isLocked;
+    return `<div onclick="${canClick ? `moveFromModal('${id}','${step.id}')` : ''}"
+      title="${isLocked ? 'Apenas ADMs podem finalizar' : isCurrent ? 'Status atual' : 'Mover para este status'}"
+      style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:3px;cursor:${canClick ? 'pointer' : 'default'};
+        background:${isCurrent ? step.color + '22' : 'transparent'};
+        border:1px solid ${isCurrent ? step.color + '88' : 'rgba(255,255,255,.06)'};
+        opacity:${isLocked ? '.4' : '1'};
+        transition:all .15s;"
+      onmouseover="${canClick ? `this.style.background='${step.color}18';this.style.borderColor='${step.color}55'` : ''}"
+      onmouseout="${canClick ? `this.style.background='${isCurrent ? step.color + '22' : 'transparent'}';this.style.borderColor='${isCurrent ? step.color + '88' : 'rgba(255,255,255,.06)'}'` : ''}">
+      <div style="width:7px;height:7px;border-radius:50%;background:${isCurrent ? step.color : 'rgba(255,255,255,.2)'};flex-shrink:0;"></div>
+      <span style="font-family:var(--M);font-size:9px;letter-spacing:1px;color:${isCurrent ? step.color : 'var(--dim)'};">${step.label}</span>
+      ${isCurrent ? `<svg viewBox="0 0 24 24" width="9" height="9" style="stroke:${step.color};fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+    </div>`;
+  }).join('<span style="color:rgba(255,255,255,.15);font-size:10px;">›</span>');
   if (isPending && !isMgr) {
     acts = `<div style="font-family:var(--M);font-size:11px;color:#F5C518;background:#F5C51811;border:1px solid #F5C51833;padding:8px 12px;border-radius:4px;">⏳ Aguardando aprovação do administrador</div>`;
   } else {
