@@ -2,6 +2,10 @@
 //  FIREBASE.JS — Inicialização e Auth State
 // ══════════════════════════════════════════════
 
+// Flag que indica se o boot veio de um clique de login (manual)
+// ou de uma sessão restaurada automaticamente pelo Firebase
+let _loginWasManual = false;
+
 function initFB(cfg) {
   if (firebase.apps.length) firebase.apps.forEach(a => a.delete());
   firebase.initializeApp(cfg);
@@ -27,7 +31,8 @@ async function onAuth(user) {
       await log('login', `${meData.displayName} fez login`);
     }
 
-    await boot();
+    await boot(_loginWasManual);
+    _loginWasManual = false; // reseta após uso
   } else {
     me = null; meData = null;
     show('auth-screen'); hide('main-app');

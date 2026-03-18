@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="default">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>FERRET STUDIO — MISSION CONTROL</title>
+<!-- ── Theme init — runs before render to prevent flash ── -->
+<script>
+  (function(){
+    var t = localStorage.getItem('fs_theme') || 'default';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <!-- Firebase -->
@@ -22,22 +29,25 @@
 </head>
 <body>
 
+<!-- ══ LOADER ══ -->
 <div id="loader">
-  <div style="font-family:var(--R);font-size:22px;letter-spacing:5px;color:var(--cream)">FERRET <span style="color:var(--red)">STUDIO</span></div>
-  <div class="spin"></div>
-  <div style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:3px;">INICIALIZANDO...</div>
+  <div class="loader-logo">
+    <span class="loader-brand">FERRET</span>
+    <span class="loader-accent">STUDIO</span>
+  </div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-status">INICIALIZANDO SISTEMA...</div>
 </div>
 
-<!-- CONFIG -->
+<!-- ══ CONFIG ══ -->
 <div id="config-screen" class="screen hidden">
   <div class="cfg-box">
-    <div class="logo-text">FERRET <span>STUDIO</span></div>
-    <h2>// CONFIGURAÇÃO FIREBASE</h2>
+    <div class="cfg-logo">FERRET <span>STUDIO</span></div>
+    <div class="cfg-sub">// CONFIGURAÇÃO FIREBASE</div>
     <div class="cfg-info">
       1. Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
       2. Crie um projeto → Ative <strong>Firestore</strong> + <strong>Authentication (Email/Password)</strong><br>
-      3. Em Configurações do Projeto → Cole as credenciais<br>
-      4. Regras Firestore: <strong>allow read, write: if request.auth != null;</strong>
+      3. Em Configurações do Projeto → Cole as credenciais abaixo
     </div>
     <div class="field-grid">
       <div class="field"><label>API Key</label><input id="c-apiKey" placeholder="AIzaSy..."></div>
@@ -51,108 +61,292 @@
       <div class="field"><label>Messaging Sender ID</label><input id="c-messagingSenderId" placeholder="123456789012"></div>
       <div class="field"><label>App ID</label><input id="c-appId" placeholder="1:123:web:abc123"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;margin-top:10px;justify-content:center;">⚡ INICIALIZAR</button>
+    <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;margin-top:16px;justify-content:center;">⚡ INICIALIZAR SISTEMA</button>
   </div>
 </div>
 
-<!-- AUTH -->
+<!-- ══ AUTH — SPLIT PANEL ══ -->
 <div id="auth-screen" class="screen hidden">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <div class="logo-text glitch">FERRET <span>STUDIO</span></div>
-      <div class="sub">// MISSION CONTROL v3.0</div>
-    </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login',this)">LOGIN</button>
-      <button class="auth-tab" onclick="switchTab('register',this)">CADASTRO</button>
-    </div>
-    <div class="auth-form active" id="f-login">
-      <div class="form-row field"><label>Email</label><input type="email" id="l-email" placeholder="agent@ferretstudios.com"></div>
-      <div class="form-row field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="err" id="l-err"></div>
-      <button class="btn btn-primary" onclick="doLogin()" style="width:100%;margin-top:10px;justify-content:center;">ACESSAR</button>
-    </div>
-    <div class="auth-form" id="f-register">
-      <div class="field-grid">
-        <div class="field"><label>Nome</label><input type="text" id="r-name" placeholder="Seu nome"></div>
-        <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="email@..."></div>
+
+  <!-- LEFT: Decorative hero panel -->
+  <div class="auth-hero">
+    <div class="auth-hero-inner">
+      <div class="auth-hero-logo logo-text glitch">FERRET <span>STUDIO</span></div>
+      <div class="auth-hero-tag">// MISSION CONTROL v3.0</div>
+      <div class="auth-hero-desc">Sistema de gestão operacional<br>do estúdio. Missões, equipes,<br>projetos e performance.</div>
+      <div class="auth-hero-grid">
+        <div class="auth-hero-stat">
+          <div class="auth-hero-stat-v">XP</div>
+          <div class="auth-hero-stat-l">SISTEMA DE RANK</div>
+        </div>
+        <div class="auth-hero-stat">
+          <div class="auth-hero-stat-v">RTM</div>
+          <div class="auth-hero-stat-l">REAL-TIME</div>
+        </div>
+        <div class="auth-hero-stat">
+          <div class="auth-hero-stat-v">KBN</div>
+          <div class="auth-hero-stat-l">KANBAN BOARD</div>
+        </div>
       </div>
-      <div class="field-grid">
-        <div class="field"><label>Senha</label><input type="password" id="r-pass" placeholder="••••••••"></div>
-        <div class="field"><label>Cargo</label><input type="text" id="r-cargo" placeholder="Motion Designer"></div>
+    </div>
+    <!-- Decorative HUD lines -->
+    <div class="auth-hero-hud">
+      <div class="hud-line h1"></div>
+      <div class="hud-line h2"></div>
+      <div class="hud-line v1"></div>
+      <div class="hud-crosshair"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form panel -->
+  <div class="auth-panel">
+    <div class="auth-box">
+      <div class="auth-box-header">
+        <div class="auth-box-title">ACESSO AO SISTEMA</div>
+        <div class="auth-box-sub">FERRET STUDIO — OPS CENTER</div>
       </div>
-      <div class="field-grid one"><div class="field"><label>URL da Foto (opcional)</label><input type="url" id="r-photo" placeholder="https://..."></div></div>
-      <div class="err" id="r-err"></div>
-      <button class="btn btn-primary" onclick="doRegister()" style="width:100%;margin-top:10px;justify-content:center;">CRIAR CONTA</button>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login',this)">LOGIN</button>
+        <button class="auth-tab" onclick="switchTab('register',this)">CADASTRO</button>
+      </div>
+      <div class="auth-form active" id="f-login">
+        <div class="form-row field"><label>Email</label><input type="email" id="l-email" placeholder="agent@ferretstudios.com"></div>
+        <div class="form-row field"><label>Senha</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div class="err" id="l-err"></div>
+        <button class="btn btn-primary" onclick="doLogin()" style="width:100%;margin-top:14px;justify-content:center;">
+          <svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          ACESSAR
+        </button>
+      </div>
+      <div class="auth-form" id="f-register">
+        <div class="field-grid">
+          <div class="field"><label>Nome</label><input type="text" id="r-name" placeholder="Seu nome"></div>
+          <div class="field"><label>Email</label><input type="email" id="r-email" placeholder="email@..."></div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label>Senha</label>
+            <div class="field-pass-wrap">
+              <input type="password" id="r-pass" placeholder="••••••••">
+              <button type="button" class="field-pass-toggle" onclick="togglePassVis('r-pass', this)" tabindex="-1">
+                <svg class="eye-icon" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off-icon" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field"><label>Cargo</label><input type="text" id="r-cargo" placeholder="Motion Designer"></div>
+        </div>
+        <div class="field-grid one">
+          <div class="field">
+            <label>Confirmar Senha</label>
+            <div class="field-pass-wrap">
+              <input type="password" id="r-pass-confirm" placeholder="••••••••">
+              <button type="button" class="field-pass-toggle" onclick="togglePassVis('r-pass-confirm', this)" tabindex="-1">
+                <svg class="eye-icon" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-off-icon" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="field-grid one"><div class="field"><label>URL da Foto (opcional)</label><input type="url" id="r-photo" placeholder="https://..."></div></div>
+        <div class="err" id="r-err"></div>
+        <button class="btn btn-primary" onclick="doRegister()" style="width:100%;margin-top:14px;justify-content:center;">CRIAR CONTA</button>
+      </div>
+      <div class="auth-box-footer">
+        <div class="auth-theme-area">
+          <div class="theme-switcher" id="auth-theme-switcher">
+            <button class="ts-opt active" data-theme-val="default" onclick="setTheme('default')">
+              <span class="ts-dot" style="background:#FF4655;box-shadow:0 0 6px #FF4655"></span>
+              <span>PADRÃO</span>
+            </button>
+            <button class="ts-opt" data-theme-val="cyber" onclick="setTheme('cyber')">
+              <span class="ts-dot" style="background:#00EEFF"></span>
+              <span>CYBER</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- ══ MAIN APP ══ -->
 <div id="main-app" class="screen hidden">
 
-  <!-- Topbar global -->
+  <!-- HUD Topbar -->
   <div id="topbar">
-    <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
-    <div class="tb-title" style="display:flex;align-items:center;gap:10px;"><img src="https://raw.githubusercontent.com/llucasbruno/ferret/refs/heads/main/ferretstudioslogo.svg" style="height:28px;object-fit:contain;" alt="Ferret Studios"><span class="logo-text" style="font-size:15px;letter-spacing:4px">FERRET <span style="color:var(--red)">STUDIO</span></span></div>
-    <div class="tb-proj-filter" id="topbar-proj-filter">
-      <span style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;">PROJETO:</span>
-      <select id="global-proj-sel" onchange="setGlobalProject(this.value)">
-        <option value="all">TODOS</option>
-      </select>
+    <button id="menu-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <!-- Brand (visible when sidebar is collapsed / on mobile) -->
+    <div class="tb-brand">
+      <img src="https://raw.githubusercontent.com/llucasbruno/ferret/refs/heads/main/ferretstudioslogo.svg" class="tb-logo-img" alt="FS">
+      <span class="tb-logo-text logo-text">FERRET <span>STUDIO</span></span>
+    </div>
+
+    <!-- Right side group: sound + live + project filter + theme -->
+    <div class="tb-right">
+
+      <!-- Sound wave button -->
+      <button id="soundToggle" onclick="toggleSound()" title="Tocar música" style="background:transparent;border:1px solid rgba(255,255,255,.12);padding:7px 10px;cursor:pointer;display:flex;align-items:center;border-radius:3px;transition:border-color .2s;" onmouseover="this.style.borderColor='rgba(255,70,85,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+        <canvas id="soundWaveCanvas" width="32" height="16" style="display:block;"></canvas>
+      </button>
+
+      <!-- Status indicators -->
+      <div class="tb-indicators">
+        <div class="tb-indicator tb-ind-live">
+          <span class="tb-ind-dot"></span>
+          <span class="tb-ind-label">LIVE</span>
+        </div>
+      </div>
+
+      <!-- Project filter -->
+      <div class="tb-proj-filter" id="topbar-proj-filter">
+        <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span class="tb-filter-label">PROJETO</span>
+        <select id="global-proj-sel" onchange="setGlobalProject(this.value)">
+          <option value="all">TODOS</option>
+        </select>
+      </div>
+
+      <!-- Theme switcher -->
+      <div class="theme-switcher tb-theme-switcher" id="topbar-theme-switcher">
+        <button class="ts-opt active" data-theme-val="default" onclick="setTheme('default')" title="Tema Padrão">
+          <span class="ts-dot" style="background:#FF4655;box-shadow:0 0 6px #FF4655"></span>
+          <span>PADRÃO</span>
+        </button>
+        <button class="ts-opt" data-theme-val="cyber" onclick="setTheme('cyber')" title="Cyber Dark">
+          <span class="ts-dot" style="background:#00EEFF"></span>
+          <span>CYBER</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
+  <!-- App body -->
   <div class="app-body">
     <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
+    <!-- ── SIDEBAR ICON RAIL ── -->
     <nav id="sidebar">
+
+      <!-- Logo area -->
       <div class="sb-header">
-        <div class="sb-logo logo-text" style="font-size:15px;letter-spacing:4px">FERRET <span style="color:var(--red)">STUDIO</span></div>
-        <div class="sb-tag">// MISSION CONTROL</div>
+        <div class="sb-logo-icon">
+          <img src="https://raw.githubusercontent.com/llucasbruno/ferret/refs/heads/main/ferretstudioslogo.svg" alt="FS" style="height:22px;width:22px;object-fit:contain;flex-shrink:0;">
+        </div>
+        <div class="sb-logo-full">
+          <div class="sb-logo logo-text">FERRET <span>STUDIO</span></div>
+          <div class="sb-tag">// MISSION CONTROL</div>
+        </div>
       </div>
+
+      <!-- User panel -->
       <div class="sb-user">
         <div class="sb-user-inner">
-          <div class="avatar" id="sb-av" style="width:38px;height:38px;font-size:16px;"></div>
-          <div style="flex:1;min-width:0;">
+          <div class="avatar" id="sb-av" style="width:36px;height:36px;font-size:15px;flex-shrink:0;"></div>
+          <div class="sb-user-info">
             <div class="sb-name" id="sb-name">—</div>
             <div class="sb-rank" id="sb-rank">—</div>
             <div class="xp-mini"><div class="xp-fill" id="sb-xp" style="width:0%"></div></div>
           </div>
         </div>
       </div>
+
+      <!-- Navigation -->
       <div class="sb-nav">
-        <div class="nav-section">VISÃO GERAL</div>
-        <div class="nav-item active" onclick="go('dashboard')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span>Dashboard</span></div>
-        <div class="nav-item" onclick="go('projects')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span>Projetos</span></div>
-        <div class="nav-item" onclick="go('kanban')"><span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg></span><span>Kanban</span></div>
-        <div class="nav-section">TASKS</div>
-        <div class="nav-item" onclick="go('my-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>Minhas Tasks</span></div>
-        <div class="nav-item" onclick="go('all-tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span>Todas as Tasks</span></div>
-        <div class="nav-item" onclick="go('history')"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span><span>Histórico</span></div>
-        <div class="nav-item" onclick="go('actions')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span>Actions</span></div>
-        <div class="nav-section">GESTÃO</div>
-        <div class="nav-item mgr-only hidden" onclick="go('approvals')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span>Aprovações</span><span class="nav-badge hidden" id="appr-badge">0</span></div>
-        <div class="nav-item mgr-only hidden" onclick="go('members')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Membros</span></div>
-        <div class="nav-item" onclick="go('notifications')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span>Notificações</span><span class="nav-badge hidden" id="notif-badge">0</span></div>
-        <div class="nav-section">PESSOAL</div>
-        <div class="nav-item" onclick="go('profile')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Meu Perfil</span></div>
-        <div class="nav-item mgr-only" onclick="go('activity')"><span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Log</span></div>
-        <div class="nav-item" onclick="go('studiodna')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span><span>Studio DNA</span></div>
-        <div class="nav-item" onclick="go('patchnotes')"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>Atualizações</span></div>
-        <div class="nav-item member-only" onclick="openFeedback()"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span>Feedback</span></div>
+        <div class="nav-section"><span class="nav-section-text">VISÃO GERAL</span></div>
+        <div class="nav-item active" onclick="go('dashboard')" title="Dashboard">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span class="nav-label">Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="go('projects')" title="Projetos">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="nav-label">Projetos</span>
+        </div>
+        <div class="nav-item" onclick="go('kanban')" title="Kanban">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg></span>
+          <span class="nav-label">Kanban</span>
+        </div>
+
+        <div class="nav-section"><span class="nav-section-text">TASKS</span></div>
+        <div class="nav-item" onclick="go('my-tasks')" title="Minhas Tasks">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <span class="nav-label">Minhas Tasks</span>
+        </div>
+        <div class="nav-item" onclick="go('all-tasks')" title="Todas as Tasks">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+          <span class="nav-label">Todas as Tasks</span>
+        </div>
+        <div class="nav-item" onclick="go('history')" title="Histórico">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
+          <span class="nav-label">Histórico</span>
+        </div>
+        <div class="nav-item" onclick="go('actions')" title="Action Plans">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <span class="nav-label">Actions</span>
+        </div>
+
+        <div class="nav-section"><span class="nav-section-text">GESTÃO</span></div>
+        <div class="nav-item mgr-only hidden" onclick="go('approvals')" title="Aprovações">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+          <span class="nav-label">Aprovações</span>
+          <span class="nav-badge hidden" id="appr-badge">0</span>
+        </div>
+        <div class="nav-item mgr-only hidden" onclick="go('members')" title="Membros">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="nav-label">Membros</span>
+        </div>
+        <div class="nav-item" onclick="go('notifications')" title="Notificações">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+          <span class="nav-label">Notificações</span>
+          <span class="nav-badge hidden" id="notif-badge">0</span>
+        </div>
+
+        <div class="nav-section"><span class="nav-section-text">PESSOAL</span></div>
+        <div class="nav-item" onclick="go('profile')" title="Meu Perfil">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <span class="nav-label">Meu Perfil</span>
+        </div>
+        <div class="nav-item mgr-only" onclick="go('activity')" title="Log">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          <span class="nav-label">Log</span>
+        </div>
+        <div class="nav-item" onclick="go('studiodna')" title="Studio DNA">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+          <span class="nav-label">Studio DNA</span>
+        </div>
+        <div class="nav-item" onclick="go('patchnotes')" title="Atualizações">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+          <span class="nav-label">Atualizações</span>
+        </div>
+        <div class="nav-item member-only" onclick="openFeedback()" title="Feedback">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="nav-label">Feedback</span>
+        </div>
       </div>
+
+      <!-- Footer -->
       <div class="sb-footer">
-        <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="width:100%;justify-content:center;">SAIR</button>
+        <button class="btn-logout" onclick="doLogout()" title="Sair">
+          <svg viewBox="0 0 24 24" width="16" height="16" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="nav-label">Sair</span>
+        </button>
       </div>
     </nav>
 
+    <!-- ── MAIN CONTENT ── -->
     <main id="content">
 
       <!-- DASHBOARD -->
       <div class="view active" id="view-dashboard">
         <div class="page-head">
-          <div><div class="page-title">DASH<span>BOARD</span></div><div class="page-sub">// VISÃO GERAL DO ESTÚDIO</div></div>
+          <div>
+            <div class="page-title">DASH<span>BOARD</span></div>
+            <div class="page-sub">// VISÃO GERAL DO ESTÚDIO</div>
+          </div>
         </div>
         <div class="metrics-bar" id="dash-metrics"></div>
         <div class="sec">PROJETOS ATIVOS</div>
@@ -171,7 +365,7 @@
         </div>
         <div class="ftabs" id="proj-tabs" style="margin-bottom:16px;">
           <button class="ftab active" onclick="projFilter('active',this)">ATIVOS</button>
-          <button class="ftab" onclick="projFilter('deletion',this)">EXCLUSÃO PENDENTE&nbsp;<span id="del-req-count" class="hidden" style="background:var(--red);color:#fff;font-family:var(--M);font-size:9px;padding:1px 6px;border-radius:10px;">0</span></button>
+          <button class="ftab" onclick="projFilter('deletion',this)">EXCLUSÃO PENDENTE&nbsp;<span id="del-req-count" class="hidden" style="background:var(--red);color:#060811;font-family:var(--M);font-size:9px;padding:1px 6px;border-radius:0;">0</span></button>
           <button class="ftab" onclick="projFilter('archived',this)">ARQUIVADOS</button>
         </div>
         <div id="projects-list"></div>
@@ -179,12 +373,9 @@
 
       <!-- PROJETO DETALHE -->
       <div class="view" id="view-project-detail">
-        <!-- Header dinâmico do projeto (preenchido pelo JS) -->
         <div id="pd-header"></div>
-        <!-- Mini Kanban -->
         <div class="sec">KANBAN DO PROJETO</div>
         <div id="pd-kanban" class="kanban-board" style="margin-bottom:24px;"></div>
-        <!-- Lista de tasks -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div class="sec" style="margin:0;">TODAS AS TASKS</div>
           <button class="btn btn-primary btn-sm" onclick="openCreateForProject()">+ NOVA TASK</button>
@@ -200,7 +391,7 @@
             <div class="page-sub">// FLUXO DE TRABALHO</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-<div id="kanban-view-tabs" style="display:flex;gap:6px;"></div>
+            <div id="kanban-view-tabs" style="display:flex;gap:6px;"></div>
             <div class="kanban-proj-sel" id="kanban-proj-sel"></div>
             <button class="btn btn-primary btn-sm" onclick="openCreate()">+ NOVA TASK</button>
           </div>
@@ -274,7 +465,7 @@
       <div class="view" id="view-members">
         <div class="page-head">
           <div><div class="page-title">GESTÃO DE <span>MEMBROS</span></div><div class="page-sub">// CARGOS E PERMISSÕES</div></div>
-          <button class="btn btn-danger btn-sm" onclick="openResetXP()" style="align-self:flex-start;"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> RESETAR XP</button>
+          <button class="btn btn-danger btn-sm" onclick="openResetXP()" style="align-self:flex-start;">⚠ RESETAR XP</button>
         </div>
         <div id="members-list"></div>
       </div>
@@ -292,12 +483,12 @@
         <div class="page-head"><div><div class="page-title">LOG DE <span>ATIVIDADES</span></div><div class="page-sub">// HISTÓRICO DO ESTÚDIO</div></div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
           <div class="field" style="margin:0;min-width:180px;">
-            <select id="act-filter-member" onchange="renderActivity()" style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:11px;padding:8px 14px;outline:none;cursor:pointer;clip-path:var(--clip-sm);appearance:none;-webkit-appearance:none;">
+            <select id="act-filter-member" onchange="renderActivity()" style="width:100%;background:var(--bg2);border:1px solid rgba(0,240,255,.12);color:var(--cream);font-family:var(--M);font-size:11px;padding:8px 14px;outline:none;cursor:pointer;appearance:none;">
               <option value="all">TODOS OS MEMBROS</option>
             </select>
           </div>
           <div class="field" style="margin:0;min-width:200px;">
-            <select id="act-filter-type" onchange="renderActivity()" style="width:100%;background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:11px;padding:8px 14px;outline:none;cursor:pointer;clip-path:var(--clip-sm);appearance:none;-webkit-appearance:none;">
+            <select id="act-filter-type" onchange="renderActivity()" style="width:100%;background:var(--bg2);border:1px solid rgba(0,240,255,.12);color:var(--cream);font-family:var(--M);font-size:11px;padding:8px 14px;outline:none;cursor:pointer;appearance:none;">
               <option value="all">TODOS OS TIPOS</option>
               <option value="task">TASKS</option>
               <option value="project">PROJETOS</option>
@@ -307,9 +498,8 @@
             </select>
           </div>
         </div>
-        <!-- Seção de acessos — só ADM vê -->
         <div id="act-acesso-section" class="mgr-only hidden" style="margin-bottom:20px;">
-          <div class="sec"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> ACESSOS RECENTES</div>
+          <div class="sec">🔑 ACESSOS RECENTES</div>
           <div id="act-acesso-list"></div>
         </div>
         <div class="sec" id="act-geral-label">ATIVIDADES</div>
@@ -321,11 +511,10 @@
       <div class="view" id="view-notifications">
         <div class="page-head">
           <div><div class="page-title">NOTIFI<span>CAÇÕES</span></div><div class="page-sub">// ATUALIZAÇÕES PARA VOCÊ</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="markAllRead()" style="align-self:flex-start;"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> MARCAR TUDO COMO LIDO</button>
+          <button class="btn btn-ghost btn-sm" onclick="markAllRead()" style="align-self:flex-start;">✓ MARCAR TUDO COMO LIDO</button>
         </div>
         <div id="notif-list"></div>
       </div>
-
 
       <!-- STUDIO DNA -->
       <div class="view" id="view-studiodna">
@@ -351,6 +540,8 @@
     </main>
   </div>
 </div>
+
+<!-- ══════════════════════════════ MODALS ══════════════════════════════ -->
 
 <!-- MODAL: NOVA TASK -->
 <div class="overlay hidden" id="m-create">
@@ -380,7 +571,7 @@
       <div class="field"><label>Deadline *</label><input type="date" id="t-deadline"></div>
       <div class="field"><label>Tags (vírgula)</label><input type="text" id="t-tags" placeholder="branding, social..."></div>
     </div>
-    <div class="notice hidden" id="appr-notice"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Sua task será enviada para aprovação antes de ser ativada.</div>
+    <div class="notice hidden" id="appr-notice">⚠ Sua task será enviada para aprovação antes de ser ativada.</div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-create')">CANCELAR</button>
       <button class="btn btn-primary" onclick="doCreate()">CRIAR TASK</button>
@@ -395,43 +586,61 @@
       <div class="modal-title" id="md-title">—</div>
       <button class="modal-close" onclick="closeModal('m-task')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div id="md-proj-info" style="margin-bottom:12px;font-family:var(--M);font-size:10px;color:var(--dim);display:flex;align-items:center;gap:6px;"></div>
+    <div id="md-proj-info" style="margin-bottom:12px;font-family:var(--M);font-size:10px;color:var(--dim2);display:flex;align-items:center;gap:6px;"></div>
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;" id="md-badges"></div>
     <div id="md-status-flow" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:var(--bg3);border-radius:4px;"></div>
-    <div class="task-detail-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt" id="md-problem">—</div></div>
-    <div class="task-detail-r"><div class="detail-lbl">// RESOLUÇÃO</div><div class="detail-txt" id="md-resolution">—</div></div>
-    <div id="md-rejection" class="hidden" style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-bottom:8px;">
-      <div class="detail-lbl" style="color:var(--red)">// MOTIVO DA REJEIÇÃO</div>
-      <div class="detail-txt" id="md-rejection-txt">—</div>
+    <div class="td-section" id="tds-problem">
+      <button class="td-section-head" onclick="toggleTDSection('tds-problem')">
+        <span class="td-section-label">PROBLEMA</span>
+        <svg class="td-chevron" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="td-section-body">
+        <div class="detail-txt" id="md-problem">—</div>
+      </div>
     </div>
-    <div style="display:flex;gap:14px;margin:12px 0;font-family:var(--M);font-size:11px;color:var(--dim);flex-wrap:wrap;">
-      <span><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <strong id="md-deadline" style="color:var(--cream)">—</strong></span>
-      <span><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <strong id="md-assignee" style="color:var(--cream)">—</strong></span>
-      <span><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <strong id="md-xp" style="color:var(--gold)">—</strong></span>
+    <div class="td-section" id="tds-resolution">
+      <button class="td-section-head" onclick="toggleTDSection('tds-resolution')">
+        <span class="td-section-label">RESOLUÇÃO</span>
+        <svg class="td-chevron" viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="td-section-body">
+        <div class="detail-txt" id="md-resolution">—</div>
+      </div>
+    </div>
+    <div id="md-rejection" class="hidden td-section" style="border-color:rgba(255,59,92,.3);">
+      <button class="td-section-head" onclick="toggleTDSection('md-rejection')" style="color:var(--danger);">
+        <span class="td-section-label" style="color:var(--danger);">MOTIVO DA REJEIÇÃO</span>
+        <svg class="td-chevron" viewBox="0 0 24 24" width="14" height="14" style="stroke:var(--danger);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="td-section-body">
+        <div class="detail-txt" id="md-rejection-txt">—</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;margin:12px 0;font-family:var(--M);font-size:11px;color:var(--dim2);flex-wrap:wrap;">
+      <span><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <strong id="md-deadline" style="color:var(--cream)">—</strong></span>
+      <span><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <strong id="md-assignee" style="color:var(--cream)">—</strong></span>
+      <span><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <strong id="md-xp" style="color:var(--gold)">—</strong></span>
     </div>
     <div id="md-acts" style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;"></div>
-    <!-- SUBTASKS -->
     <div style="margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div class="sec" style="font-size:10px;margin:0;">SUBTASKS <span id="md-sub-pct" style="color:var(--cyan);margin-left:6px;"></span></div>
         <button class="btn btn-ghost btn-sm" onclick="openAddSubtask()" id="btn-add-subtask" style="font-size:10px;">+ ADICIONAR</button>
       </div>
-      <div id="md-sub-progress" style="height:4px;background:var(--bg3);border-radius:2px;margin-bottom:10px;overflow:hidden;display:none;">
-        <div id="md-sub-bar" style="height:100%;background:var(--cyan);border-radius:2px;transition:width .3s;width:0%"></div>
+      <div id="md-sub-progress" style="height:3px;background:rgba(0,240,255,.08);margin-bottom:10px;overflow:hidden;display:none;">
+        <div id="md-sub-bar" style="height:100%;background:var(--cyan);transition:width .3s;width:0%"></div>
       </div>
       <div id="md-subtasks"></div>
-      <!-- form inline -->
-      <div id="subtask-form" class="hidden" style="background:var(--bg3);border-radius:4px;padding:12px;margin-top:8px;">
+      <div id="subtask-form" class="hidden" style="background:var(--bg3);padding:12px;margin-top:8px;border:1px solid var(--input-border);clip-path:var(--clip-sm);">
         <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input type="text" id="st-title" placeholder="Ex: Storyboard" style="flex:1;" onkeydown="if(event.key==='Enter')saveSubtask()">
+          <input type="text" id="st-title" placeholder="Ex: Storyboard" style="flex:1;background:var(--input-bg);border:1px solid var(--input-border);color:var(--cream);font-family:var(--M);font-size:12px;padding:8px 12px;outline:none;clip-path:var(--clip-sm);transition:border-color .18s;" onfocus="this.style.borderColor='rgba(var(--accent-rgb),.5)'" onblur="this.style.borderColor=''" onkeydown="if(event.key==='Enter')saveSubtask()">
         </div>
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;">PESO:</span>
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim2);letter-spacing:1px;">PESO:</span>
           <button class="st-w-btn" onclick="selectWeight(this,25)">25%</button>
           <button class="st-w-btn" onclick="selectWeight(this,50)">50%</button>
           <button class="st-w-btn active" onclick="selectWeight(this,75)">75%</button>
           <button class="st-w-btn" onclick="selectWeight(this,100)">100%</button>
-          <span style="font-family:var(--M);font-size:9px;color:var(--dim);margin-left:4px;">→ os pesos são normalizados automaticamente</span>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="btn btn-primary btn-sm" onclick="saveSubtask()">SALVAR</button>
@@ -445,7 +654,7 @@
       <div class="cmt-row">
         <div class="cmt-input-wrap">
           <div id="mdd-task" class="mention-dropdown hidden"></div>
-          <input type="text" id="cmt-in" placeholder="Comentário... @nome para mencionar" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;clip-path:var(--clip-sm)"
+          <input type="text" id="cmt-in" placeholder="Comentário... @nome para mencionar" style="width:100%;background:rgba(0,240,255,.03);border:1px solid rgba(0,240,255,.12);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;"
             oninput="mentionInput(this,'mdd-task')"
             onkeydown="mentionKey(event,this,'mdd-task')">
         </div>
@@ -483,7 +692,7 @@
       <div class="field"><label>Deadline *</label><input type="date" id="et-deadline"></div>
       <div class="field"><label>Tags (vírgula)</label><input type="text" id="et-tags" placeholder="branding, social..."></div>
     </div>
-    <div id="et-notice" class="hidden notice" style="margin-top:8px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alterar prioridade ou responsável recalcula o XP da task.</div>
+    <div id="et-notice" class="hidden notice" style="margin-top:8px;">⚠ Alterar prioridade ou responsável recalcula o XP da task.</div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-edit-task')">CANCELAR</button>
       <button class="btn btn-primary" onclick="doEditTask()">SALVAR ALTERAÇÕES</button>
@@ -499,7 +708,7 @@
       <button class="modal-close" onclick="closeModal('m-reject')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
       <button class="btn btn-ghost" onclick="closeModal('m-reject')">CANCELAR</button>
       <button class="btn btn-danger" onclick="doReject()">REJEITAR</button>
     </div>
@@ -517,17 +726,9 @@
       <div id="edit-xp-name" style="font-family:var(--R);font-size:18px;font-weight:700;color:var(--cream);margin-bottom:4px;"></div>
       <div id="edit-xp-current" style="font-family:var(--M);font-size:11px;color:var(--gold);"></div>
     </div>
-    <div class="field-grid one"><div class="field">
-      <label>Novo valor de XP</label>
-      <input type="number" id="edit-xp-value" min="0" placeholder="Ex: 1000">
-    </div></div>
-    <div class="field-grid one"><div class="field">
-      <label>Tarefas concluídas</label>
-      <input type="number" id="edit-xp-tasks" min="0" placeholder="Ex: 5">
-    </div></div>
-    <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:-8px;margin-bottom:12px;">
-      Deixe em branco para manter o valor atual.
-    </div>
+    <div class="field-grid one"><div class="field"><label>Novo valor de XP</label><input type="number" id="edit-xp-value" min="0" placeholder="Ex: 1000"></div></div>
+    <div class="field-grid one"><div class="field"><label>Tarefas concluídas</label><input type="number" id="edit-xp-tasks" min="0" placeholder="Ex: 5"></div></div>
+    <div style="font-family:var(--M);font-size:10px;color:var(--dim2);margin-top:-8px;margin-bottom:12px;">Deixe em branco para manter o valor atual.</div>
     <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('m-edit-xp')">CANCELAR</button>
       <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="doResetXPSingle()">🔄 ZERAR</button>
@@ -543,12 +744,12 @@
       <div class="modal-title">RESETAR <span style="color:var(--red)">XP</span></div>
       <button class="modal-close" onclick="closeModal('m-reset-xp')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
-      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> AÇÃO IRREVERSÍVEL</div>
-      <div style="font-size:13px;color:var(--dim);">Isso vai zerar o XP e o contador de tarefas concluídas de <strong style="color:var(--cream)">todos os membros</strong>. O histórico de tasks não será afetado.</div>
+    <div style="background:rgba(255,59,92,.07);border:1px solid rgba(255,59,92,.25);padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--danger);letter-spacing:1px;margin-bottom:6px;">⚠ AÇÃO IRREVERSÍVEL</div>
+      <div style="font-size:13px;color:var(--dim2);">Isso vai zerar o XP e o contador de tarefas concluídas de <strong style="color:var(--cream)">todos os membros</strong>.</div>
     </div>
     <div class="field-grid one"><div class="field">
-      <label>Digite <strong style="color:var(--red)">RESETAR</strong> para confirmar</label>
+      <label>Digite <strong style="color:var(--danger)">RESETAR</strong> para confirmar</label>
       <input type="text" id="reset-confirm-input" placeholder="RESETAR" oninput="$('btn-confirm-reset').disabled=this.value!=='RESETAR'">
     </div></div>
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
@@ -565,14 +766,11 @@
       <div class="modal-title">EXCLUIR <span style="color:var(--red)">PROJETO</span></div>
       <button class="modal-close" onclick="closeModal('m-delete-proj')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="background:rgba(255,70,85,.08);border:1px solid rgba(255,70,85,.3);border-radius:6px;padding:14px;margin-bottom:16px;">
-      <div style="font-family:var(--M);font-size:11px;color:var(--red);letter-spacing:1px;margin-bottom:6px;"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> REQUER APROVAÇÃO DE OUTRO ADM</div>
-      <div style="font-size:13px;color:var(--dim);">A exclusão de <strong style="color:var(--cream)" id="del-proj-name">—</strong> precisará ser aprovada por outro administrador. As tasks vinculadas <strong style="color:var(--cream)">não serão deletadas</strong>, apenas desvinculadas do projeto.</div>
+    <div style="background:rgba(255,59,92,.07);border:1px solid rgba(255,59,92,.25);padding:14px;margin-bottom:16px;">
+      <div style="font-family:var(--M);font-size:11px;color:var(--danger);letter-spacing:1px;margin-bottom:6px;">⚠ REQUER APROVAÇÃO DE OUTRO ADM</div>
+      <div style="font-size:13px;color:var(--dim2);">A exclusão de <strong style="color:var(--cream)" id="del-proj-name">—</strong> precisará ser aprovada por outro administrador.</div>
     </div>
-    <div class="field-grid one"><div class="field">
-      <label>Motivo da exclusão *</label>
-      <input type="text" id="del-proj-reason" placeholder="Ex: Projeto cancelado pelo cliente">
-    </div></div>
+    <div class="field-grid one"><div class="field"><label>Motivo da exclusão *</label><input type="text" id="del-proj-reason" placeholder="Ex: Projeto cancelado pelo cliente"></div></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
       <button class="btn btn-ghost" onclick="closeModal('m-delete-proj')">CANCELAR</button>
       <button class="btn btn-danger" onclick="submitDeleteProject()">SOLICITAR EXCLUSÃO</button>
@@ -580,81 +778,34 @@
   </div>
 </div>
 
-<!-- MODAL: ATRIBUIR TASK A PROJETO -->
-<div class="overlay hidden" id="m-assign-project">
-  <div class="modal" style="max-width:480px">
+<!-- MODAL: CRIAR PROJETO -->
+<div class="overlay hidden" id="m-proj">
+  <div class="modal" style="max-width:560px">
     <div class="modal-head">
-      <div class="modal-title">ATRIBUIR A <span style="color:var(--cyan)">PROJETO</span></div>
-      <button class="modal-close" onclick="closeModal('m-assign-project')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div class="modal-title" id="proj-modal-title">NOVO <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-proj')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div id="assign-task-info" style="background:var(--bg3);border-radius:4px;padding:10px 14px;margin-bottom:16px;font-family:var(--M);font-size:11px;color:var(--dim);"></div>
-    <div class="field-grid one"><div class="field">
-      <label>Selecionar Projeto</label>
-      <select id="assign-proj-select"></select>
-    </div></div>
-    <div id="assign-member-notice" class="hidden" style="background:rgba(245,197,24,.08);border:1px solid rgba(245,197,24,.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-family:var(--M);font-size:10px;color:#F5C518;">
-      ⏳ Como membro, esta atribuição precisará de aprovação do ADM antes de ser efetivada.
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('m-assign-project')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveAssignProject()">ATRIBUIR</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: REJEITAR PROJETO -->
-<div class="overlay hidden" id="m-reject-proj">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-head">
-      <div class="modal-title">REJEITAR <span style="color:var(--red)">PROJETO</span></div>
-      <button class="modal-close" onclick="closeModal('m-reject-proj')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:12px;">O solicitante será notificado com o motivo.</div>
-    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição *</label><textarea id="rej-proj-reason" rows="4" placeholder="Explique o motivo da rejeição..."></textarea></div></div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="closeModal('m-reject-proj')">CANCELAR</button>
-      <button class="btn btn-danger" onclick="doRejectProject()">REJEITAR PROJETO</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: NOVO PROJETO -->
-<div class="overlay hidden" id="m-project">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-head">
-      <div class="modal-title" id="m-proj-modal-title">NOVO <span style="color:var(--red)">PROJETO</span></div>
-      <button class="modal-close" onclick="closeModal('m-project')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="field-grid one"><div class="field"><label>Nome do Projeto *</label><input type="text" id="proj-name" placeholder="Ex: Campanha Nike Q1"></div></div>
     <div class="field-grid">
-      <div class="field"><label>Cliente</label><input type="text" id="proj-client" placeholder="Nome do cliente"></div>
+      <div class="field"><label>Nome do Projeto *</label><input type="text" id="p-name" placeholder="Ex: Rebranding 2024"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="p-client" placeholder="Ex: Acme Corp"></div>
+    </div>
+    <div class="field-grid">
       <div class="field"><label>Cor</label>
-        <select id="proj-color">
-          <option value="#FF4655">🔴 Vermelho</option>
-          <option value="#00C4B4">🟢 Ciano</option>
-          <option value="#FFD700">🟡 Dourado</option>
-          <option value="#FF8C42">🟠 Laranja</option>
-          <option value="#88CCFF">🔵 Azul</option>
-          <option value="#44FF99">💚 Verde</option>
-          <option value="#CC88FF">💜 Roxo</option>
+        <select id="p-color">
+          <option value="#00F0FF">● Ciano</option>
+          <option value="#FF3B5C">● Vermelho</option>
+          <option value="#00F5A0">● Verde</option>
+          <option value="#FFD166">● Dourado</option>
+          <option value="#FF6B35">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
         </select>
       </div>
+      <div class="field"><label>Descrição</label><input type="text" id="p-desc" placeholder="Breve descrição..."></div>
     </div>
-    <div class="field-grid one"><div class="field"><label>Descrição</label><textarea id="proj-desc" rows="2" placeholder="Breve descrição do projeto..."></textarea></div></div>
-    <div class="field-grid one"><div class="field">
-      <label>Imagem de Capa <span style="color:var(--dim);font-weight:400;">(URL)</span></label>
-      <input type="text" id="proj-cover" placeholder="https://..." oninput="previewCover(this.value)">
-      <div id="proj-cover-preview" style="margin-top:8px;height:80px;border-radius:4px;background:var(--bg3);background-size:cover;background-position:center;display:none;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;">
-        <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(transparent,var(--bg2));"></div>
-      </div>
-    </div></div>
-    <div class="field-grid">
-      <div class="field"><label>Data de Início</label><input type="date" id="proj-start"></div>
-      <div class="field"><label>Deadline</label><input type="date" id="proj-deadline"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="closeModal('m-project')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveProject()">SALVAR PROJETO</button>
+    <div id="proj-members-section" style="margin-top:6px;"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-proj')">CANCELAR</button>
+      <button class="btn btn-primary" id="proj-save-btn" onclick="saveProject()">CRIAR PROJETO</button>
     </div>
   </div>
 </div>
@@ -663,183 +814,80 @@
 <div class="overlay hidden" id="m-cargo">
   <div class="modal" style="max-width:380px">
     <div class="modal-head">
-      <div class="modal-title">EDITAR <span style="color:var(--red)">CARGO</span></div>
+      <div class="modal-title">EDITAR <span style="color:var(--cyan)">CARGO</span></div>
       <button class="modal-close" onclick="closeModal('m-cargo')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div id="m-cargo-name" style="font-family:var(--R);font-size:16px;font-weight:700;margin-bottom:14px;color:var(--cyan)">—</div>
-    <div class="field-grid one"><div class="field"><label>Cargo / Função</label><input type="text" id="cargo-input" placeholder="Motion Designer"></div></div>
+    <div id="m-cargo-name" style="font-family:var(--R);font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:14px;">—</div>
+    <div class="field-grid one"><div class="field"><label>Cargo</label><input type="text" id="cargo-input" placeholder="Ex: Art Director"></div></div>
     <div class="field-grid one"><div class="field"><label>Nível de Acesso</label>
-      <select id="access-input"><option value="member">Membro</option><option value="manager">Gerente (ADM)</option></select>
+      <select id="access-input">
+        <option value="member">Membro</option>
+        <option value="manager">Gerente (ADM)</option>
+      </select>
     </div></div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
       <button class="btn btn-ghost" onclick="closeModal('m-cargo')">CANCELAR</button>
       <button class="btn btn-primary" onclick="saveCargo()">SALVAR</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: NOVA NOTA DE ATUALIZAÇÃO -->
-<div class="overlay hidden" id="m-pn">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-head">
-      <div class="modal-title">NOVA <span style="color:var(--red)">ATUALIZAÇÃO</span></div>
-      <button class="modal-close" onclick="closeModal('m-pn')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="field-grid">
-      <div class="field"><label>Versão *</label><input type="text" id="pn-version" placeholder="v1.1"></div>
-      <div class="field"><label>Tipo</label>
-        <select id="pn-type">
-          <option value="new">🟢 Nova Funcionalidade</option>
-          <option value="improve">💠 Melhoria</option>
-          <option value="fix">🔴 Correção de Bug</option>
-        </select>
-      </div>
-    </div>
-    <div class="field-grid one"><div class="field"><label>Título *</label><input type="text" id="pn-title" placeholder="Ex: Sistema de Aprovações de Tasks"></div></div>
-    <div class="field-grid one"><div class="field"><label>Descrição Completa *</label><textarea id="pn-body" rows="8" placeholder="Descreva o que foi adicionado, corrigido ou melhorado. Você pode usar quebras de linha para organizar."></textarea></div></div>
-    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="closeModal('m-pn')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="doCreatePN()"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg> PUBLICAR</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: EDITAR PERFIL -->
-<div class="overlay hidden" id="m-profile">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-head">
-      <div class="modal-title">EDITAR <span style="color:var(--red)">PERFIL</span></div>
-      <button class="modal-close" onclick="closeModal('m-profile')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div style="display:flex;justify-content:center;margin-bottom:20px;">
-      <div style="position:relative;width:80px;height:80px;">
-        <div id="ep-avatar-preview" style="width:80px;height:80px;clip-path:var(--clip-md);background:var(--bg3);border:3px solid var(--red);display:flex;align-items:center;justify-content:center;font-family:var(--R);font-size:30px;font-weight:700;color:var(--red);overflow:hidden;cursor:pointer;" onclick="$('ep-file').click()" title="Clique para enviar foto"></div>
-        <div style="position:absolute;bottom:-6px;right:-6px;background:var(--red);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid var(--bg2);" onclick="$('ep-file').click()">📷</div>
-        <input type="file" id="ep-file" accept="image/*" style="display:none" onchange="handleProfileUpload(this)">
-      </div>
-    </div>
-    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="ep-name" placeholder="Seu nome"></div></div>
-    <div class="field-grid one"><div class="field">
-      <label>URL da Foto</label>
-      <input type="url" id="ep-photo" placeholder="https://..." oninput="previewProfilePhoto(this.value)">
-      <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:6px;">
-        <span>ou</span>
-        <button class="btn btn-ghost btn-sm" onclick="$('ep-file').click()" style="padding:3px 10px;font-size:10px;"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> UPLOAD DO PC</button>
-        <span id="ep-file-name" style="color:var(--cyan);font-size:10px;"></span>
-      </div>
-    </div></div>
-    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="closeModal('m-profile')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveProfile()">SALVAR</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL: NOVO/EDITAR ACTION PLAN ══ -->
+<!-- MODAL: CRIAR ACTION PLAN -->
 <div class="overlay hidden" id="m-action">
-  <div class="modal" style="max-width:720px">
+  <div class="modal" style="max-width:700px">
     <div class="modal-head">
-      <div class="modal-title" id="m-action-title">NOVO <span style="color:var(--red)">PLANO DE AÇÃO</span></div>
+      <div class="modal-title">NOVO <span style="color:var(--red)">PLANO DE AÇÃO</span></div>
       <button class="modal-close" onclick="closeModal('m-action')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="field-grid">
-      <div class="field"><label>Título do Problema *</label><input type="text" id="ap-title" placeholder="Ex: Alta taxa de revisão"></div>
-      <div class="field"><label>Projeto Vinculado</label><select id="ap-project"></select></div>
+      <div class="field"><label>Título *</label><input type="text" id="ap-title" placeholder="Ex: Atraso na entrega do projeto X"></div>
+      <div class="field"><label>Projeto Relacionado</label><select id="ap-project"></select></div>
     </div>
     <div class="field-grid">
-      <div class="field"><label>Severidade do Impacto</label>
+      <div class="field"><label>Severidade</label>
         <select id="ap-severity">
-          <option value="critical">🔴 Crítico — impacto grave imediato</option>
-          <option value="moderate" selected>🟠 Moderado — impacto significativo</option>
-          <option value="low">🟡 Leve — impacto gerenciável</option>
+          <option value="low">Leve</option>
+          <option value="moderate" selected>Moderado</option>
+          <option value="critical">Crítico</option>
         </select>
       </div>
-      <div class="field"><label>Prioridade de Resolução</label>
+      <div class="field"><label>Prioridade</label>
         <select id="ap-priority">
-          <option value="critical">Crítica — resolver agora</option>
-          <option value="high">Alta — resolver esta semana</option>
-          <option value="medium" selected>Média — resolver este mês</option>
-          <option value="low">Baixa — quando possível</option>
+          <option value="low">Baixa</option>
+          <option value="medium" selected>Média</option>
+          <option value="high">Alta</option>
+          <option value="critical">Crítica</option>
         </select>
       </div>
     </div>
-    <div class="field-grid one"><div class="field"><label>Descrição do Problema *</label><textarea id="ap-problem" rows="3" placeholder="Descreva o problema..."></textarea></div></div>
-    <div class="field-grid one"><div class="field"><label>Causa Raiz (opcional)</label><textarea id="ap-rootcause" rows="2" placeholder="Por que esse problema ocorreu?"></textarea></div></div>
-    <div class="field-grid one"><div class="field"><label>Solução Proposta *</label><textarea id="ap-solution" rows="3" placeholder="Como vai ser resolvido?"></textarea></div></div>
-    <div class="field-grid">
-      <div class="field"><label>Responsável Principal *</label><select id="ap-owner" onchange="renderApParticipantsWrap()"></select></div>
-      <div class="field"><label>Deadline *</label><input type="date" id="ap-deadline"></div>
-    </div>
-    <div class="field-grid one"><div class="field">
-      <label>Participantes</label>
-      <div id="ap-participants-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);min-height:44px;border-radius:2px;"></div>
-      <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:4px;">Clique para adicionar/remover</div>
-    </div></div>
-    <div style="margin-bottom:14px;">
-      <div style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:8px;">SUB-AÇÕES</div>
-      <div id="ap-subactions-list" style="margin-bottom:8px;"></div>
-      <div style="display:flex;gap:6px;">
-        <div class="field" style="flex:1;margin:0;"><input type="text" id="ap-subaction-input" placeholder="Ex: Realizar reunião de alinhamento..." onkeydown="if(event.key==='Enter'){event.preventDefault();addApSubaction()}"></div>
-        <button class="btn btn-info btn-sm" onclick="addApSubaction()">+ ADD</button>
-      </div>
-    </div>
-    <div class="notice hidden" id="ap-appr-notice"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:5px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Seu plano será enviado para aprovação dos ADMs antes de ser ativado.</div>
+    <div class="field-grid one"><div class="field"><label>Problema / Situação *</label><textarea id="ap-problem" rows="3" placeholder="Descreva o problema em detalhes..."></textarea></div></div>
+    <div class="field-grid one"><div class="field"><label>Plano de Solução *</label><textarea id="ap-solution" rows="3" placeholder="Como será resolvido..."></textarea></div></div>
+    <div class="field-grid"><div class="field"><label>Participantes</label><select id="ap-participants" multiple style="height:80px;"></select></div></div>
+    <div id="ap-actions-section" style="margin-top:12px;"></div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-action')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveAction()">SALVAR PLANO</button>
+      <button class="btn btn-primary" onclick="doCreateAction()">ENVIAR PARA APROVAÇÃO</button>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL: DETALHE ACTION PLAN ══ -->
+<!-- MODAL: VER ACTION PLAN -->
 <div class="overlay hidden" id="m-action-detail">
-  <div class="modal" style="max-width:700px">
+  <div class="modal" style="max-width:720px">
     <div class="modal-head">
-      <div style="flex:1;min-width:0;">
-        <div class="modal-title" id="apd-title" style="font-size:18px;">—</div>
-        <div id="apd-proj" style="font-family:var(--M);font-size:10px;color:var(--dim);margin-top:3px;"></div>
-      </div>
+      <div class="modal-title" id="vap-title">—</div>
       <button class="modal-close" onclick="closeModal('m-action-detail')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div id="apd-badges" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div>
-    <div id="apd-status-btns" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;align-items:center;"></div>
-    <div class="task-detail-p" style="margin-bottom:8px;"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt" id="apd-problem">—</div></div>
-    <div id="apd-rootcause-block" class="hidden" style="background:rgba(255,215,0,.05);border-left:3px solid var(--gold);padding:10px 14px;margin-bottom:8px;">
-      <div class="detail-lbl" style="color:var(--gold);">// CAUSA RAIZ</div><div class="detail-txt" id="apd-rootcause">—</div>
-    </div>
-    <div class="task-detail-r" style="margin-bottom:8px;"><div class="detail-lbl">// SOLUÇÃO PROPOSTA</div><div class="detail-txt" id="apd-solution">—</div></div>
-    <div id="apd-rejection-block" class="hidden" style="background:rgba(255,70,85,.08);border-left:3px solid var(--red);padding:10px 14px;margin-bottom:8px;">
-      <div class="detail-lbl" style="color:var(--red);">// MOTIVO DA REJEIÇÃO</div><div class="detail-txt" id="apd-rejection-txt">—</div>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;font-family:var(--M);font-size:11px;color:var(--dim);margin:12px 0 14px;">
-      <span>📅 <strong id="apd-deadline" style="color:var(--cream)">—</strong></span>
-      <span>👤 <strong id="apd-owner" style="color:var(--cream)">—</strong></span>
-      <span id="apd-participants-info"></span>
-    </div>
-    <div id="apd-subactions-wrap" style="margin-bottom:16px;"></div>
-    <div id="apd-acts" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;"></div>
-    <div class="cmts">
-      <div class="sec" style="font-size:10px;">COMENTÁRIOS</div>
-      <div id="apd-cmts"></div>
-      <div class="cmt-row">
-        <div class="cmt-input-wrap">
-          <div id="mdd-action" class="mention-dropdown hidden"></div>
-          <input type="text" id="apcmt-in" placeholder="Comentário... @nome para mencionar" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--cream);font-family:var(--M);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;clip-path:var(--clip-sm)"
-            oninput="mentionInput(this,'mdd-action')"
-            onkeydown="mentionKey(event,this,'mdd-action')">
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="doActionComment()">ENVIAR</button>
-      </div>
-    </div>
+    <div id="vap-body"></div>
   </div>
 </div>
 
-<!-- ══ MODAL: REJEITAR ACTION PLAN ══ -->
+<!-- MODAL: REJEITAR ACTION PLAN -->
 <div class="overlay hidden" id="m-reject-action">
   <div class="modal" style="max-width:400px">
     <div class="modal-head">
       <div class="modal-title">REJEITAR <span style="color:var(--red)">PLANO</span></div>
-      <button class="modal-close" onclick="closeModal('m-reject-action')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="modal-close" onclick="closeModal('m-reject-action')">✕</button>
     </div>
     <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-action-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
     <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
@@ -857,35 +905,13 @@
         <div id="dna-modal-icon" style="font-size:24px;"></div>
         <div>
           <div class="modal-title" id="dna-modal-title">—</div>
-          <div id="dna-modal-sub" style="font-family:var(--M);font-size:10px;color:var(--dim);letter-spacing:1px;margin-top:3px;"></div>
+          <div id="dna-modal-sub" style="font-family:var(--M);font-size:10px;color:var(--dim2);letter-spacing:1px;margin-top:3px;"></div>
         </div>
       </div>
-      <button class="modal-close" onclick="closeModal('m-dna-doc')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="modal-close" onclick="closeModal('m-dna-doc')">✕</button>
     </div>
     <div id="dna-modal-body" style="max-height:60vh;overflow-y:auto;padding-right:8px;"></div>
     <div id="dna-modal-acts" style="display:flex;gap:8px;margin-top:14px;"></div>
-  </div>
-</div>
-
-<!-- MODAL: ADICIONAR MEMBRO AO PROJETO -->
-<div class="overlay hidden" id="m-add-proj-member">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-head">
-      <div class="modal-title">ADICIONAR <span style="color:var(--cyan)">MEMBRO</span></div>
-      <button class="modal-close" onclick="closeModal('m-add-proj-member')">
-        <svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div id="add-member-proj-name" style="font-family:var(--R);font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:14px;">—</div>
-    <input type="hidden" id="add-member-proj-id">
-    <div class="field-grid one"><div class="field">
-      <label>Selecionar Membro</label>
-      <select id="add-member-select"></select>
-    </div></div>
-    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('m-add-proj-member')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveAddProjectMember()">ADICIONAR</button>
-    </div>
   </div>
 </div>
 
@@ -904,31 +930,42 @@
       <div class="field"><label>Ícone (emoji)</label><input type="text" id="dna-icon" placeholder="📌" maxlength="4" style="font-size:20px;"></div>
       <div class="field"><label>Cor de destaque</label>
         <select id="dna-color">
-          <option value="var(--red)">🔴 Vermelho</option>
-          <option value="var(--cyan)" selected>🟢 Ciano</option>
-          <option value="var(--gold)">🟡 Dourado</option>
-          <option value="var(--green)">💚 Verde</option>
-          <option value="var(--orange)">🟠 Laranja</option>
-          <option value="#CC88FF">💜 Roxo</option>
+          <option value="var(--red)">● Ciano</option>
+          <option value="var(--cyan)" selected>● Ciano</option>
+          <option value="var(--gold)">● Dourado</option>
+          <option value="var(--green)">● Verde</option>
+          <option value="var(--orange)">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
         </select>
       </div>
     </div>
     <div class="sec" style="margin-top:8px;">SEÇÕES DO DOCUMENTO</div>
     <div id="dna-sections-list" style="margin-bottom:14px;"></div>
-    <div style="background:var(--bg3);border-radius:4px;padding:14px;margin-bottom:14px;">
-      <div class="field-grid one"><div class="field">
-        <label>Título da Seção *</label>
-        <input type="text" id="dna-sec-heading" placeholder="Ex: Diretrizes de Marca">
-      </div></div>
-      <div class="field-grid one"><div class="field">
-        <label>Conteúdo *</label>
-        <textarea id="dna-sec-body" rows="5" placeholder="Escreva o conteúdo desta seção..."></textarea>
-      </div></div>
+    <div style="background:var(--bg3);padding:14px;margin-bottom:14px;border:1px solid rgba(0,240,255,.07);">
+      <div class="field-grid one"><div class="field"><label>Título da Seção *</label><input type="text" id="dna-sec-heading" placeholder="Ex: Diretrizes de Marca"></div></div>
+      <div class="field-grid one"><div class="field"><label>Conteúdo *</label><textarea id="dna-sec-body" rows="5" placeholder="Escreva o conteúdo desta seção..."></textarea></div></div>
       <button class="btn btn-info btn-sm" onclick="addDNASection()">+ ADICIONAR SEÇÃO</button>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
       <button class="btn btn-ghost" onclick="closeModal('m-dna-create')">CANCELAR</button>
       <button class="btn btn-primary" onclick="saveDNADoc()">SALVAR DOCUMENTO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADICIONAR MEMBRO AO PROJETO -->
+<div class="overlay hidden" id="m-add-proj-member">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">ADICIONAR <span style="color:var(--cyan)">MEMBRO</span></div>
+      <button class="modal-close" onclick="closeModal('m-add-proj-member')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="add-member-proj-name" style="font-family:var(--R);font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:14px;">—</div>
+    <input type="hidden" id="add-member-proj-id">
+    <div class="field-grid one"><div class="field"><label>Selecionar Membro</label><select id="add-member-select"></select></div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-proj-member')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveAddProjectMember()">ADICIONAR</button>
     </div>
   </div>
 </div>
@@ -940,27 +977,140 @@
       <div class="modal-title">ENVIAR <span style="color:var(--red)">FEEDBACK</span></div>
       <button class="modal-close" onclick="closeModal('m-feedback')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:18px;">Reporte um bug ou sugira uma melhoria. Sua mensagem vai direto para o time.</div>
-    <div class="field-grid one"><div class="field">
-      <label>Tipo *</label>
+    <div style="font-family:var(--M);font-size:11px;color:var(--dim2);margin-bottom:18px;">Reporte um bug ou sugira uma melhoria. Sua mensagem vai direto para o time.</div>
+    <div class="field-grid one"><div class="field"><label>Tipo *</label>
       <select id="fb-tipo">
         <option value="Bug">🐛 Bug — algo não está funcionando</option>
         <option value="Sugestão">💡 Sugestão — ideia de melhoria</option>
         <option value="Outro">📋 Outro</option>
       </select>
     </div></div>
-    <div class="field-grid one"><div class="field">
-      <label>Título *</label>
-      <input type="text" id="fb-titulo" placeholder="Resumo curto do problema ou ideia">
-    </div></div>
-    <div class="field-grid one"><div class="field">
-      <label>Descrição *</label>
-      <textarea id="fb-descricao" rows="5" placeholder="Descreva com detalhes. Para bugs, explique o que aconteceu e o que esperava que acontecesse."></textarea>
-    </div></div>
+    <div class="field-grid one"><div class="field"><label>Título *</label><input type="text" id="fb-titulo" placeholder="Resumo curto do problema ou ideia"></div></div>
+    <div class="field-grid one"><div class="field"><label>Descrição *</label><textarea id="fb-descricao" rows="5" placeholder="Descreva com detalhes..."></textarea></div></div>
     <div class="err" id="fb-err" style="display:none;"></div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="closeModal('m-feedback')">CANCELAR</button>
       <button class="btn btn-primary" id="fb-btn" onclick="doSendFeedback()">ENVIAR</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: CRIAR/EDITAR PROJETO -->
+<div class="overlay hidden" id="m-project">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <div class="modal-title" id="m-proj-modal-title">NOVO <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-project')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="proj-cover-preview" style="display:none;height:120px;background:var(--bg3);border-radius:4px;margin-bottom:14px;position:relative;overflow:hidden;"></div>
+    <div class="field-grid">
+      <div class="field"><label>Nome do Projeto *</label><input type="text" id="proj-name" placeholder="Ex: Rebranding 2024"></div>
+      <div class="field"><label>Cliente</label><input type="text" id="proj-client" placeholder="Ex: Acme Corp"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Cor</label>
+        <select id="proj-color">
+          <option value="#FF4655">● Vermelho</option>
+          <option value="#00C4B4">● Ciano</option>
+          <option value="#44FF99">● Verde</option>
+          <option value="#FFD700">● Dourado</option>
+          <option value="#FF8C42">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
+        </select>
+      </div>
+      <div class="field"><label>Descrição</label><input type="text" id="proj-desc" placeholder="Breve descrição..."></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Data de Início</label><input type="date" id="proj-start"></div>
+      <div class="field"><label>Deadline</label><input type="date" id="proj-deadline"></div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Imagem de capa (URL)</label><input type="url" id="proj-cover" placeholder="https://..." oninput="previewCover(this.value)"></div></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-project')">CANCELAR</button>
+      <button class="btn btn-primary" id="save-proj-btn" onclick="saveProject()">CRIAR PROJETO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ATRIBUIR PROJETO A TASK -->
+<div class="overlay hidden" id="m-assign-project">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">ATRIBUIR <span style="color:var(--cyan)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-assign-project')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="assign-task-info" style="font-family:var(--M);font-size:11px;color:var(--dim2);margin-bottom:14px;"></div>
+    <div class="field-grid one"><div class="field"><label>Projeto</label><select id="assign-proj-select"></select></div></div>
+    <div class="notice hidden" id="assign-member-notice" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-assign-project')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doAssignProject()">ATRIBUIR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REJEITAR PROJETO -->
+<div class="overlay hidden" id="m-reject-proj">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">REJEITAR <span style="color:var(--red)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-reject-proj')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-proj-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-reject-proj')">CANCELAR</button>
+      <button class="btn btn-danger" onclick="doRejectProject()">REJEITAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PUBLICAR PATCH NOTE -->
+<div class="overlay hidden" id="m-pn">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <div class="modal-title">NOVA <span style="color:var(--cyan)">ATUALIZAÇÃO</span></div>
+      <button class="modal-close" onclick="closeModal('m-pn')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Versão *</label><input type="text" id="pn-version" placeholder="Ex: v2.1"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="pn-type">
+          <option value="new">Nova Funcionalidade</option>
+          <option value="improve">Melhoria</option>
+          <option value="fix">Correção de Bug</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Título *</label><input type="text" id="pn-title" placeholder="Ex: Sistema de kanban atualizado"></div></div>
+    <div class="field-grid one"><div class="field"><label>Descrição *</label><textarea id="pn-body" rows="6" placeholder="Descreva as mudanças..."></textarea></div></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="closeModal('m-pn')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="doCreatePN()"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg> PUBLICAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PERFIL -->
+<div class="overlay hidden" id="m-profile">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--cyan)">PERFIL</span></div>
+      <button class="modal-close" onclick="closeModal('m-profile')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px;">
+      <div class="avatar" id="ep-avatar-preview" style="width:72px;height:72px;font-size:28px;cursor:pointer;" onclick="$('ep-file').click()"></div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="ep-name" placeholder="Seu nome"></div></div>
+    <div class="field-grid one"><div class="field"><label>URL da Foto</label><input type="url" id="ep-photo" placeholder="https://..." oninput="previewProfilePhoto(this.value)"></div></div>
+    <div class="field-grid one"><div class="field"><label>Ou faça upload</label>
+      <input type="file" id="ep-file" accept="image/*" style="display:none;" onchange="handleProfileUpload(this)">
+      <button class="btn btn-ghost btn-sm" onclick="$('ep-file').click()"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> UPLOAD DO PC</button>
+      <span id="ep-file-name" style="font-family:var(--M);font-size:10px;color:var(--dim2);margin-left:8px;"></span>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-profile')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveProfile()">SALVAR</button>
     </div>
   </div>
 </div>
@@ -987,6 +1137,36 @@
 <script src="js/projectmembers.js"></script>
 <script src="js/studiodna.js"></script>
 <script src="js/feedback.js"></script>
+<script src="js/soundwave.js"></script>
+
+<script>
+// ══ THEME SYSTEM ══
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('fs_theme', theme);
+  _syncThemeUI(theme);
+}
+function _syncThemeUI(theme) {
+  document.querySelectorAll('.ts-opt').forEach(function(btn) {
+    var isActive = btn.dataset.themeVal === theme;
+    btn.classList.toggle('active', isActive);
+    var dot = btn.querySelector('.ts-dot');
+    if (dot) {
+      if (btn.dataset.themeVal === 'default') {
+        dot.style.boxShadow = isActive ? '0 0 8px #FF4655' : 'none';
+        dot.style.background = '#FF4655';
+      } else {
+        dot.style.boxShadow = isActive ? '0 0 8px #00EEFF' : 'none';
+        dot.style.background = '#00EEFF';
+      }
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var t = localStorage.getItem('fs_theme') || 'default';
+  _syncThemeUI(t);
+});
+</script>
 
 <script>
 // ══ INIT ══

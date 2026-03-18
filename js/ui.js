@@ -1,3 +1,19 @@
+// ── Toggle task detail section ───────────────
+function toggleTDSection(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.toggle('open');
+}
+
+// Auto-open sections when task modal opens
+function openTDSections() {
+  ['tds-problem', 'tds-resolution'].forEach(id => {
+    const el = $(id);
+    if (el) el.classList.add('open');
+  });
+}
+
+
 // ══════════════════════════════════════════════
 //  DRAG SCROLL — Arrastar para rolar kanban
 // ══════════════════════════════════════════════
@@ -248,10 +264,13 @@ function renderLogs(logs) {
 }
 
 // ── Boot ─────────────────────────────────────
-async function boot() {
+// fromClick=true  → login manual, navegador aceita play() direto
+// fromClick=false → sessão restaurada, aguarda primeiro clique no app
+async function boot(fromClick = false) {
   updateSidebar(); show('main-app'); hide('auth-screen');
   await refresh(); buildGlobalProjSel();
   await go('dashboard');
   startListeners();
   await updBadge();
+  initSound('sound/songthemeferret.mp3', fromClick);
 }

@@ -6,8 +6,16 @@ async function doLogin() {
   const e = $('l-email').value.trim(), p = $('l-pass').value, err = $('l-err');
   err.style.display = 'none';
   if (!e || !p) { err.textContent = 'Preencha todos os campos'; err.style.display = 'block'; return; }
-  try { await auth.signInWithEmailAndPassword(e, p); }
-  catch { err.textContent = 'Email ou senha incorretos'; err.style.display = 'block'; }
+  try {
+    // Marca que o próximo onAuth veio de um clique manual do usuário
+    _loginWasManual = true;
+    await auth.signInWithEmailAndPassword(e, p);
+  }
+  catch {
+    _loginWasManual = false;
+    err.textContent = 'Email ou senha incorretos';
+    err.style.display = 'block';
+  }
 }
 
 async function doRegister() {

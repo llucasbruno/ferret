@@ -117,6 +117,7 @@ async function openTask(id) {
   $('md-acts').innerHTML = acts;
   renderSubtasks(t);
   renderComments(await loadComments(id)); showModal('m-task');
+  openTDSections();
 }
 
 // ── Task actions ─────────────────────────────
