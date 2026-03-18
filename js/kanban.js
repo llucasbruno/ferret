@@ -2,6 +2,8 @@
 //  KANBAN.JS — Board, cards e drag-and-drop
 // ══════════════════════════════════════════════
 
+let kanbanView = 'board'; // 'board' | 'archived'
+
 async function renderKanban() {
   await refresh();
 
@@ -13,26 +15,57 @@ async function renderKanban() {
   if (kanbanProjFV !== 'all') filtered = filtered.filter(t => t.projectId === kanbanProjFV);
   if (globalProjFV !== 'all') filtered = filtered.filter(t => t.projectId === globalProjFV);
 
-  const board = $('kanban-board');
+  const isMgr = meData?.access === 'manager';
+  const board  = $('kanban-board');
+  const tabs   = $('kanban-view-tabs');
+
+  // Render view tabs
+  if (tabs) tabs.innerHTML = `
+    <button class="kp-btn ${kanbanView === 'board' ? 'active' : ''}" onclick="kanbanView='board';renderKanban()">BOARD</button>
+    <button class="kp-btn ${kanbanView === 'archived' ? 'active' : ''}" style="${kanbanView === 'archived' ? 'border-color:var(--dim);color:var(--cream);' : ''}" onclick="kanbanView='archived';renderKanban()">ARQUIVADAS</button>
+  `;
+
+  // Archived view
+  if (kanbanView === 'archived') {
+    const archived = tasks.filter(t => t.status === 'archived');
+    if (!archived.length) {
+      board.innerHTML = `<div style="font-family:var(--M);font-size:11px;color:var(--dim);padding:30px;letter-spacing:2px;">NENHUMA TASK ARQUIVADA</div>`;
+      return;
+    }
+    board.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:600px;">
+      ${archived.map(t => `<div class="kc" style="opacity:.7;cursor:pointer;" onclick="openTask('${t.id}')">
+        <div class="kc-title">${t.title}</div>
+        <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:6px;">${t.assigneeName} · ${fmtDate(t.archivedAt?.toDate ? t.archivedAt.toDate() : new Date())}</div>
+      </div>`).join('')}
+    </div>`;
+    return;
+  }
+
+  // Normal board view — exclude archived
+  filtered = filtered.filter(t => t.status !== 'archived');
+
   board.innerHTML = KANBAN_COLS.map(col => {
+    const isFinal  = col.id === 'finalized';
     const colTasks = filtered.filter(t => t.status === col.id).sort((a, b) => {
       const pa = { critical: 0, high: 1, medium: 2, low: 3 };
       return (pa[a.priority] || 2) - (pa[b.priority] || 2);
     });
+    // FINALIZADO col: only ADM can drop
+    const canDrop = isFinal ? isMgr : true;
     return `<div class="kb-col" data-status="${col.id}"
-      ondragover="event.preventDefault();this.querySelector('.kb-col-body').classList.add('drag-over')"
-      ondragleave="this.querySelector('.kb-col-body').classList.remove('drag-over')"
-      ondrop="onDrop(event,'${col.id}')">
-      <div class="kb-col-head">
+      ${canDrop ? `ondragover="event.preventDefault();this.querySelector('.kb-col-body').classList.add('drag-over')" ondragleave="this.querySelector('.kb-col-body').classList.remove('drag-over')" ondrop="onDrop(event,'${col.id}')"` : ''}>
+      <div class="kb-col-head" style="${isFinal ? 'border-bottom:1px solid rgba(204,136,255,.2);' : ''}">
         <span class="kb-col-title" style="color:${col.color}">${col.label}</span>
         <span class="kb-col-count">${colTasks.length}</span>
+        ${isFinal && !isMgr ? `<span style="font-family:var(--M);font-size:8px;color:var(--dim);letter-spacing:1px;">${ic('lock',10,'var(--dim)')}</span>` : ''}
       </div>
-      <div class="kb-col-body" data-status="${col.id}">
+      <div class="kb-col-body" data-status="${col.id}" style="${isFinal && !isMgr ? 'opacity:.5;pointer-events:none;' : ''}">
         ${colTasks.map(t => kanbanCard(t)).join('')}
-        ${colTasks.length === 0 ? `<div style="font-family:var(--M);font-size:10px;color:rgba(255,255,255,.15);text-align:center;padding:20px 10px;letter-spacing:2px;">SOLTE AQUI</div>` : ''}
+        ${colTasks.length === 0 ? `<div style="font-family:var(--M);font-size:10px;color:rgba(255,255,255,.15);text-align:center;padding:20px 10px;letter-spacing:2px;">${canDrop ? 'SOLTE AQUI' : '🔒'}</div>` : ''}
       </div>
     </div>`;
   }).join('');
+  enableDragScroll($('kanban-board'));
 }
 
 function kanbanCard(t) {
@@ -50,7 +83,10 @@ function kanbanCard(t) {
     onclick="openTask('${t.id}')" style="${locked ? 'opacity:.55;cursor:default;' : ''}" title="${locked ? 'Aguardando aprovação do ADM' : ''}">
     <span class="kc-drag-handle" style="${locked ? 'opacity:.3;cursor:not-allowed;' : ''}">⠿</span>
     ${locked ? `<div style="font-family:var(--M);font-size:9px;color:#F5C518;margin-bottom:5px;letter-spacing:1px;">⏳ AGUARDANDO APROVAÇÃO</div>` : ''}
-    <div class="kc-proj"><div class="kc-proj-dot" style="background:${col}"></div><span style="color:${col}">${pname}</span></div>
+    <div style="display:inline-flex;align-items:center;gap:5px;background:${col}22;border:1px solid ${col}55;padding:2px 8px;border-radius:2px;margin-bottom:8px;max-width:100%;">
+      <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+      <span style="font-family:var(--M);font-size:9px;color:${col};letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pname}</span>
+    </div>
     <div class="kc-title">${t.title}</div>
     <div class="kc-meta">
       <div class="kc-assign">

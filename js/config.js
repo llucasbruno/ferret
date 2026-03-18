@@ -30,14 +30,15 @@ const RANKS = [
 ];
 
 const KANBAN_COLS = [
-  { id: 'pending_approval', label: 'AGUARDANDO', color: '#F5C518' },
-  { id: 'active',           label: 'A FAZER',    color: '#00C4B4' },
+  { id: 'pending_approval', label: 'AGUARDANDO',   color: '#F5C518' },
+  { id: 'active',           label: 'A FAZER',      color: '#00C4B4' },
   { id: 'in_progress',      label: 'EM PROGRESSO', color: '#FF8C42' },
-  { id: 'done',             label: 'CONCLUÍDO',  color: '#44FF99' },
+  { id: 'done',             label: 'CONCLUÍDO',    color: '#44FF99' },
+  { id: 'finalized',        label: 'FINALIZADO',   color: '#CC88FF' },
 ];
 
 const PL = { low: 'BAIXA', medium: 'MÉDIA', high: 'ALTA', critical: 'CRÍTICA' };
-const SL = { active: 'A FAZER', in_progress: 'EM PROGRESSO', done: 'CONCLUÍDA', pending_approval: 'AGUARDANDO', rejected: 'REJEITADA' };
+const SL = { active: 'A FAZER', in_progress: 'EM PROGRESSO', done: 'CONCLUÍDA', pending_approval: 'AGUARDANDO', rejected: 'REJEITADA', finalized: 'FINALIZADA' };
 const LI = { register: '👤', task_create: '➕', task_pending: '⏳', task_approve: '✅', task_reject: '❌', task_start: '▶️', task_done: '🏆', task_delete: '🗑️', xp_penalty: '📉', cargo_update: '✏️', project_create: '📁', project_update: '✏️' };
 
 // Action Plan constants
@@ -86,4 +87,6 @@ const LOG_META = {
   project_update: { color: '#F5C518',       cat: 'project' },
   patch_note:     { color: 'var(--cyan)',   cat: 'system'  },
   task_update:    { color: '#F5C518',       cat: 'task'    },
+  task_finalize:  { color: '#CC88FF',       cat: 'task'    },
+  task_archive:   { color: 'var(--dim)',     cat: 'task'    },
 };

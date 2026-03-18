@@ -65,7 +65,14 @@ async function openTask(id) {
   } else {
     if (t.status === 'active'      && t.assigneeId === me.uid) acts += `<button class="btn btn-warn btn-sm" onclick="startTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> INICIAR</button>`;
     if (t.status === 'in_progress' && t.assigneeId === me.uid) { acts += `<button class="btn btn-success btn-sm" onclick="completeTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> CONCLUIR</button>`; if (overdue) acts += `<span class="xp-penalty"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> -${XP_PENALTY[t.priority]} XP atraso</span>`; }
-    if (t.status === 'done') acts += `<span style="color:var(--green);font-family:var(--M);font-size:11px;">✓ CONCLUÍDA</span>`;
+    if (t.status === 'done') {
+      acts += `<span style="color:var(--green);font-family:var(--M);font-size:11px;">${ic('check',11,'var(--green)')} CONCLUÍDA</span>`;
+      if (isMgr) acts += `<button class="btn btn-sm" style="background:rgba(204,136,255,.12);color:#CC88FF;border:1px solid rgba(204,136,255,.3);" onclick="finalizeTask('${id}')">★ FINALIZAR</button>`;
+    }
+    if (t.status === 'finalized') {
+      acts += `<span style="color:#CC88FF;font-family:var(--M);font-size:11px;">${ic('star',11,'#CC88FF')} FINALIZADA</span>`;
+      if (isMgr) acts += `<button class="btn btn-ghost btn-sm" onclick="archiveTask('${id}')">${ic('archive',11,'currentColor')} ARQUIVAR</button>`;
+    }
     if (isMgr && isPending) { acts += `<button class="btn btn-success btn-sm" onclick="approveTask('${id}');closeModal('m-task')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="openReject('${id}');closeModal('m-task')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button>`; }
     const canEdit = !['done', 'rejected'].includes(t.status) && (isMgr || (t.createdById === me.uid && t.status !== 'pending_approval'));
     if (canEdit) acts += `<button class="btn btn-info btn-sm" onclick="openEditTask('${id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> EDITAR</button>`;
@@ -87,12 +94,56 @@ async function startTask(id) {
 async function completeTask(id) {
   const t = tasks.find(x => x.id === id); if (!t) return;
   if (t.status === 'done') { toast('Task já concluída', false); return; }
-  const overdue = isOverdue(t), pen = overdue ? XP_PENALTY[t.priority] : 0, xp = Math.max(0, t.xpReward - pen);
+  // Verifica subtasks
+  const subs = t.subtasks || [];
+  const allSubsDone = subs.length === 0 || subs.every(s => s.done);
+  if (!allSubsDone) {
+    const pending = subs.filter(s => !s.done).length;
+    toast(pending + ' subtask(s) ainda pendente(s). Conclua todas antes de avançar.', false);
+    return;
+  }
+  // CONCLUÍDO não gera XP — XP é concedido apenas ao FINALIZAR
   await db.collection('tasks').doc(id).update({ status: 'done', completedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await log('task_done', `${meData.displayName} concluiu "${t.title}" (aguardando finalização)`);
+  toast('Task concluída! Aguardando finalização pelo ADM.', true);
+  _movingTask = false; closeModal('m-task'); await refresh(); renderCurView();
+}
+
+async function finalizeTask(id) {
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  if (meData?.access !== 'manager') { toast('Apenas ADMs podem finalizar tasks', false); return; }
+  // Verifica subtasks
+  const subs = t.subtasks || [];
+  const allSubsDone = subs.length === 0 || subs.every(s => s.done);
+  if (!allSubsDone) {
+    const pending = subs.filter(s => !s.done).length;
+    toast(pending + ' subtask(s) ainda pendente(s). Não é possível finalizar.', false);
+    return;
+  }
+  const overdue = t.completedAt && t.deadline
+    ? (new Date(t.completedAt?.toDate ? t.completedAt.toDate() : t.completedAt) > new Date(t.deadline?.toDate ? t.deadline.toDate() : t.deadline))
+    : false;
+  const pen = overdue ? XP_PENALTY[t.priority] : 0;
+  const xp  = Math.max(0, t.xpReward - pen);
+  await db.collection('tasks').doc(id).update({ status: 'finalized', finalizedAt: firebase.firestore.FieldValue.serverTimestamp() });
   if (xp > 0) await addXP(t.assigneeId, xp, true);
   else await addXP(t.assigneeId, 0, true);
-  await log(overdue ? 'xp_penalty' : 'task_done', overdue ? `${meData.displayName} completou "${t.title}" com atraso (+${xp} XP, -${pen} penalidade)` : `${meData.displayName} completou "${t.title}" (+${xp} XP)`);
-  toast(overdue ? `Concluída com atraso! +${xp} XP (-${pen})` : `Missão concluída! +${xp} XP 🏆`, true);
+  await log('task_finalize', overdue
+    ? `${meData.displayName} finalizou "${t.title}" com atraso (+${xp} XP, -${pen} penalidade)`
+    : `${meData.displayName} finalizou "${t.title}" (+${xp} XP)`);
+  await saveNotif(t.assigneeId, 'task_approved', t.title, { fromName: meData.displayName, reason: `Task finalizada! +${xp} XP` });
+  toast(overdue ? `Finalizada com atraso! +${xp} XP (-${pen})` : `Task finalizada! +${xp} XP`, true);
+  _movingTask = false; closeModal('m-task'); await refresh(); renderCurView();
+}
+
+async function archiveTask(id) {
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  if (meData?.access !== 'manager') { toast('Apenas ADMs podem arquivar tasks', false); return; }
+  if (t.status !== 'finalized') { toast('Só tarefas finalizadas podem ser arquivadas', false); return; }
+  if (!confirm(`Arquivar "${t.title}"? Ela sairá do Kanban mas ficará acessível na aba Arquivadas.`)) return;
+  await db.collection('tasks').doc(id).update({ status: 'archived', archivedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await log('task_archive', `${meData.displayName} arquivou "${t.title}"`);
+  toast('Task arquivada.', true);
   closeModal('m-task'); await refresh(); renderCurView();
 }
 
@@ -129,32 +180,85 @@ async function deleteTask(id) {
 // ── Move task (kanban drag) ──────────────────
 async function moveTaskStatus(id, newStatus) {
   if (_movingTask) return;
-  const t = tasks.find(x => x.id === id); if (!t || t.status === newStatus) return;
+  const t = tasks.find(x => x.id === id);
+  if (!t || t.status === newStatus) return;
   _movingTask = true;
-  if (t.status === 'pending_approval' && meData?.access !== 'manager') { _movingTask = false; toast('Task aguardando aprovação do ADM', false); return; }
-  if (newStatus === 'done') { await completeTask(id); return; }
-  if (t.status === 'done') {
-    const overdue = t.completedAt && t.deadline ? (new Date(t.completedAt?.toDate ? t.completedAt.toDate() : t.completedAt) > new Date(t.deadline?.toDate ? t.deadline.toDate() : t.deadline)) : false;
-    const pen = overdue ? XP_PENALTY[t.priority] : 0;
-    const xpGained = Math.max(0, t.xpReward - pen);
-    if (xpGained > 0) {
-      await db.collection('users').doc(t.assigneeId).update({ xp: firebase.firestore.FieldValue.increment(-xpGained), tasksCompleted: firebase.firestore.FieldValue.increment(-1) });
-      if (t.assigneeId === me?.uid) { meData.xp = Math.max(0, (meData.xp || 0) - xpGained); meData.tasksCompleted = Math.max(0, (meData.tasksCompleted || 1) - 1); updateSidebar(); }
-    } else {
-      const uSnap = await db.collection('users').doc(t.assigneeId).get();
-      if ((uSnap.data().tasksCompleted || 0) > 0) await db.collection('users').doc(t.assigneeId).update({ tasksCompleted: firebase.firestore.FieldValue.increment(-1) });
-      else await db.collection('users').doc(t.assigneeId).update({ tasksCompleted: 0 });
-      if (t.assigneeId === me?.uid) { meData.tasksCompleted = Math.max(0, (meData.tasksCompleted || 1) - 1); updateSidebar(); }
+
+  try {
+    const isMgr = meData?.access === 'manager';
+
+    // Bloqueios
+    if (t.status === 'archived')                         { toast('Tasks arquivadas não podem ser movidas', false); return; }
+    if (t.status === 'pending_approval' && !isMgr)       { toast('Task aguardando aprovação do ADM', false); return; }
+    if (newStatus === 'finalized' && !isMgr)             { toast('Apenas ADMs podem finalizar tasks', false); return; }
+    if (t.status === 'finalized' && !isMgr)              { toast('Apenas ADMs podem reabrir tasks finalizadas', false); return; }
+
+    // Verifica subtasks antes de avançar
+    if (newStatus === 'done' || newStatus === 'finalized') {
+      const subs = t.subtasks || [];
+      if (subs.length > 0 && !subs.every(s => s.done)) {
+        const pending = subs.filter(s => !s.done).length;
+        toast(pending + ' subtask(s) ainda pendente(s). Conclua todas antes de avançar.', false);
+        return;
+      }
     }
-    await db.collection('tasks').doc(id).update({ status: newStatus, completedAt: null });
-    await log('task_start', `${meData.displayName} reabriu "${t.title}" → ${SL[newStatus]} (XP revertido)`);
-    toast('Task reaberta. XP revertido.', false);
-    _movingTask = false; await refresh(); renderKanban(); return;
+
+    // Finalizar — concede XP
+    if (newStatus === 'finalized') {
+      await finalizeTask(id);
+      return;
+    }
+
+    // Concluir — sem XP
+    if (newStatus === 'done') {
+      await completeTask(id);
+      return;
+    }
+
+    // Reverter de FINALIZADO — remove XP
+    if (t.status === 'finalized') {
+      const xpGained = Math.max(0, t.xpReward - (t.penalty || 0));
+      if (xpGained > 0) {
+        await db.collection('users').doc(t.assigneeId).update({
+          xp: firebase.firestore.FieldValue.increment(-xpGained),
+          tasksCompleted: firebase.firestore.FieldValue.increment(-1)
+        });
+        if (t.assigneeId === me?.uid) {
+          meData.xp = Math.max(0, (meData.xp || 0) - xpGained);
+          meData.tasksCompleted = Math.max(0, (meData.tasksCompleted || 1) - 1);
+          updateSidebar();
+        }
+      }
+      await db.collection('tasks').doc(id).update({ status: newStatus, finalizedAt: null });
+      await log('task_start', `${meData.displayName} reabriu "${t.title}" de FINALIZADO → ${SL[newStatus]}`);
+      toast('Task reaberta. XP revertido.', false);
+      await refresh(); renderCurView();
+      return;
+    }
+
+    // Reverter de CONCLUÍDO — sem XP a reverter
+    if (t.status === 'done') {
+      await db.collection('tasks').doc(id).update({ status: newStatus, completedAt: null });
+      await log('task_start', `${meData.displayName} reabriu "${t.title}" → ${SL[newStatus]}`);
+      toast('Task reaberta.', false);
+      await refresh(); renderCurView();
+      return;
+    }
+
+    // Iniciar
+    if (newStatus === 'in_progress' && t.status === 'active') {
+      await startTask(id);
+      return;
+    }
+
+    // Movimentação normal
+    await db.collection('tasks').doc(id).update({ status: newStatus });
+    await log('task_start', `${meData.displayName} moveu "${t.title}" para ${SL[newStatus]}`);
+    await refresh(); renderCurView();
+
+  } finally {
+    _movingTask = false;
   }
-  if (newStatus === 'in_progress' && t.status === 'active') { _movingTask = false; await startTask(id); return; }
-  await db.collection('tasks').doc(id).update({ status: newStatus });
-  await log('task_start', `${meData.displayName} moveu "${t.title}" para ${SL[newStatus]}`);
-  _movingTask = false; await refresh(); renderKanban();
 }
 
 // ── Edit task ────────────────────────────────
@@ -315,7 +419,7 @@ function taskCard(t, i, isMe) {
 // ── Render views ─────────────────────────────
 async function renderMyTasks() {
   // FIX: usa o array local em vez de chamar loadTasks() novamente
-  let t = filterByGlobalProj(tasks.filter(x => x.assigneeId === me.uid));
+  let t = filterByGlobalProj(tasks.filter(x => x.assigneeId === me.uid && x.status !== 'archived'));
   if (myFV !== 'all') t = t.filter(x => x.status === myFV);
   $('my-tag-bar').innerHTML = buildTagBar(t);
   t = applyTagFilter(t);
@@ -325,7 +429,7 @@ async function renderMyTasks() {
 async function renderAllTasks() {
   await refresh();
   $('all-tabs').innerHTML = `<button class="ftab ${allFV === 'all' ? 'active' : ''}" onclick="allFilter('all',this)">TODOS</button>` + users.map(u => `<button class="ftab ${allFV === u.uid ? 'active' : ''}" onclick="allFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
-  let t = filterByGlobalProj(tasks.filter(x => x.status !== 'rejected'));
+  let t = filterByGlobalProj(tasks.filter(x => x.status !== 'rejected' && x.status !== 'archived'));
   if (allFV !== 'all') t = t.filter(x => x.assigneeId === allFV);
   $('all-tag-bar').innerHTML = buildTagBar(t);
   t = applyTagFilter(t);

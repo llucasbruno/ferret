@@ -1,3 +1,5 @@
+let projectDetailView = "kanban"; // "kanban" | "list"
+
 // ══════════════════════════════════════════════
 //  PROJECTS.JS — Projetos
 // ══════════════════════════════════════════════
@@ -221,12 +223,31 @@ async function renderProjectDetail() {
   await refresh();
   const p = projects.find(x => x.id === curProjectId);
   if (!p) { go('projects'); return; }
-  const isMgr = meData?.access === 'manager';
-  const col = p.color || 'var(--cyan)';
-  const pt = tasks.filter(t => t.projectId === p.id && t.status !== 'rejected');
-  const done = pt.filter(t => t.status === 'done').length;
-  const pct  = pt.length ? Math.round((done / pt.length) * 100) : 0;
+  const isMgr     = meData?.access === 'manager';
+  const hasAccess = currentUserHasAccess(p);
+  const col       = p.color || 'var(--cyan)';
+  const pt        = tasks.filter(t => t.projectId === p.id && t.status !== 'rejected' && t.status !== 'archived');
+  const finalizedTasks = pt.filter(t => t.status === 'finalized').length;
+  const pct  = pt.length ? Math.round((finalizedTasks / pt.length) * 100) : 0;
   const dl   = p.deadline?.toDate ? p.deadline.toDate() : p.deadline ? new Date(p.deadline) : null;
+
+  // If no access — show locked state
+  if (!hasAccess) {
+    $('pd-header').innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
+        '<button class="btn btn-ghost btn-sm" onclick="go(&quot;projects&quot;)" style="padding:6px 10px;">← VOLTAR</button>' +
+        '<div class="page-title">' + p.name + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border:1px solid rgba(255,255,255,.06);clip-path:var(--clip-lg);padding:40px;text-align:center;margin-bottom:20px;">' +
+        '<div style="margin-bottom:16px;">' + ic('lock', 40, 'var(--dim)') + '</div>' +
+        '<div style="font-family:var(--R);font-size:18px;font-weight:700;letter-spacing:3px;color:var(--dim);margin-bottom:8px;">ACESSO RESTRITO</div>' +
+        '<div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:20px;">Você não é membro deste projeto.</div>' +
+        '<button class="btn btn-ghost" onclick="requestProjectAccess(&quot;' + p.id + '&quot;)">' + ic('user',12,'currentColor') + ' SOLICITAR ACESSO</button>' +
+      '</div>';
+    $('pd-kanban').innerHTML = '';
+    $('pd-tasks').innerHTML  = '';
+    return;
+  }
 
   $('pd-header').innerHTML = `
     ${p.coverImage ? `<div style="height:160px;background:url('${p.coverImage}') center/cover no-repeat;border-radius:4px;margin-bottom:18px;position:relative;"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--bg) 100%);border-radius:4px;"></div></div>` : ''}
@@ -247,34 +268,151 @@ async function renderProjectDetail() {
     </div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
       <div class="proj-stat" style="background:var(--bg2);padding:10px 16px;"><div class="proj-stat-v" style="color:${col}">${pt.length}</div><div class="proj-stat-l">Total</div></div>
-      <div class="proj-stat" style="background:var(--bg2);padding:10px 16px;"><div class="proj-stat-v" style="color:var(--green)">${done}</div><div class="proj-stat-l">Feitas</div></div>
+      <div class="proj-stat" style="background:var(--bg2);padding:10px 16px;"><div class="proj-stat-v" style="color:var(--green)">${finalizedTasks}</div><div class="proj-stat-l">Finalizadas</div></div>
       <div class="proj-stat" style="background:var(--bg2);padding:10px 16px;"><div class="proj-stat-v" style="color:var(--red)">${pt.filter(t => isOverdue(t)).length}</div><div class="proj-stat-l">Atraso</div></div>
       ${dl ? `<div class="proj-stat" style="background:var(--bg2);padding:10px 16px;"><div class="proj-stat-v" style="color:var(--dim);font-size:14px;">${fmtDate(dl)}</div><div class="proj-stat-l">Deadline</div></div>` : ''}
     </div>
     <div style="margin-bottom:20px;">
       <div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:10px;color:var(--dim);margin-bottom:5px;"><span>PROGRESSO</span><span style="color:${col}">${pct}%</span></div>
       <div class="proj-bar" style="height:6px;"><div class="proj-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <button class="kp-btn ` + (projectDetailView === 'kanban' ? 'active' : '') + `" onclick="projectDetailView='kanban';renderProjectDetail()">KANBAN</button>
+      <button class="kp-btn ` + (projectDetailView === 'list' ? 'active' : '') + `" onclick="projectDetailView='list';renderProjectDetail()">LISTA</button>
     </div>`;
 
-  // Mini kanban
+  $('pd-header').innerHTML += renderProjectMembers(p);
+
+  // ── Mini kanban com movimentação ─────────────
+  const finalizedCount = tasks.filter(t => t.projectId === p.id && t.status === 'finalized').length;
+  const totalActive    = tasks.filter(t => t.projectId === p.id && !['rejected','archived'].includes(t.status)).length;
+  const pctFinal       = totalActive ? Math.round((finalizedCount / totalActive) * 100) : 0;
+
   $('pd-kanban').innerHTML = KANBAN_COLS.map(col => {
+    const isFinal  = col.id === 'finalized';
     const colTasks = pt.filter(t => t.status === col.id);
-    return `<div style="flex:1;min-width:180px;">
-      <div style="font-family:var(--M);font-size:9px;color:${col.color};letter-spacing:2px;margin-bottom:8px;display:flex;justify-content:space-between;">
-        <span>${col.label}</span><span>${colTasks.length}</span>
+    const canDrop  = isFinal ? isMgr : true;
+    return `<div class="kb-col" data-status="${col.id}"
+      ${canDrop ? `ondragover="event.preventDefault();this.querySelector('.kb-col-body').classList.add('drag-over')" ondragleave="this.querySelector('.kb-col-body').classList.remove('drag-over')" ondrop="projKanbanDrop(event,'${col.id}')"` : ''}>
+      <div class="kb-col-head" style="${isFinal ? 'border-bottom:1px solid rgba(204,136,255,.2);' : ''}">
+        <span class="kb-col-title" style="color:${col.color}">${col.label}</span>
+        <span class="kb-col-count">${colTasks.length}</span>
+        ${isFinal && !isMgr ? `<span>${ic('lock',10,'var(--dim)')}</span>` : ''}
       </div>
-      ${colTasks.map(t => `<div onclick="openTask('${t.id}')" style="background:var(--bg3);border-radius:3px;padding:7px 9px;margin-bottom:5px;cursor:pointer;border-left:2px solid ${col.color};transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
-        <div style="font-family:var(--R);font-size:12px;font-weight:600;color:var(--cream);margin-bottom:3px;">${t.title}</div>
-        <div style="font-family:var(--M);font-size:9px;color:var(--dim);"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${t.assigneeName || '—'}</div>
-        ${(t.subtasks || []).length ? `<div style="margin-top:4px;height:2px;background:var(--bg2);border-radius:1px;overflow:hidden;"><div style="height:100%;width:${calcProgress(t.subtasks)}%;background:var(--cyan);"></div></div>` : ''}
-      </div>`).join('') || `<div style="font-family:var(--M);font-size:9px;color:rgba(255,255,255,.1);text-align:center;padding:12px 0;">VAZIO</div>`}
+      <div class="kb-col-body" data-status="${col.id}" style="${isFinal && !isMgr ? 'opacity:.5;pointer-events:none;' : ''}">
+        ${colTasks.map(t => kanbanCard(t)).join('')}
+        ${colTasks.length === 0 ? `<div style="font-family:var(--M);font-size:10px;color:rgba(255,255,255,.15);text-align:center;padding:20px 10px;letter-spacing:2px;">${canDrop ? 'SOLTE AQUI' : ic('lock',12,'rgba(255,255,255,.1)')}</div>` : ''}
+      </div>
     </div>`;
   }).join('');
+  enableDragScroll($('pd-kanban'));
 
-  const allProjTasks = tasks.filter(t => t.projectId === p.id && t.status !== 'rejected');
+  const allProjTasks = tasks.filter(t => t.projectId === p.id && t.status !== 'rejected' && t.status !== 'archived');
   $('pd-tasks').innerHTML = allProjTasks.length
     ? allProjTasks.map((t, i) => taskCard(t, i, false)).join('')
     : `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" style="stroke:var(--dim);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px;"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg></div><h3>SEM TASKS</h3><p>Crie a primeira task deste projeto</p></div>`;
+}
+
+
+// ── Project kanban action buttons ────────────
+function _projKanbanActions(t, col, isMgr) {
+  var subs    = t.subtasks || [];
+  var subDone = subs.filter(function(x){ return x.done; }).length;
+  var allDone = subs.length === 0 || subDone === subs.length;
+  var id = t.id;
+  var btns = '';
+  var s = t.status;
+  var qid = '&quot;' + id + '&quot;';
+
+  if (s === 'active') {
+    btns += '<button onclick="event.stopPropagation();projMoveTask(' + qid + ',&quot;in_progress&quot;)" style="' + _pkBtnStyle('var(--cyan)') + '">&#9654; INICIAR</button>';
+  }
+  if (s === 'in_progress') {
+    if (allDone) {
+      btns += '<button onclick="event.stopPropagation();projMoveTask(' + qid + ',&quot;done&quot;)" style="' + _pkBtnStyle('var(--green)') + '">' + ic('check',9,'var(--green)') + ' CONCLUIR</button>';
+    } else {
+      btns += '<button disabled title="Conclua todas as subtasks primeiro" style="' + _pkBtnStyle('var(--dim)') + 'opacity:.4;cursor:not-allowed;">' + ic('lock',9,'var(--dim)') + ' CONCLUIR</button>';
+    }
+  }
+  if (s === 'done' && isMgr) {
+    if (allDone) {
+      btns += '<button onclick="event.stopPropagation();projFinalizeTask(' + qid + ')" style="' + _pkBtnStyle('#CC88FF') + '">&#9733; FINALIZAR</button>';
+    } else {
+      btns += '<button disabled title="Conclua todas as subtasks primeiro" style="' + _pkBtnStyle('var(--dim)') + 'opacity:.4;cursor:not-allowed;">' + ic('lock',9,'var(--dim)') + ' FINALIZAR</button>';
+    }
+  }
+  if (s === 'finalized' && isMgr) {
+    btns += '<button onclick="event.stopPropagation();projMoveTask(' + qid + ',&quot;done&quot;)" style="' + _pkBtnStyle('var(--dim)') + '">' + ic('refresh',9,'var(--dim)') + ' REABRIR</button>';
+  }
+
+  if (!btns) return '';
+  return '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">' + btns + '</div>';
+}
+
+function _pkBtnStyle(color) {
+  return 'background:' + color + '15;border:1px solid ' + color + '44;color:' + color + ';font-family:var(--M);font-size:9px;letter-spacing:1px;padding:2px 7px;cursor:pointer;border-radius:2px;display:inline-flex;align-items:center;gap:3px;';
+}
+
+// ── Project kanban drop handler ───────────────
+// O kanban de projetos reutiliza o mesmo dragTask do kanban geral
+// e o mesmo moveTaskStatus — apenas o renderCurView chama renderProjectDetail
+
+function projKanbanDrop(event, newStatus) {
+  event.preventDefault();
+  // Remove drag-over de todas as colunas do projeto
+  document.querySelectorAll('#pd-kanban .kb-col-body').forEach(el => el.classList.remove('drag-over'));
+  if (!dragTask) return;
+  // Usa moveTaskStatus que já tem toda a lógica de bloqueios, subtasks e _movingTask
+  moveTaskStatus(dragTask, newStatus);
+  dragTask = null;
+}
+
+// ── Project task move (botões de ação) ───────
+async function projMoveTask(id, newStatus) {
+  if (_movingTask) return;
+  _movingTask = true;
+  try {
+    const t = tasks.find(x => x.id === id); if (!t) return;
+    const isMgr = meData?.access === 'manager';
+
+    if (newStatus === 'finalized' && !isMgr) { toast('Apenas ADMs podem finalizar tasks.', false); return; }
+    if (t.status === 'finalized' && !isMgr)  { toast('Apenas ADMs podem reabrir tasks finalizadas.', false); return; }
+
+    const subs = t.subtasks || [];
+    if ((newStatus === 'done' || newStatus === 'finalized') && subs.length > 0 && !subs.every(s => s.done)) {
+      toast(subs.filter(s => !s.done).length + ' subtask(s) ainda pendentes.', false);
+      return;
+    }
+
+    if (newStatus === 'finalized') { await projFinalizeTask(id); return; }
+
+    await db.collection('tasks').doc(id).update({ status: newStatus });
+    await log('task_start', `${meData.displayName} moveu "${t.title}" para ${SL[newStatus] || newStatus}`);
+    toast(`"${t.title}" movida para ${SL[newStatus] || newStatus}.`, true);
+    await refresh(); renderProjectDetail();
+  } finally {
+    _movingTask = false;
+  }
+}
+
+// ── Project finalize task (with XP) ──────────
+async function projFinalizeTask(id) {
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  if (meData?.access !== 'manager') { toast('Apenas ADMs podem finalizar tasks.', false); return; }
+
+  const subs = t.subtasks || [];
+  if (subs.length > 0 && !subs.every(s => s.done)) {
+    toast(subs.filter(s => !s.done).length + ' subtask(s) ainda pendentes. Não é possível finalizar.', false);
+    return;
+  }
+
+  const xp = t.xpReward || XP_REWARD[t.priority] || 0;
+  await db.collection('tasks').doc(id).update({ status: 'finalized', finalizedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  if (xp > 0) await addXP(t.assigneeId, xp, true);
+  await saveNotif(t.assigneeId, 'task_approved', t.title, { fromName: meData.displayName, reason: `Task finalizada! +${xp} XP` });
+  await log('task_finalize', `${meData.displayName} finalizou "${t.title}" (+${xp} XP)`);
+  toast(`"${t.title}" finalizada! +${xp} XP`, true);
+  await refresh(); renderProjectDetail();
 }
 
 // ── Render projects list ──────────────────────
@@ -342,15 +480,17 @@ async function renderProjects() {
 }
 
 function projCard(p, isMgr, delReq = null) {
-  const pt      = tasks.filter(t => t.projectId === p.id && !['rejected'].includes(t.status));
-  const done    = pt.filter(t => t.status === 'done').length;
-  const active  = pt.filter(t => ['active', 'in_progress'].includes(t.status)).length;
-  const overdue = pt.filter(t => isOverdue(t)).length;
-  const pct     = pt.length ? Math.round((done / pt.length) * 100) : 0;
+  const pt             = tasks.filter(t => t.projectId === p.id && !['rejected','archived'].includes(t.status));
+  const finalizedTasks = pt.filter(t => t.status === 'finalized').length;
+  const active         = pt.filter(t => ['active', 'in_progress'].includes(t.status)).length;
+  const overdue        = pt.filter(t => isOverdue(t)).length;
+  const pct            = pt.length ? Math.round((finalizedTasks / pt.length) * 100) : 0;
   const dl      = p.deadline?.toDate ? p.deadline.toDate() : p.deadline ? new Date(p.deadline) : null;
   const isDeletion = projFV === 'deletion';
   const isArchived = projFV === 'archived';
-  return `<div class="proj-card" style="border-color:${isDeletion ? 'rgba(255,70,85,.4)' : p.color + '33'};cursor:pointer;${isDeletion ? 'opacity:.85' : ''};padding:0;overflow:hidden;" onclick="openProjectDetail('${p.id}')">
+  const hasAccess_ = userHasProjectAccess(me?.uid, p);
+  return `<div class="proj-card" style="border-color:${isDeletion ? 'rgba(255,70,85,.4)' : p.color + '33'};cursor:pointer;${isDeletion ? 'opacity:.85' : ''};${!hasAccess_ ? 'opacity:.65;' : ''}padding:0;overflow:hidden;" onclick="openProjectDetail('${p.id}')">
+    ${!hasAccess_ ? `<div style="position:absolute;top:8px;right:8px;z-index:2;background:var(--bg3);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:3px 7px;display:flex;align-items:center;gap:4px;font-family:var(--M);font-size:9px;color:var(--dim);">${ic('lock',9,'var(--dim)')} SEM ACESSO</div>` : ''}
     ${p.coverImage ? `
     <div style="height:110px;background:url('${p.coverImage}') center/cover no-repeat;position:relative;flex-shrink:0;">
       <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,var(--bg2) 100%);"></div>
@@ -380,7 +520,7 @@ function projCard(p, isMgr, delReq = null) {
     </div>
     <div class="proj-stats" style="padding:0 4px">
       <div class="proj-stat"><div class="proj-stat-v" style="color:${p.color}">${pt.length}</div><div class="proj-stat-l">Total</div></div>
-      <div class="proj-stat"><div class="proj-stat-v" style="color:var(--green)">${done}</div><div class="proj-stat-l">Feitas</div></div>
+      <div class="proj-stat"><div class="proj-stat-v" style="color:var(--green)">${finalizedTasks}</div><div class="proj-stat-l">Finalizadas</div></div>
       <div class="proj-stat"><div class="proj-stat-v" style="color:var(--cyan)">${active}</div><div class="proj-stat-l">Ativas</div></div>
       <div class="proj-stat"><div class="proj-stat-v" style="color:var(--red)">${overdue}</div><div class="proj-stat-l">Atraso</div></div>
     </div>

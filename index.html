@@ -183,7 +183,7 @@
         <div id="pd-header"></div>
         <!-- Mini Kanban -->
         <div class="sec">KANBAN DO PROJETO</div>
-        <div id="pd-kanban" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;margin-bottom:24px;"></div>
+        <div id="pd-kanban" class="kanban-board" style="margin-bottom:24px;"></div>
         <!-- Lista de tasks -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div class="sec" style="margin:0;">TODAS AS TASKS</div>
@@ -200,6 +200,7 @@
             <div class="page-sub">// FLUXO DE TRABALHO</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+<div id="kanban-view-tabs" style="display:flex;gap:6px;"></div>
             <div class="kanban-proj-sel" id="kanban-proj-sel"></div>
             <button class="btn btn-primary btn-sm" onclick="openCreate()">+ NOVA TASK</button>
           </div>
@@ -220,6 +221,7 @@
           <button class="ftab" onclick="myFilter('done',this)">CONCLUÍDAS</button>
           <button class="ftab" onclick="myFilter('pending_approval',this)">AGUARDANDO</button>
           <button class="ftab" onclick="myFilter('rejected',this)">REJEITADAS</button>
+          <button class="ftab" onclick="myFilter('finalized',this)">FINALIZADAS</button>
         </div>
         <div id="my-tag-bar"></div>
         <div class="tasks" id="my-list"></div>
@@ -864,6 +866,28 @@
   </div>
 </div>
 
+<!-- MODAL: ADICIONAR MEMBRO AO PROJETO -->
+<div class="overlay hidden" id="m-add-proj-member">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">ADICIONAR <span style="color:var(--cyan)">MEMBRO</span></div>
+      <button class="modal-close" onclick="closeModal('m-add-proj-member')">
+        <svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="add-member-proj-name" style="font-family:var(--R);font-size:16px;font-weight:700;color:var(--cyan);margin-bottom:14px;">—</div>
+    <input type="hidden" id="add-member-proj-id">
+    <div class="field-grid one"><div class="field">
+      <label>Selecionar Membro</label>
+      <select id="add-member-select"></select>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-proj-member')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveAddProjectMember()">ADICIONAR</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: CRIAR DOC DNA -->
 <div class="overlay hidden" id="m-dna-create">
   <div class="modal" style="max-width:660px">
@@ -959,6 +983,7 @@
 <script src="js/activity.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/patchnotes.js"></script>
+<script src="js/projectmembers.js"></script>
 <script src="js/studiodna.js"></script>
 <script src="js/feedback.js"></script>
 

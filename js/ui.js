@@ -1,4 +1,49 @@
 // ══════════════════════════════════════════════
+//  DRAG SCROLL — Arrastar para rolar kanban
+// ══════════════════════════════════════════════
+function enableDragScroll(el) {
+  if (!el || el._dragScrollEnabled) return;
+  el._dragScrollEnabled = true;
+
+  let isDown = false, startX = 0, scrollLeft = 0;
+
+  el.addEventListener('mousedown', e => {
+    // Ignora se clicou em card, botão ou drag handle
+    if (e.target.closest('.kc, button, select, input, .kp-btn')) return;
+    isDown    = true;
+    startX    = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  });
+
+  el.addEventListener('mouseleave', () => {
+    isDown = false;
+    el.style.cursor = '';
+    el.style.userSelect = '';
+  });
+
+  el.addEventListener('mouseup', () => {
+    isDown = false;
+    el.style.cursor = '';
+    el.style.userSelect = '';
+  });
+
+  el.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x    = e.pageX - el.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    el.scrollLeft = scrollLeft - walk;
+  });
+}
+
+function enableAllKanbanDragScroll() {
+  enableDragScroll($('kanban-board'));
+  enableDragScroll($('pd-kanban'));
+}
+
+// ══════════════════════════════════════════════
 //  ICON HELPER — Ícones SVG inline
 // ══════════════════════════════════════════════
 const ICONS = {
