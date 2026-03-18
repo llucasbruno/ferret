@@ -1201,6 +1201,13 @@ html[data-theme="cyber"]   .pfill { background: linear-gradient(90deg, #0055FF, 
   #topbar::after { left: 0; }
   .tb-brand { opacity: 1; pointer-events: all; }
   #menu-toggle { display: flex; }
+
+  /* No mobile esconde projeto, tema e live — só mantém sound */
+  #topbar-proj-filter { display: none; }
+  #topbar-theme-switcher { display: none; }
+  .tb-indicators { display: none; }
+  .tb-right { gap: 8px; }
+
   #sidebar {
     position: fixed; left: 0; top: 0; bottom: 0;
     width: 280px !important;
@@ -1226,7 +1233,7 @@ html[data-theme="cyber"]   .pfill { background: linear-gradient(90deg, #0055FF, 
   .auth-hero { flex: 0 0 180px; }
   .auth-hero-desc { display: none; }
   .auth-panel { width: 100%; border-left: none; border-top: 1px solid rgba(var(--border-rgb), .1); padding: 28px 20px; }
-  .ts-opt span:last-child { display: none; } /* hide labels on very small */
+  .ts-opt span:last-child { display: none; }
 }
 
 /* ── MISSING CLASSES FROM PREVIOUS VERSION ── */
