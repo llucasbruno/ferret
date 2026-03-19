@@ -426,7 +426,7 @@ function taskCard(t, i, isMe) {
   const dl = t.deadline?.toDate ? t.deadline.toDate() : t.deadline ? new Date(t.deadline) : null;
   const overdue = isOverdue(t);
   const urgent  = dl && !overdue && (dl - new Date()) < 2 * 864e5 && t.status !== 'done';
-  const tags    = (t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" onclick="event.stopPropagation();filterByTag(${JSON.stringify(x)})">${x}</span>`).join('');
+  const tags    = (t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" data-tag="${x.replace(/"/g, '&quot;')}" onclick="event.stopPropagation();filterByTag(this.dataset.tag)">${x}</span>`).join('');
   const col     = projColor(t.projectId);
   const pname   = t.projectName || projName(t.projectId);
   const statusBadge = overdue ? `<span class="badge bs-overdue">ATRASADA</span>` : `<span class="badge bs-${t.status}">${SL[t.status] || t.status}</span>`;

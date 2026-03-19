@@ -200,9 +200,9 @@ function buildTagBar(taskList) {
   if (!sorted.length) return '';
   const chips = sorted.map(([tag, n]) => {
     const active = tagFV.includes(tag);
-    return `<span class="tag-pill${active ? ' active' : ''}" onclick="toggleTagFilter(${JSON.stringify(tag)})">${tag} <span style="opacity:.5">${n}</span></span>`;
+    return `<span class="tag-pill${active ? ' active' : ''}" data-tag="${tag.replace(/"/g, '&quot;')}" onclick="toggleTagFilter(this.dataset.tag)">${tag} <span style="opacity:.5">${n}</span></span>`;
   }).join('');
-  const activeChips = tagFV.map(tag => `<span class="tag-active-chip">🏷 ${tag} <button onclick="removeTag('${tag}')">✕</button></span>`).join('');
+  const activeChips = tagFV.map(tag => `<span class="tag-active-chip">🏷 ${tag} <button data-tag="${tag.replace(/"/g, '&quot;')}" onclick="removeTag(this.dataset.tag)">✕</button></span>`).join('');
   return `<div class="tag-filter-bar">
     <span style="font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:1px;flex-shrink:0;">TAGS:</span>
     ${chips}

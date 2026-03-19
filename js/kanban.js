@@ -99,7 +99,7 @@ function kanbanCard(t) {
       <span class="kc-prio bp-${t.priority}">${PL[t.priority]}</span>
       <span style="font-family:var(--M);font-size:9px;color:var(--gold);">+${t.xpReward}</span>
     </div>
-    ${(t.tags || []).length ? `<div style="margin-top:5px;display:flex;gap:3px;flex-wrap:wrap;">${(t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" onclick="event.stopPropagation();filterByTag(${JSON.stringify(x)})">${x}</span>`).join('')}</div>` : ''}
+    ${(t.tags || []).length ? `<div style="margin-top:5px;display:flex;gap:3px;flex-wrap:wrap;">${(t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" data-tag="${x.replace(/"/g, '&quot;')}" onclick="event.stopPropagation();filterByTag(this.dataset.tag)">${x}</span>`).join('')}</div>` : ''}
     ${(()=>{const subs=t.subtasks||[];if(!subs.length)return'';const pct=calcProgress(subs);const done=subs.filter(x=>x.done).length;return`<div style="margin-top:7px;"><div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:8px;color:var(--dim);margin-bottom:3px;"><span>${done}/${subs.length} subtasks</span><span style="color:${pct===100?'var(--green)':'var(--cyan)'};">${pct}%</span></div><div style="height:2px;background:var(--bg3);border-radius:1px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--cyan)'};border-radius:1px;"></div></div></div>`;})()}
   </div>`;
 }
