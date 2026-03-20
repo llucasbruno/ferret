@@ -4,11 +4,11 @@
 
 const CEO_EMAILS = ['avacode394@gmail.com', 'ramombenfica99@gmail.com'];
 
-// URL do backend — localhost em dev, Railway em produção
+// URL do backend — localhost em dev, Render em produção
 const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 const BACKEND_URL = IS_DEV
   ? 'http://localhost:3001'
-  : 'https://SEU-BACKEND.railway.app'; // ← substituir depois do deploy no Railway
+  : 'https://ferret-backend.onrender.com';
 
 // FB_CONFIG mantido como fallback caso o backend esteja indisponível
 const FB_CONFIG = {
