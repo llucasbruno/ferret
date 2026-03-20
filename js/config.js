@@ -4,6 +4,13 @@
 
 const CEO_EMAILS = ['avacode394@gmail.com', 'ramombenfica99@gmail.com'];
 
+// URL do backend — localhost em dev, Railway em produção
+const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const BACKEND_URL = IS_DEV
+  ? 'http://localhost:3001'
+  : 'https://SEU-BACKEND.railway.app'; // ← substituir depois do deploy no Railway
+
+// FB_CONFIG mantido como fallback caso o backend esteja indisponível
 const FB_CONFIG = {
   apiKey: "AIzaSyCo2XRo7OwUln0yj4U8Ry4APC4fg2dOvHQ",
   authDomain: "ferret-studio.firebaseapp.com",

@@ -29,6 +29,8 @@ async function onAuth(user) {
     if (!sessionStorage.getItem(sessionKey)) {
       sessionStorage.setItem(sessionKey, '1');
       await log('login', `${meData.displayName} fez login`);
+      // Envia email de novo login para o próprio usuário
+      if (meData.email) emailNewLogin(meData.email, meData.displayName);
     }
 
     await boot(_loginWasManual);
@@ -89,6 +91,8 @@ async function checkDeadlineAlerts() {
       fromName: 'Sistema',
       reason: `Prazo: ${dl.toLocaleDateString('pt-BR')} — vence ${label}`
     });
+    // Email de aviso de prazo
+    if (meData.email) emailTaskOverdue(meData.email, meData.displayName, t);
     batch.update(doc.ref, { lastDeadlineAlert: TODAY });
     alertCount++;
   }

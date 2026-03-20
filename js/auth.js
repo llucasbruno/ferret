@@ -25,12 +25,15 @@ async function doRegister() {
   try {
     const access = CEO_EMAILS.includes(email.toLowerCase()) ? 'manager' : 'member';
     const c = await auth.createUserWithEmailAndPassword(email, pass);
-    await db.collection('users').doc(c.user.uid).set({
-      displayName: name, email, cargo: cargo || 'Motion Designer',
-      photoURL: photo || '', access, xp: 0,
-      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    const member = { displayName: name, email, cargo: cargo || 'Motion Designer', photoURL: photo || '', access, xp: 0, joinedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    await db.collection('users').doc(c.user.uid).set(member);
     await log('register', `${name} entrou no estúdio como ${access === 'manager' ? 'CEO 👑' : 'Membro'}`);
+    // Notifica todos os managers sobre o novo membro
+    const usersSnap = await db.collection('users').where('access', '==', 'manager').get();
+    usersSnap.docs.forEach(d => {
+      const mgr = d.data();
+      if (mgr.email) emailNewMember(mgr.email, mgr.displayName, member);
+    });
   } catch (ex) { err.textContent = ex.message; err.style.display = 'block'; }
 }
 

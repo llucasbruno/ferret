@@ -2,9 +2,6 @@
 //  FEEDBACK.JS — Bug Report e Sugestões
 // ══════════════════════════════════════════════
 
-// EMAILJS_SERVICE_ID e EMAILJS_PUBLIC_KEY definidos em config.js
-const EMAILJS_TEMPLATE_ID = 'template_qzne6sj';
-
 function openFeedback() {
   $('fb-tipo').value = 'Bug';
   $('fb-titulo').value = '';
@@ -33,31 +30,28 @@ async function doSendFeedback() {
   $('fb-btn').disabled = true;
 
   try {
-    await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      EMAILJS_TEMPLATE_ID,
-      {
+    // Envia para todos os managers via backend
+    const managersSnap = await db.collection('users').where('access', '==', 'manager').get();
+    const managers = managersSnap.docs.map(d => d.data()).filter(u => u.email);
+
+    await Promise.all(managers.map(mgr =>
+      emailFeedback(mgr.email, {
+        nome:      meData.displayName,
+        email:     meData.email || me.email || '—',
         tipo,
         titulo,
         descricao,
-        nome:          meData.displayName,
-        email_usuario: meData.email || me.email || '—',
-        name:          meData.displayName,
-        time:          new Date().toLocaleString('pt-BR'),
-        message:       `Tipo: ${tipo}\nTítulo: ${titulo}\nDescrição: ${descricao}`,
-        email:         meData.email || me.email || '—',
-      },
-      EMAILJS_PUBLIC_KEY
-    );
+      })
+    ));
 
     toast('Feedback enviado com sucesso! 🎉', true);
     closeModal('m-feedback');
 
   } catch (e) {
-    console.error('EmailJS error:', e);
+    console.error('Feedback error:', e);
     err.textContent = 'Erro ao enviar. Tente novamente.';
     err.style.display = 'block';
     $('fb-btn').textContent = 'ENVIAR';
     $('fb-btn').disabled = false;
   }
-} 
+}

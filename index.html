@@ -36,7 +36,11 @@
     <span class="loader-accent">STUDIO</span>
   </div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
-  <div class="loader-status">INICIALIZANDO SISTEMA...</div>
+  <div class="loader-progress-wrap">
+    <div class="loader-progress-bar"><div class="loader-progress-fill" id="loader-progress-fill"></div></div>
+    <div class="loader-progress-pct" id="loader-progress-pct">0%</div>
+  </div>
+  <div class="loader-status" id="loader-status">INICIALIZANDO SISTEMA...</div>
 </div>
 
 <!-- ══ CONFIG ══ -->
@@ -405,15 +409,7 @@
           <div><div class="page-title">MINHAS <span>TASKS</span></div><div class="page-sub">// SUAS MISSÕES</div></div>
           <button class="btn btn-primary" onclick="openCreate()">+ NOVA TASK</button>
         </div>
-        <div class="ftabs" id="my-tabs">
-          <button class="ftab active" onclick="myFilter('all',this)">TODAS</button>
-          <button class="ftab" onclick="myFilter('active',this)">ATIVAS</button>
-          <button class="ftab" onclick="myFilter('in_progress',this)">EM PROGRESSO</button>
-          <button class="ftab" onclick="myFilter('done',this)">CONCLUÍDAS</button>
-          <button class="ftab" onclick="myFilter('pending_approval',this)">AGUARDANDO</button>
-          <button class="ftab" onclick="myFilter('rejected',this)">REJEITADAS</button>
-          <button class="ftab" onclick="myFilter('finalized',this)">FINALIZADAS</button>
-        </div>
+        <div class="ftabs" id="my-tabs"></div>
         <div id="my-tag-bar"></div>
         <div class="tasks" id="my-list"></div>
       </div>
@@ -1137,6 +1133,7 @@
 <script src="js/projectmembers.js"></script>
 <script src="js/studiodna.js"></script>
 <script src="js/feedback.js"></script>
+<script src="js/email.js"></script>
 <script src="js/soundwave.js"></script>
 
 <script>
@@ -1170,8 +1167,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // ══ INIT ══
-localStorage.setItem('fs_cfg', JSON.stringify(FB_CONFIG));
-initFB(FB_CONFIG);
+(async function() {
+  const fillEl   = document.getElementById('loader-progress-fill');
+  const pctEl    = document.getElementById('loader-progress-pct');
+  const statusEl = document.getElementById('loader-status');
+
+  let progress = 0;
+  let done     = false;
+
+  // Avança progressivamente até 90% simulando o carregamento
+  function setProgress(pct, status) {
+    progress = pct;
+    if (fillEl) fillEl.style.width = pct + '%';
+    if (pctEl)  pctEl.textContent  = Math.round(pct) + '%';
+    if (status && statusEl) statusEl.textContent = status;
+  }
+
+  // Simulação gradual — desacelera conforme se aproxima de 90%
+  const interval = setInterval(() => {
+    if (done) return;
+    if (progress < 30)      setProgress(progress + 2,   'CONECTANDO AO SERVIDOR...');
+    else if (progress < 60) setProgress(progress + 1,   'AGUARDANDO RESPOSTA...');
+    else if (progress < 85) setProgress(progress + 0.4, 'QUASE LÁ...');
+  }, 300);
+
+  try {
+    const res = await fetch(BACKEND_URL + '/firebase/config');
+    const cfg = await res.json();
+    clearInterval(interval);
+    done = true;
+    setProgress(100, 'SISTEMA PRONTO');
+    setTimeout(() => initFB(cfg), 300);
+  } catch (e) {
+    clearInterval(interval);
+    done = true;
+    setProgress(100, 'SISTEMA PRONTO');
+    console.warn('Backend indisponível, usando config local:', e.message);
+    setTimeout(() => initFB(FB_CONFIG), 300);
+  }
+})();
 </script>
 </body>
 </html>

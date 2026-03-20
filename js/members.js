@@ -62,6 +62,9 @@ async function saveCargo() {
   await db.collection('users').doc(cargoUID).update({ cargo, access });
   await log('cargo_update', `${meData.displayName} atualizou cargo de ${u?.displayName} para "${cargo}"`);
 
+  // Email para o membro sobre mudança de cargo
+  if (u?.email) emailCargoUpdated(u.email, u.displayName, cargo, access);
+
   // Notifica o membro sobre mudança de cargo
   const accessLabel = access === 'manager' ? 'Gerente (ADM) 👑' : 'Membro';
   await saveNotif(cargoUID, 'cargo_update',

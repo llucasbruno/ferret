@@ -40,43 +40,24 @@ async function doCreatePN() {
 // ── Notifica todos os usuários ───────────────
 async function _notificarAtualizacao(version, title, body, type) {
   const tipoLabel = PN_TYPE_LABEL[type] || 'Nova Atualização';
-
-  // Busca todos os usuários
   const snap = await db.collection('users').get();
   const todos = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
 
-  const promises = todos.map(async u => {
-    // 1. Notificação no app (para todos exceto quem publicou)
+  // Notificação in-app para todos exceto quem publicou
+  for (const u of todos) {
     if (u.uid !== me.uid) {
       await saveNotif(u.uid, 'patch_note', title, {
         fromName: meData.displayName,
         reason: `${tipoLabel} · Versão ${version}`
       });
     }
+  }
 
-    // 2. Email (para todos incluindo quem publicou)
-    if (u.email) {
-      try {
-        await emailjs.send(
-          EMAILJS_SERVICE_ID,
-          EMAILJS_PN_TEMPLATE_ID,
-          {
-            para_email: u.email,
-            versao:     version,
-            titulo:     title,
-            tipo:       tipoLabel,
-            descricao:  body,
-            nome:       u.displayName || '—',
-          },
-          EMAILJS_PUBLIC_KEY
-        );
-      } catch (err) {
-        console.error(`Erro ao enviar email para ${u.email}:`, err);
-      }
-    }
-  });
-
-  await Promise.all(promises);
+  // Email via backend para todos que têm email cadastrado
+  const recipients = todos.filter(u => u.email).map(u => ({ email: u.email, name: u.displayName || '—' }));
+  if (recipients.length) {
+    await emailPatchNote(recipients, version, tipoLabel, title, body);
+  }
 }
 
 async function deletePN(id) {

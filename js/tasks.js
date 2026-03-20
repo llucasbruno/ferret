@@ -41,7 +41,11 @@ async function doCreate() {
   const projLabel = proj ? `[${proj.name}]` : '[sem projeto]';
   await log(isMgr ? 'task_create' : 'task_pending', isMgr ? `${meData.displayName} criou "${title}" ${projLabel}` : `${meData.displayName} submeteu "${title}" para aprovação`);
   closeModal('m-create'); toast(isMgr ? 'Task criada!' : 'Enviada para aprovação!', true);
-  if (isMgr && assigneeId !== me.uid) await saveNotif(assigneeId, 'task_assigned', title);
+  if (isMgr && assigneeId !== me.uid) {
+    await saveNotif(assigneeId, 'task_assigned', title);
+    // Email para o responsável
+    if (assignee?.email) emailTaskAssigned(assignee.email, assignee.displayName, { title, priority, deadline: new Date(deadline + 'T00:00:00'), xpReward: XP_REWARD[priority], projectName: proj?.name || null });
+  }
   await refresh(); renderCurView();
 }
 
@@ -168,6 +172,9 @@ async function finalizeTask(id) {
     ? `${meData.displayName} finalizou "${t.title}" com atraso (+${xp} XP, -${pen} penalidade)`
     : `${meData.displayName} finalizou "${t.title}" (+${xp} XP)`);
   await saveNotif(t.assigneeId, 'task_approved', t.title, { fromName: meData.displayName, reason: `Task finalizada! +${xp} XP` });
+  // Email para o responsável
+  const assignee = users.find(u => u.uid === t.assigneeId);
+  if (assignee?.email) emailTaskFinalized(assignee.email, assignee.displayName, t, (assignee.xp || 0) + xp);
   toast(overdue ? `Finalizada com atraso! +${xp} XP (-${pen})` : `Task finalizada! +${xp} XP`, true);
   _movingTask = false; closeModal('m-task'); await refresh(); renderCurView();
 }
@@ -189,6 +196,9 @@ async function approveTask(id) {
   await db.collection('tasks').doc(id).update({ status: 'active', approvedById: me.uid, rejectionReason: null });
   await log('task_approve', `${meData.displayName} aprovou "${t.title}"`);
   await saveNotif(t.assigneeId, 'task_approved', t.title);
+  // Email para o responsável avisando que a task foi aprovada e atribuída
+  const assignee = users.find(u => u.uid === t.assigneeId);
+  if (assignee?.email) emailTaskAssigned(assignee.email, assignee.displayName, t);
   toast('Task aprovada!', true); await refresh(); renderCurView(); updBadge();
 }
 
@@ -202,6 +212,9 @@ async function doReject() {
   await db.collection('tasks').doc(rejTask).update({ status: 'rejected', rejectionReason: reason });
   await saveNotif(t.assigneeId, 'rejection', t.title, { reason });
   await log('task_reject', `${meData.displayName} rejeitou "${t.title}": ${reason}`);
+  // Email para o responsável
+  const assignee = users.find(u => u.uid === t.assigneeId);
+  if (assignee?.email) emailTaskRejected(assignee.email, assignee.displayName, t, reason);
   toast('Task rejeitada'); closeModal('m-reject'); await refresh(); renderCurView(); updBadge();
 }
 
@@ -454,8 +467,46 @@ function taskCard(t, i, isMe) {
 
 // ── Render views ─────────────────────────────
 async function renderMyTasks() {
-  // FIX: usa o array local em vez de chamar loadTasks() novamente
-  let t = filterByGlobalProj(tasks.filter(x => x.assigneeId === me.uid && x.status !== 'archived'));
+  await refresh();
+  const allMyTasks = filterByGlobalProj(tasks.filter(x => x.assigneeId === me.uid && x.status !== 'archived'));
+
+  // Contadores por status
+  const counts = {
+    all:              allMyTasks.length,
+    active:           allMyTasks.filter(x => x.status === 'active').length,
+    in_progress:      allMyTasks.filter(x => x.status === 'in_progress').length,
+    done:             allMyTasks.filter(x => x.status === 'done').length,
+    pending_approval: allMyTasks.filter(x => x.status === 'pending_approval').length,
+    rejected:         allMyTasks.filter(x => x.status === 'rejected').length,
+    finalized:        allMyTasks.filter(x => x.status === 'finalized').length,
+  };
+
+  const TABS = [
+    { val: 'all',              label: 'TODAS'       },
+    { val: 'active',           label: 'ATIVAS'      },
+    { val: 'in_progress',      label: 'EM PROGRESSO'},
+    { val: 'done',             label: 'CONCLUÍDAS'  },
+    { val: 'pending_approval', label: 'AGUARDANDO'  },
+    { val: 'rejected',         label: 'REJEITADAS'  },
+    { val: 'finalized',        label: 'FINALIZADAS' },
+  ];
+
+  $('my-tabs').innerHTML = TABS.map(tab => {
+    const count  = counts[tab.val];
+    const active = myFV === tab.val;
+    const badge  = count > 0 && tab.val !== 'all'
+      ? `<span style="
+          background:${active ? 'rgba(255,70,85,.3)' : 'rgba(255,255,255,.1)'};
+          color:${active ? 'var(--red)' : 'var(--dim)'};
+          font-family:var(--M);font-size:9px;
+          padding:1px 6px;border-radius:8px;
+          margin-left:5px;
+          ">${count}</span>`
+      : '';
+    return `<button class="ftab${active ? ' active' : ''}" onclick="myFilter('${tab.val}',this)">${tab.label}${badge}</button>`;
+  }).join('');
+
+  let t = allMyTasks;
   if (myFV !== 'all') t = t.filter(x => x.status === myFV);
   $('my-tag-bar').innerHTML = buildTagBar(t);
   t = applyTagFilter(t);

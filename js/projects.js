@@ -76,6 +76,9 @@ async function saveProject() {
     } else {
       await log('project_create', `${meData.displayName} solicitou o projeto "${name}" (aguardando aprovação)`);
       toast('Solicitação enviada! Aguardando aprovação.', true);
+      // Email para todos os managers
+      const managers = users.filter(u => u.access === 'manager' && u.email);
+      managers.forEach(mgr => emailProjectRequested(mgr.email, mgr.displayName, meData.displayName, name, data.description));
     }
   }
   closeModal('m-project'); await refresh(); buildGlobalProjSel(); renderCurView();

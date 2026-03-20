@@ -177,7 +177,7 @@ async function renderCurView() {
 }
 
 // ── View filters ─────────────────────────────
-function myFilter(val, btn)   { myFV   = val; document.querySelectorAll('#my-tabs .ftab').forEach(t => t.classList.remove('active'));   btn.classList.add('active'); renderMyTasks(); }
+function myFilter(val, btn)   { myFV   = val; renderMyTasks(); }
 function allFilter(val, btn)  { allFV  = val; document.querySelectorAll('#all-tabs .ftab').forEach(t => t.classList.remove('active'));  btn.classList.add('active'); renderAllTasks(); }
 function histFilter(val, btn) { histFV = val; document.querySelectorAll('#hist-tabs .ftab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderHistory(); }
 function projFilter(val, btn) { projFV = val; document.querySelectorAll('#proj-tabs .ftab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderProjects(); }

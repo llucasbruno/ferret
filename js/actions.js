@@ -121,6 +121,8 @@ async function saveAction() {
       await log('task_pending', `${meData.displayName} submeteu o plano "${title}" para aprovação`);
       for (const mgr of users.filter(u => u.access === 'manager')) {
         await saveNotif(mgr.uid, 'action_pending', title, { fromName: meData.displayName, reason: `Severidade: ${AP_SEV_LABEL[data.severity]} · Prioridade: ${AP_PRIO_LABEL[data.priority]}`, refId: ref.id });
+        // Email para o manager
+        if (mgr.email) emailActionPending(mgr.email, mgr.displayName, meData.displayName, title, data.severity, data.priority);
       }
       toast('Plano enviado para aprovação!', true); await updBadge();
     }
