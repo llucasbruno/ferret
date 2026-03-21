@@ -234,6 +234,24 @@ body::after {
   animation: loader-slide 1.4s ease-in-out infinite;
 }
 @keyframes loader-slide { to { left: 200%; } }
+.loader-progress-wrap {
+  display: flex; align-items: center; gap: 10px; width: 180px;
+}
+.loader-progress-bar {
+  flex: 1; height: 2px;
+  background: rgba(var(--accent-rgb), .1); overflow: hidden;
+}
+.loader-progress-fill {
+  height: 100%; width: 0%;
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), .5);
+  transition: width .3s ease;
+}
+.loader-progress-pct {
+  font-family: var(--M); font-size: 9px;
+  color: var(--red); letter-spacing: 2px;
+  min-width: 30px; text-align: right;
+}
 .loader-status {
   font-family: var(--M); font-size: 9px;
   color: var(--dim2); letter-spacing: 4px;
@@ -1410,3 +1428,502 @@ html[data-theme="cyber"]   .pfill { background: linear-gradient(90deg, #0055FF, 
 .task-detail-p{border-left:2px solid var(--red);padding:10px 14px;margin-bottom:8px;}
 .task-detail-r{border-left:2px solid var(--cyan);padding:10px 14px;margin-bottom:8px;}
 .detail-lbl{font-family:var(--M);font-size:9px;color:var(--dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;}
+/* ══════════════════════════════════════════════
+   DOCUMENTOS — Studio DNA refactor
+══════════════════════════════════════════════ */
+
+/* Layout principal */
+.dna-layout {
+  display: flex; gap: 20px; align-items: flex-start; min-height: 400px;
+}
+
+/* Painel de categorias */
+.dna-cats-panel {
+  flex-shrink: 0; width: 180px;
+  position: sticky; top: 0;
+}
+.dna-cat-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; cursor: pointer; margin-bottom: 3px;
+  font-family: var(--M); font-size: 10px; letter-spacing: 1.5px;
+  color: var(--dim2); border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  transition: all .12s; border-radius: 0 3px 3px 0;
+}
+.dna-cat-item:hover { color: var(--cream); background: rgba(var(--accent-rgb),.04); }
+.dna-cat-item.active {
+  color: var(--red); background: rgba(var(--accent-rgb),.07);
+  border-left-color: var(--red); border-color: rgba(var(--accent-rgb),.12);
+}
+.dna-cat-count {
+  font-family: var(--M); font-size: 9px;
+  background: rgba(var(--accent-rgb),.08); padding: 1px 6px;
+  color: var(--dim2); flex-shrink: 0;
+}
+.dna-cat-item.active .dna-cat-count { color: var(--red); }
+
+/* Painel de docs */
+.dna-docs-panel { flex: 1; min-width: 0; }
+.dna-docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+/* Card de documento */
+.dna-doc-card {
+  background: var(--card-bg); border: 1px solid rgba(var(--border-rgb),.07);
+  cursor: pointer; overflow: hidden;
+  transition: border-color .15s, transform .12s;
+  display: flex; flex-direction: column;
+}
+.dna-doc-card:hover { border-color: rgba(var(--accent-rgb),.22); transform: translateY(-2px); }
+.dna-doc-cover {
+  height: 100px; background-size: cover; background-position: center;
+  position: relative; flex-shrink: 0;
+}
+.dna-doc-cover-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, var(--bg2) 100%);
+}
+.dna-doc-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.dna-doc-title {
+  font-family: var(--R); font-size: 16px; font-weight: 700;
+  letter-spacing: 1px; color: var(--cream); margin-bottom: 6px; line-height: 1.2;
+}
+.dna-doc-sub {
+  font-size: 12px; color: var(--dim2); line-height: 1.4; margin-bottom: 12px;
+  flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.dna-doc-footer {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-family: var(--M); font-size: 9px; color: var(--dim2);
+  padding-top: 10px; border-top: 1px solid rgba(var(--border-rgb),.06);
+  margin-top: auto;
+}
+.dna-cat-badge {
+  display: inline-flex; padding: 2px 8px;
+  font-family: var(--M); font-size: 9px; letter-spacing: 1.5px;
+  font-weight: 700; text-transform: uppercase; border-radius: 0;
+  flex-shrink: 0;
+}
+
+/* Editor inline */
+.dna-editor-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0 18px; margin-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--border-rgb),.08);
+  position: sticky; top: 0; background: var(--bg); z-index: 10;
+}
+.dna-editor-cover {
+  height: 200px; background-size: cover; background-position: center;
+  position: relative; margin-bottom: 24px; border-radius: 4px; overflow: hidden;
+}
+.dna-editor-cover-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%);
+}
+.dna-editor-body {
+  max-width: 760px; padding-bottom: 60px;
+}
+
+/* Seções no modo de visualização */
+.dna-sections-view { display: flex; flex-direction: column; gap: 0; margin-top: 24px; }
+.dna-section-item {
+  padding: 20px 0; border-bottom: 1px solid rgba(var(--border-rgb),.07);
+}
+.dna-section-item:last-child { border-bottom: none; }
+.dna-section-heading-view {
+  font-family: var(--M); font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(var(--accent-rgb),.5); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.dna-section-heading-view::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),.15), transparent);
+}
+.dna-section-body-view {
+  font-size: 14px; line-height: 1.85; color: var(--cream); white-space: pre-wrap;
+}
+.dna-section-img {
+  width: 100%; max-height: 320px; object-fit: cover;
+  border-radius: 4px; margin-bottom: 16px;
+  border: 1px solid rgba(var(--border-rgb),.08);
+}
+
+/* Seções no modo de edição */
+.dna-edit-sec {
+  background: var(--bg3); border: 1px solid rgba(var(--border-rgb),.08);
+  padding: 14px; margin-bottom: 10px;
+}
+.dna-sec-btn {
+  background: none; border: 1px solid rgba(var(--border-rgb),.1);
+  color: var(--dim2); cursor: pointer; padding: 3px 8px;
+  font-size: 11px; transition: all .12s;
+}
+.dna-sec-btn:hover { color: var(--cream); border-color: rgba(var(--accent-rgb),.3); }
+.dna-sec-btn-del { border-color: rgba(255,59,92,.2); }
+.dna-sec-btn-del:hover { color: var(--danger); border-color: rgba(255,59,92,.4); background: rgba(255,59,92,.05); }
+
+/* Busca */
+#dna-search-input:focus { border-color: rgba(var(--accent-rgb),.5); box-shadow: 0 0 0 1px rgba(var(--accent-rgb),.08); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dna-layout { flex-direction: column; }
+  .dna-cats-panel { width: 100%; position: static; }
+  .dna-cats-panel > .sec { display: none; }
+  #dna-cats-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .dna-cat-item { border-radius: 20px; border: 1px solid rgba(var(--border-rgb),.1); padding: 5px 12px; }
+  .dna-cat-item.active { border-left-color: rgba(var(--accent-rgb),.12); border: 1px solid rgba(var(--accent-rgb),.3); }
+  .dna-docs-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════
+   DOCUMENTOS v2 — Folder system
+══════════════════════════════════════════════ */
+
+/* Topbar de navegação dentro do doc */
+.dna-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0 18px; margin-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--border-rgb),.08);
+  position: sticky; top: 0; background: var(--bg); z-index: 10;
+  flex-wrap: wrap; gap: 10px;
+}
+
+/* Breadcrumb */
+.dna-breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--M); font-size: 11px; flex-wrap: wrap;
+}
+.dna-bc-link {
+  color: var(--dim2); cursor: pointer; letter-spacing: 1px;
+  transition: color .12s;
+}
+.dna-bc-link:hover { color: var(--red); }
+.dna-bc-sep { color: var(--dim); font-size: 13px; }
+.dna-bc-cur { color: var(--cream); font-weight: 600; letter-spacing: 1px; }
+
+/* Capa do doc no editor */
+.dna-editor-cover {
+  height: 180px; background-size: cover; background-position: center;
+  position: relative; margin-bottom: 20px; border-radius: 4px; overflow: hidden;
+}
+.dna-editor-cover-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%);
+}
+
+/* Grid de pastas */
+.dna-folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px; margin-top: 6px;
+}
+
+/* Card de pasta */
+.dna-folder-card {
+  background: var(--card-bg); border: 1px solid rgba(var(--border-rgb),.07);
+  padding: 16px; cursor: pointer; position: relative;
+  transition: border-color .15s, transform .12s;
+}
+.dna-folder-card:hover { border-color: rgba(var(--accent-rgb),.22); transform: translateY(-2px); }
+.dna-folder-name {
+  font-family: var(--R); font-size: 15px; font-weight: 700;
+  color: var(--cream); letter-spacing: .5px; margin-bottom: 5px;
+}
+.dna-folder-meta {
+  display: flex; gap: 6px; font-family: var(--M); font-size: 10px; color: var(--dim2); flex-wrap: wrap;
+}
+.dna-folder-creator {
+  font-family: var(--M); font-size: 9px; color: var(--dim);
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid rgba(var(--border-rgb),.06);
+}
+
+/* Botões de ação nos cards */
+.dna-card-acts {
+  display: flex; gap: 3px;
+}
+.dna-card-btn {
+  background: none; border: 1px solid rgba(var(--border-rgb),.1);
+  cursor: pointer; padding: 3px 5px; transition: all .12s;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--dim2);
+}
+.dna-card-btn:hover { border-color: rgba(var(--accent-rgb),.3); color: var(--cream); }
+
+/* Sub-pastas */
+.dna-subfolders-row {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
+}
+.dna-subfolder-chip {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; background: var(--card-bg);
+  border: 1px solid rgba(var(--border-rgb),.07);
+  cursor: pointer; transition: border-color .12s;
+  font-size: 22px;
+}
+.dna-subfolder-chip:hover { border-color: rgba(var(--accent-rgb),.22); }
+
+/* Lista de itens */
+.dna-items-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* Row de item */
+.dna-item-row {
+  background: var(--card-bg); border: 1px solid rgba(var(--border-rgb),.07);
+  overflow: hidden; transition: border-color .12s;
+}
+.dna-item-row:hover { border-color: rgba(var(--accent-rgb),.18); }
+.dna-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; gap: 12px; flex-wrap: wrap;
+}
+.dna-item-name {
+  font-family: var(--R); font-size: 15px; font-weight: 700;
+  color: var(--cream); letter-spacing: .5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dna-item-creator {
+  font-family: var(--M); font-size: 10px; color: var(--dim2);
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.dna-item-preview { padding: 0 14px 14px; }
+
+/* Type badges */
+.dna-item-type-badge {
+  font-family: var(--M); font-size: 9px; letter-spacing: 1px;
+  padding: 2px 8px; flex-shrink: 0; font-weight: 700;
+}
+.dna-type-image { background: rgba(204,136,255,.1); color: #CC88FF; border: 1px solid rgba(204,136,255,.25); }
+.dna-type-text  { background: rgba(0,196,180,.1); color: var(--cyan); border: 1px solid rgba(0,196,180,.22); }
+.dna-type-link  { background: rgba(68,255,153,.08); color: var(--green); border: 1px solid rgba(68,255,153,.2); }
+.dna-type-pdf   { background: rgba(255,70,85,.08); color: var(--red); border: 1px solid rgba(255,70,85,.2); }
+
+/* Previews dentro do item */
+.dna-item-text-preview {
+  font-size: 13px; color: var(--dim2); line-height: 1.7;
+  background: rgba(var(--accent-rgb),.03);
+  padding: 10px 14px; border-left: 2px solid rgba(var(--accent-rgb),.2);
+  white-space: pre-wrap; max-height: 200px; overflow-y: auto;
+}
+.dna-item-img-preview { }
+.dna-item-link-preview {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--M); font-size: 11px; color: var(--cyan);
+  text-decoration: none; letter-spacing: .5px;
+}
+.dna-item-link-preview:hover { text-decoration: underline; }
+.dna-item-link-preview span {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px;
+}
+
+/* Type tabs no modal de item */
+.dna-type-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.dna-type-tab {
+  padding: 7px 16px; font-family: var(--M); font-size: 10px; letter-spacing: 1.5px;
+  cursor: pointer; background: transparent; color: var(--dim2);
+  border: 1px solid rgba(var(--border-rgb),.1);
+  transition: all .12s;
+}
+.dna-type-tab:hover { color: var(--cream); border-color: rgba(var(--accent-rgb),.25); }
+.dna-type-tab.active {
+  background: rgba(var(--accent-rgb),.1); color: var(--red);
+  border-color: rgba(var(--accent-rgb),.35);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dna-folders-grid { grid-template-columns: repeat(2, 1fr); }
+  .dna-topbar { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 480px) {
+  .dna-folders-grid { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════
+   ITEM ROWS v2 — leitura melhorada
+══════════════════════════════════════════════ */
+
+.dna-item-row {
+  background: var(--card-bg);
+  border: 1px solid rgba(var(--border-rgb),.07);
+  border-left: 3px solid var(--item-col, var(--dim));
+  overflow: hidden;
+  transition: border-color .12s, transform .1s;
+}
+.dna-item-row:hover { border-color: rgba(var(--accent-rgb),.2); }
+
+/* Topo do item */
+.dna-item-top {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px; gap: 12px; flex-wrap: wrap;
+}
+.dna-item-left  { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.dna-item-type-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.dna-item-info  { flex: 1; min-width: 0; }
+.dna-item-name  {
+  font-family: var(--R); font-size: 16px; font-weight: 700;
+  color: var(--cream); letter-spacing: .5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.dna-item-meta  {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--M); font-size: 10px; color: var(--dim2);
+  flex-wrap: wrap;
+}
+.dna-item-type-label { font-weight: 700; letter-spacing: .5px; }
+.dna-item-sep        { opacity: .35; }
+
+/* Botões de ação */
+.dna-item-actions { display: flex; gap: 3px; flex-shrink: 0; }
+.dna-item-action-btn {
+  background: none; border: 1px solid rgba(var(--border-rgb),.1);
+  cursor: pointer; padding: 5px 8px;
+  color: var(--dim2); transition: all .12s;
+  display: flex; align-items: center; justify-content: center;
+}
+.dna-item-action-btn:hover { border-color: rgba(var(--accent-rgb),.3); color: var(--cream); }
+.dna-item-del-btn:hover    { border-color: rgba(255,59,92,.3); color: var(--danger); }
+
+/* Área de conteúdo */
+.dna-item-content-wrap {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(var(--border-rgb),.05);
+  background: rgba(0,0,0,.12);
+}
+
+/* Imagem */
+.dna-item-img-wrap {
+  position: relative; display: inline-block;
+  margin-top: 12px; cursor: pointer;
+  max-width: 100%; border-radius: 4px; overflow: hidden;
+  background: var(--bg3);
+}
+.dna-item-img-thumb {
+  display: block; max-height: 200px; max-width: 100%;
+  width: auto; object-fit: cover;
+  transition: filter .2s;
+}
+.dna-item-img-wrap:hover .dna-item-img-thumb { filter: brightness(.7); }
+.dna-item-img-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  opacity: 0; transition: opacity .2s;
+  color: white; font-family: var(--M); font-size: 10px; letter-spacing: 2px;
+}
+.dna-item-img-wrap:hover .dna-item-img-overlay { opacity: 1; }
+
+/* Texto */
+.dna-item-text-body   { padding-top: 12px; }
+.dna-item-text-content {
+  font-size: 14px; line-height: 1.85; color: var(--cream);
+  padding: 14px 16px;
+  background: rgba(var(--accent-rgb),.03);
+  border-left: 2px solid rgba(var(--accent-rgb),.18);
+  max-height: 160px; overflow: hidden; position: relative;
+}
+.dna-text-fade {
+  color: var(--dim2); font-style: italic;
+}
+.dna-expand-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; background: none; border: none;
+  font-family: var(--M); font-size: 10px; letter-spacing: 2px;
+  color: var(--cyan); cursor: pointer; padding: 0;
+  transition: opacity .12s;
+}
+.dna-expand-btn:hover { opacity: .7; }
+
+/* Link / PDF */
+.dna-item-link-body { padding-top: 12px; }
+.dna-item-link-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; text-decoration: none;
+  font-family: var(--M); font-size: 11px; letter-spacing: .5px;
+  color: var(--green); background: rgba(68,255,153,.06);
+  border: 1px solid rgba(68,255,153,.2);
+  transition: background .12s; max-width: 100%;
+  white-space: nowrap; overflow: hidden;
+}
+.dna-item-link-chip:hover { background: rgba(68,255,153,.12); }
+.dna-item-link-url { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.dna-item-pdf-chip {
+  color: var(--red); background: rgba(255,70,85,.06); border-color: rgba(255,70,85,.2);
+}
+.dna-item-pdf-chip:hover { background: rgba(255,70,85,.12); }
+.dna-item-link-desc { font-size: 12px; color: var(--dim2); margin-top: 7px; line-height: 1.5; }
+
+/* Modal de leitura expandida */
+.dna-expand-text {
+  font-size: 15px; line-height: 1.9; color: var(--cream);
+  white-space: pre-wrap; padding: 4px 0;
+}
+
+/* ══════════════════════════════════════════════
+   DNA ICON PICKER
+══════════════════════════════════════════════ */
+.dna-icon-picker {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--bg3); border: 1px solid var(--input-border);
+  padding: 10px 12px;
+}
+.dna-icon-preview {
+  width: 52px; height: 52px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; line-height: 1;
+  background: var(--bg4); border: 1px solid rgba(var(--border-rgb),.1);
+  border-radius: 4px; overflow: hidden;
+}
+.dna-icon-opts { flex: 1; min-width: 0; }
+.dna-icon-tabs {
+  display: flex; gap: 2px; margin-bottom: 8px;
+}
+.dna-icon-tab {
+  padding: 4px 12px; font-family: var(--M); font-size: 9px;
+  letter-spacing: 1.5px; cursor: pointer; background: transparent;
+  color: var(--dim2); border: 1px solid rgba(var(--border-rgb),.1);
+  transition: all .12s;
+}
+.dna-icon-tab:hover  { color: var(--cream); }
+.dna-icon-tab.active {
+  background: rgba(var(--accent-rgb),.1);
+  color: var(--red); border-color: rgba(var(--accent-rgb),.3);
+}
+
+/* ══════════════════════════════════════════════
+   DOCUMENTOS NO PROJETO
+══════════════════════════════════════════════ */
+.pd-docs-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.pd-doc-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(var(--border-rgb),.07);
+  padding: 14px 16px; cursor: pointer;
+  transition: border-color .15s, transform .1s;
+}
+.pd-doc-card:hover {
+  border-color: rgba(var(--accent-rgb),.22);
+  transform: translateX(3px);
+}
+
+/* Projeto card dentro do doc */
+.dna-proj-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(var(--border-rgb),.07);
+  padding: 12px 16px; cursor: pointer;
+  transition: border-color .15s, transform .1s;
+}
+.dna-proj-card:hover {
+  border-color: rgba(var(--accent-rgb),.22);
+  transform: translateX(3px);
+}

@@ -2,9 +2,9 @@
 //  NOTIFICATIONS.JS — Notificações
 // ══════════════════════════════════════════════
 
-const NOTIF_ICON_NAMES = { cargo_update: 'user', patch_note: 'megaphone', rejection: 'x', task_approved: 'check', task_assigned: 'zap', project_approved: 'check', project_rejected: 'x', mention: 'message', deadline_warning: 'clock', delete_request: 'trash', delete_approved: 'check', delete_rejected: 'x', action_pending: 'target', action_approved: 'check', action_rejected: 'x', action_assigned: 'target' };
-const NOTIF_COLORS = { cargo_update: 'var(--cyan)', patch_note: 'var(--cyan)', rejection: 'var(--red)', task_approved: 'var(--green)', task_assigned: 'var(--cyan)', project_approved: 'var(--green)', project_rejected: 'var(--red)', mention: 'var(--gold)', deadline_warning: '#F5C518', delete_request: 'var(--red)', delete_approved: 'var(--green)', delete_rejected: 'var(--red)', action_pending: '#F5C518', action_approved: 'var(--green)', action_rejected: 'var(--red)', action_assigned: 'var(--cyan)' };
-const NOTIF_LABELS = { cargo_update: 'Cargo atualizado', patch_note: 'Nova atualização', rejection: 'Task rejeitada', task_approved: 'Task aprovada', task_assigned: 'Task atribuída a você', project_approved: 'Projeto aprovado', project_rejected: 'Projeto rejeitado', mention: 'Menção', deadline_warning: 'Prazo próximo', delete_request: 'Solicitação de exclusão', delete_approved: 'Exclusão aprovada', delete_rejected: 'Exclusão rejeitada', action_pending: 'Action Plan aguardando', action_approved: 'Action Plan aprovado', action_rejected: 'Action Plan rejeitado', action_assigned: 'Action Plan atribuído' };
+const NOTIF_ICON_NAMES = { cargo_update: 'user', patch_note: 'megaphone', rejection: 'x', task_approved: 'check', task_assigned: 'zap', project_approved: 'check', project_rejected: 'x', mention: 'message', deadline_warning: 'clock', delete_request: 'trash', delete_approved: 'check', delete_rejected: 'x' };
+const NOTIF_COLORS = { cargo_update: 'var(--cyan)', patch_note: 'var(--cyan)', rejection: 'var(--red)', task_approved: 'var(--green)', task_assigned: 'var(--cyan)', project_approved: 'var(--green)', project_rejected: 'var(--red)', mention: 'var(--gold)', deadline_warning: '#F5C518', delete_request: 'var(--red)', delete_approved: 'var(--green)', delete_rejected: 'var(--red)' };
+const NOTIF_LABELS = { cargo_update: 'Cargo atualizado', patch_note: 'Nova atualização', rejection: 'Task rejeitada', task_approved: 'Task aprovada', task_assigned: 'Task atribuída a você', project_approved: 'Projeto aprovado', project_rejected: 'Projeto rejeitado', mention: 'Menção', deadline_warning: 'Prazo próximo', delete_request: 'Solicitação de exclusão', delete_approved: 'Exclusão aprovada', delete_rejected: 'Exclusão rejeitada' };
 
 async function renderNotifications() {
   $('notif-list').innerHTML = `<div style="color:var(--dim);font-family:var(--M);font-size:11px;padding:12px 0;">Carregando...</div>`;
@@ -61,11 +61,6 @@ async function deleteNotif(id) {
 function navigateFromNotif(type, refId) {
   if (['rejection', 'task_approved', 'task_assigned', 'deadline_warning', 'mention'].includes(type)) { go('my-tasks'); return; }
   if (type === 'patch_note') { go('patchnotes'); return; }
-  if (['action_pending', 'action_approved', 'action_rejected', 'action_assigned'].includes(type)) {
-    go('actions');
-    if (refId) setTimeout(() => openActionDetail(refId), 300);
-    return;
-  }
   if (['project_approved', 'project_rejected'].includes(type)) { go('projects'); return; }
   if (['delete_request', 'delete_approved', 'delete_rejected'].includes(type)) { go('approvals'); return; }
 }

@@ -43,6 +43,50 @@ async function doLogout() {
   return auth.signOut();
 }
 
+// ── Recuperação de senha ──────────────────────
+function toggleForgotPassword() {
+  const el = $('f-forgot');
+  const hidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden', !hidden);
+  if (!hidden) return; // fechando — limpa
+  // abrindo — pré-preenche com o email já digitado
+  const email = $('l-email').value.trim();
+  if (email) $('forgot-email').value = email;
+  $('forgot-err').style.display = 'none';
+  $('forgot-ok').classList.add('hidden');
+  $('forgot-btn').textContent = 'ENVIAR';
+  $('forgot-btn').disabled = false;
+  $('forgot-email').focus();
+}
+
+async function doForgotPassword() {
+  const email = $('forgot-email').value.trim();
+  const err   = $('forgot-err');
+  const ok    = $('forgot-ok');
+  const btn   = $('forgot-btn');
+  err.style.display = 'none'; ok.classList.add('hidden');
+
+  if (!email) { err.textContent = 'Informe o email'; err.style.display = 'block'; return; }
+
+  btn.textContent = 'ENVIANDO...'; btn.disabled = true;
+
+  try {
+    await auth.sendPasswordResetEmail(email);
+    ok.classList.remove('hidden');
+    btn.textContent = 'ENVIADO ✓';
+    // Pré-preenche o campo de login com o email
+    $('l-email').value = email;
+  } catch (ex) {
+    btn.textContent = 'ENVIAR'; btn.disabled = false;
+    const msg = ex.code === 'auth/user-not-found'
+      ? 'Nenhuma conta encontrada com este email.'
+      : ex.code === 'auth/invalid-email'
+      ? 'Email inválido.'
+      : 'Erro ao enviar. Tente novamente.';
+    err.textContent = msg; err.style.display = 'block';
+  }
+}
+
 function switchTab(tab, btn) {
   document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));

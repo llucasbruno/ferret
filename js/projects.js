@@ -286,7 +286,10 @@ async function renderProjectDetail() {
 
   $('pd-header').innerHTML += renderProjectMembers(p);
 
-  // ── Mini kanban com movimentação ─────────────
+  // ── Documentos vinculados ─────────────────────
+  $('pd-docs').innerHTML = renderProjectDocs(p.id, isMgr);
+
+
   const finalizedCount = tasks.filter(t => t.projectId === p.id && t.status === 'finalized').length;
   const totalActive    = tasks.filter(t => t.projectId === p.id && !['rejected','archived'].includes(t.status)).length;
   const pctFinal       = totalActive ? Math.round((finalizedCount / totalActive) * 100) : 0;
@@ -537,4 +540,47 @@ function projCard(p, isMgr, delReq = null) {
     </div>
     </div>
   </div>`;
+}
+// ── Documentos vinculados ao projeto ──────────
+function renderProjectDocs(projectId, isMgr) {
+  // dnaAllDocs vive em studiodna.js — pode não estar carregado ainda, trata isso
+  if (typeof dnaAllDocs === 'undefined' || !dnaAllDocs.length) return '';
+
+  const linked = dnaAllDocs.filter(d => d.projectId === projectId && !d._deleted);
+  if (!linked.length) return '';
+
+  const cards = linked.map(doc => {
+    const col       = typeof _dnaCol === 'function' ? _dnaCol(doc.color) : (doc.color || '#00C4B4');
+    const fCount    = (doc.folders || []).length;
+    const totalItems = (doc.folders || []).reduce((acc, f) => {
+      return acc + (f.items || []).length + (f.subfolders || []).reduce((a2, sf) => a2 + (sf.items || []).length, 0);
+    }, 0);
+    const iconHtml = doc.iconImg
+      ? `<img src="${doc.iconImg}" style="width:32px;height:32px;object-fit:contain;border-radius:4px;display:block;" onerror="this.outerHTML='📄'">`
+      : `<span style="font-size:26px;line-height:1;">${doc.icon || '📄'}</span>`;
+
+    return `<div class="pd-doc-card" onclick="go('studiodna');openDNADoc('${doc.id}')" style="border-left:3px solid ${col};">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div style="flex-shrink:0;">${iconHtml}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--R);font-size:14px;font-weight:700;color:var(--cream);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${doc.title}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;font-family:var(--M);font-size:9px;color:var(--dim2);flex-wrap:wrap;">
+            <span class="dna-cat-badge" style="background:${col}18;color:${col};border:1px solid ${col}33;">${(doc.category || 'Geral').toUpperCase()}</span>
+            <span>${fCount} pasta${fCount !== 1 ? 's' : ''}</span>
+            <span>·</span>
+            <span>${totalItems} arquivo${totalItems !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        <div style="flex-shrink:0;color:${col};font-family:var(--M);font-size:10px;letter-spacing:1px;opacity:.7;">ABRIR →</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:24px;">
+      <div class="sec">DOCUMENTOS VINCULADOS
+        ${isMgr ? `<button class="btn btn-ghost btn-sm" onclick="go('studiodna')" style="font-size:9px;opacity:.6;margin-left:4px;">VER TODOS</button>` : ''}
+      </div>
+      <div class="pd-docs-grid">${cards}</div>
+    </div>`;
 }

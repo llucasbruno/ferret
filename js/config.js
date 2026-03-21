@@ -48,11 +48,6 @@ const PL = { low: 'BAIXA', medium: 'MÉDIA', high: 'ALTA', critical: 'CRÍTICA' 
 const SL = { active: 'A FAZER', in_progress: 'EM PROGRESSO', done: 'CONCLUÍDA', pending_approval: 'AGUARDANDO', rejected: 'REJEITADA', finalized: 'FINALIZADA' };
 const LI = { register: '👤', task_create: '➕', task_pending: '⏳', task_approve: '✅', task_reject: '❌', task_start: '▶️', task_done: '🏆', task_delete: '🗑️', xp_penalty: '📉', cargo_update: '✏️', project_create: '📁', project_update: '✏️' };
 
-// Action Plan constants
-const AP_STATUS_LABEL = { pending_approval: 'AGUARDANDO', identified: 'IDENTIFICADO', analyzing: 'EM ANÁLISE', executing: 'EM EXECUÇÃO', resolved: 'RESOLVIDO', monitoring: 'MONITORANDO', rejected: 'REJEITADO' };
-const AP_SEV_LABEL    = { critical: 'CRÍTICO', moderate: 'MODERADO', low: 'LEVE' };
-const AP_PRIO_LABEL   = { critical: 'CRÍTICA', high: 'ALTA', medium: 'MÉDIA', low: 'BAIXA' };
-
 // ── EmailJS ──────────────────────────────────
 const EMAILJS_SERVICE_ID = 'service_v5m774r';
 const EMAILJS_PUBLIC_KEY = 'hXXhnJQSBGrG1zVp8';

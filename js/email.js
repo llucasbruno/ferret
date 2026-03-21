@@ -146,16 +146,3 @@ async function emailProjectRequested(adminEmail, adminName, requesterName, proje
     description:  description || '',
   });
 }
-
-// ── Action plan pendente ─────────────────────
-async function emailActionPending(adminEmail, adminName, requesterName, title, severity, priority) {
-  if (!adminEmail) return;
-  await _callEmail('action-pending', {
-    to:           adminEmail,
-    adminName,
-    requesterName,
-    title,
-    severity:     AP_SEV_LABEL[severity]  || severity,
-    priority:     AP_PRIO_LABEL[priority] || priority,
-  });
-}

@@ -548,31 +548,25 @@ async function renderHistory() {
 async function renderApprovals() {
   await loadTasks();
   const pend = tasks.filter(t => t.status === 'pending_approval');
-  const apSnap     = await db.collection('actionPlans').where('status', '==', 'pending_approval').get();
-  const apPending  = apSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-  const assignSnap = await db.collection('projectAssignmentRequests').where('status', '==', 'pending').get();
-  const assignReqs = assignSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-  const delSnap    = await db.collection('projectDeletionRequests').where('status', '==', 'pending').get();
-  const delReqs    = delSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.requestedBy !== me.uid);
+  const assignSnap  = await db.collection('projectAssignmentRequests').where('status', '==', 'pending').get();
+  const assignReqs  = assignSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const delSnap     = await db.collection('projectDeletionRequests').where('status', '==', 'pending').get();
+  const delReqs     = delSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.requestedBy !== me.uid);
+  const dnaSnap     = await db.collection('dnaFolderRequests').where('status', '==', 'pending').get();
+  const dnaReqs     = dnaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   let html = '';
 
-  if (apPending.length) {
-    html += `<div class="sec" style="color:var(--cyan);"><svg viewBox="0 0 24 24" width="12" height="12" style="stroke:var(--cyan);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:6px;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> ACTION PLANS AGUARDANDO APROVAÇÃO</div>`;
-    html += apPending.map(ap => {
-      const dl = fmtDate(ap.deadline?.toDate ? ap.deadline.toDate() : ap.deadline ? new Date(ap.deadline) : null);
-      return `<div class="ac" style="border-color:rgba(0,196,180,.2);margin-bottom:10px;">
-        <div class="ac-head"><div><div class="ac-meta">DE: <strong>${ap.createdByName}</strong>${ap.projectId ? ` · <span style="color:${projColor(ap.projectId)}">${ap.projectName}</span>` : ''}</div><div class="ac-title">${ap.title}</div></div>
-        <div style="display:flex;gap:5px;"><span class="badge asev-${ap.severity}">${AP_SEV_LABEL[ap.severity]}</span><span class="badge bp-${ap.priority}">${AP_PRIO_LABEL[ap.priority]}</span></div></div>
-        <div class="detail-block db-p"><div class="detail-lbl">// PROBLEMA</div><div class="detail-txt">${ap.problem}</div></div>
-        <div class="detail-block db-r"><div class="detail-lbl">// SOLUÇÃO</div><div class="detail-txt">${ap.solution}</div></div>
-        <div style="font-family:var(--M);font-size:10px;color:var(--dim);margin:8px 0;">📅 <strong style="color:var(--cream)">${dl}</strong> &nbsp;·&nbsp; 👤 <strong style="color:var(--cream)">${ap.ownerName}</strong></div>
-        <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveAction('${ap.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR</button><button class="btn btn-danger btn-sm" onclick="openRejectAction('${ap.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button><button class="btn btn-ghost btn-sm" onclick="openActionDetail('${ap.id}')">VER DETALHES</button></div>
-      </div>`;
-    }).join('');
+  if (dnaReqs.length) {
+    html += `<div class="sec" style="color:var(--cyan);">📂 SOLICITAÇÕES DE PASTA — DOCUMENTOS</div>`;
+    html += dnaReqs.map(r => `<div class="ac" style="border-color:rgba(0,196,180,.2);margin-bottom:10px;">
+      <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong> em <strong>${r.docTitle}</strong></div><div class="ac-title">📁 ${r.folderName}</div></div><span class="badge" style="background:rgba(0,196,180,.1);color:var(--cyan);border:1px solid rgba(0,196,180,.22);">PASTA</span></div>
+      ${r.reason && r.reason !== '—' ? `<div style="background:rgba(0,196,180,.04);border-left:2px solid rgba(0,196,180,.3);padding:8px 12px;margin:8px 0;font-size:13px;color:var(--dim);">${r.reason}</div>` : ''}
+      <div class="ac-acts"><button class="btn btn-success btn-sm" onclick="approveFolderRequest('${r.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> CRIAR PASTA</button><button class="btn btn-danger btn-sm" onclick="rejectFolderRequest('${r.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR</button></div>
+    </div>`).join('');
   }
 
   if (delReqs.length) {
-    html += `<div class="sec" style="color:var(--red);margin-top:${apPending.length ? 16 : 0}px;">🗑 EXCLUSÕES DE PROJETO PENDENTES</div>`;
+    html += `<div class="sec" style="color:var(--red);margin-top:${dnaReqs.length?16:0}px;">🗑 EXCLUSÕES DE PROJETO PENDENTES</div>`;
     html += delReqs.map(r => `<div class="ac" style="border-color:rgba(255,70,85,.3);margin-bottom:10px;">
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.projectName}</div></div><span class="badge" style="background:rgba(255,70,85,.15);color:var(--red);">EXCLUSÃO</span></div>
       <div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:10px 14px;border-radius:3px;margin:8px 0;font-size:13px;color:var(--dim);">${r.reason}</div>
@@ -582,7 +576,7 @@ async function renderApprovals() {
   }
 
   if (assignReqs.length) {
-    html += `<div class="sec" style="color:#F5C518;margin-top:${(apPending.length || delReqs.length) ? 16 : 0}px;">📁 ATRIBUIÇÕES DE PROJETO PENDENTES</div>`;
+    html += `<div class="sec" style="color:#F5C518;margin-top:${(dnaReqs.length || delReqs.length) ? 16 : 0}px;">📁 ATRIBUIÇÕES DE PROJETO PENDENTES</div>`;
     html += assignReqs.map(r => `<div class="ac" style="border-color:#F5C51833;margin-bottom:10px;">
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.taskTitle}</div></div><span class="badge" style="background:#F5C51822;color:#F5C518;">VÍNCULO</span></div>
       <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:8px;">📁 Projeto: <strong style="color:var(--cyan)">${r.projectName || '— Sem projeto —'}</strong></div>
@@ -591,7 +585,7 @@ async function renderApprovals() {
   }
 
   if (pend.length) {
-    html += `<div class="sec" style="margin-top:${(apPending.length || delReqs.length || assignReqs.length) ? 16 : 0}px;">✅ TASKS AGUARDANDO APROVAÇÃO</div>`;
+    html += `<div class="sec" style="margin-top:${(dnaReqs.length || delReqs.length || assignReqs.length) ? 16 : 0}px;">✅ TASKS AGUARDANDO APROVAÇÃO</div>`;
     html += pend.map(t => {
       const dl = fmtDate(t.deadline?.toDate ? t.deadline.toDate() : t.deadline ? new Date(t.deadline) : null);
       const pc = projColor(t.projectId);

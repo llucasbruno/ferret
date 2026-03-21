@@ -121,6 +121,24 @@
           <svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           ACESSAR
         </button>
+        <div style="text-align:center;margin-top:14px;">
+          <button onclick="toggleForgotPassword()" style="background:none;border:none;font-family:var(--M);font-size:10px;color:var(--dim2);letter-spacing:1px;cursor:pointer;transition:color .15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--dim2)'">
+            ESQUECEU A SENHA?
+          </button>
+        </div>
+        <!-- Inline recovery form -->
+        <div id="f-forgot" class="hidden" style="margin-top:14px;padding:14px;background:rgba(var(--accent-rgb),.04);border:1px solid rgba(var(--accent-rgb),.15);">
+          <div style="font-family:var(--M);font-size:10px;color:var(--dim2);letter-spacing:1px;margin-bottom:10px;">RECUPERAR SENHA</div>
+          <div class="field"><label>Email da conta</label><input type="email" id="forgot-email" placeholder="agent@ferretstudios.com" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
+          <div class="err" id="forgot-err"></div>
+          <div class="notice hidden" id="forgot-ok" style="color:var(--green);background:rgba(68,255,153,.06);border:1px solid rgba(68,255,153,.2);margin-top:8px;font-size:11px;">
+            ✓ Email enviado! Verifique sua caixa de entrada.
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="toggleForgotPassword()" style="flex:1;justify-content:center;">CANCELAR</button>
+            <button class="btn btn-primary btn-sm" onclick="doForgotPassword()" id="forgot-btn" style="flex:1;justify-content:center;">ENVIAR</button>
+          </div>
+        </div>
       </div>
       <div class="auth-form" id="f-register">
         <div class="field-grid">
@@ -288,11 +306,6 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
           <span class="nav-label">Histórico</span>
         </div>
-        <div class="nav-item" onclick="go('actions')" title="Action Plans">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-          <span class="nav-label">Actions</span>
-        </div>
-
         <div class="nav-section"><span class="nav-section-text">GESTÃO</span></div>
         <div class="nav-item mgr-only hidden" onclick="go('approvals')" title="Aprovações">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
@@ -318,9 +331,9 @@
           <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
           <span class="nav-label">Log</span>
         </div>
-        <div class="nav-item" onclick="go('studiodna')" title="Studio DNA">
-          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
-          <span class="nav-label">Studio DNA</span>
+        <div class="nav-item" onclick="go('studiodna')" title="Documentos">
+          <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+          <span class="nav-label">Documentos</span>
         </div>
         <div class="nav-item" onclick="go('patchnotes')" title="Atualizações">
           <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
@@ -378,6 +391,7 @@
       <!-- PROJETO DETALHE -->
       <div class="view" id="view-project-detail">
         <div id="pd-header"></div>
+        <div id="pd-docs"></div>
         <div class="sec">KANBAN DO PROJETO</div>
         <div id="pd-kanban" class="kanban-board" style="margin-bottom:24px;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -430,25 +444,6 @@
         <div class="page-head"><div><div class="page-title">HISTÓRICO <span>CONCLUÍDAS</span></div><div class="page-sub">// MISSÕES COMPLETADAS</div></div></div>
         <div class="ftabs" id="hist-tabs"><button class="ftab active" onclick="histFilter('all',this)">TODOS</button></div>
         <div id="hist-list"></div>
-      </div>
-
-      <!-- ACTIONS -->
-      <div class="view" id="view-actions">
-        <div class="page-head">
-          <div><div class="page-title">ACTION <span>PLAN</span></div><div class="page-sub">// PROBLEMAS & PLANOS DE AÇÃO</div></div>
-          <button class="btn btn-primary" onclick="openCreateAction()">+ NOVO PLANO</button>
-        </div>
-        <div class="ftabs" id="ap-tabs">
-          <button class="ftab active" onclick="apFilter('all',this)">TODOS</button>
-          <button class="ftab" onclick="apFilter('pending_approval',this)">AGUARDANDO</button>
-          <button class="ftab" onclick="apFilter('identified',this)">IDENTIFICADO</button>
-          <button class="ftab" onclick="apFilter('analyzing',this)">EM ANÁLISE</button>
-          <button class="ftab" onclick="apFilter('executing',this)">EM EXECUÇÃO</button>
-          <button class="ftab" onclick="apFilter('monitoring',this)">MONITORANDO</button>
-          <button class="ftab" onclick="apFilter('resolved',this)">RESOLVIDOS</button>
-        </div>
-        <div id="ap-summary" style="margin-bottom:16px;"></div>
-        <div id="ap-list"></div>
       </div>
 
       <!-- APPROVALS -->
@@ -512,16 +507,45 @@
         <div id="notif-list"></div>
       </div>
 
-      <!-- STUDIO DNA -->
+      <!-- DOCUMENTOS -->
       <div class="view" id="view-studiodna">
-        <div class="page-head">
-          <div>
-            <div class="page-title">STUDIO <span>DNA</span></div>
-            <div class="page-sub">// IDENTIDADE, POSICIONAMENTO E ESTRATÉGIA</div>
+        <!-- NÍVEL 0: grid de documentos -->
+        <div id="dna-main-wrap">
+          <div class="page-head">
+            <div>
+              <div class="page-title">DOCU<span>MENTOS</span></div>
+              <div class="page-sub">// BASE DE CONHECIMENTO DO ESTÚDIO</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div style="position:relative;">
+                <svg viewBox="0 0 24 24" width="13" height="13" style="stroke:var(--dim2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="dna-search-input" placeholder="Buscar documentos..." oninput="dnaSetSearch(this.value)" style="padding:9px 14px 9px 34px;font-family:var(--M);font-size:11px;width:220px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--cream);outline:none;">
+              </div>
+              <button class="btn btn-primary mgr-only hidden" onclick="openCreateDNA()">+ NOVO DOCUMENTO</button>
+            </div>
           </div>
-          <button class="btn btn-primary mgr-only hidden" onclick="openCreateDNA()">+ NOVO DOCUMENTO</button>
+          <div class="dna-layout">
+            <div class="dna-cats-panel">
+              <div class="sec" style="margin-bottom:10px;">CATEGORIAS</div>
+              <div id="dna-cats-list"></div>
+            </div>
+            <div class="dna-docs-panel">
+              <div id="dna-grid" class="dna-docs-grid"></div>
+            </div>
+          </div>
         </div>
-        <div class="proj-grid" id="dna-grid"></div>
+        <!-- NÍVEL 1: documento aberto (pastas) -->
+        <div id="dna-doc-wrap" class="hidden">
+          <div id="dna-doc-topbar"></div>
+          <div id="dna-doc-header"></div>
+          <div id="dna-doc-body"></div>
+        </div>
+        <!-- NÍVEL 2+: pasta/sub-pasta aberta (itens) -->
+        <div id="dna-folder-wrap" class="hidden">
+          <div id="dna-folder-topbar"></div>
+          <div id="dna-folder-header"></div>
+          <div id="dna-folder-body"></div>
+        </div>
       </div>
 
       <!-- PATCH NOTES -->
@@ -828,124 +852,277 @@
   </div>
 </div>
 
-<!-- MODAL: CRIAR ACTION PLAN -->
-<div class="overlay hidden" id="m-action">
-  <div class="modal" style="max-width:700px">
-    <div class="modal-head">
-      <div class="modal-title">NOVO <span style="color:var(--red)">PLANO DE AÇÃO</span></div>
-      <button class="modal-close" onclick="closeModal('m-action')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="field-grid">
-      <div class="field"><label>Título *</label><input type="text" id="ap-title" placeholder="Ex: Atraso na entrega do projeto X"></div>
-      <div class="field"><label>Projeto Relacionado</label><select id="ap-project"></select></div>
-    </div>
-    <div class="field-grid">
-      <div class="field"><label>Severidade</label>
-        <select id="ap-severity">
-          <option value="low">Leve</option>
-          <option value="moderate" selected>Moderado</option>
-          <option value="critical">Crítico</option>
-        </select>
-      </div>
-      <div class="field"><label>Prioridade</label>
-        <select id="ap-priority">
-          <option value="low">Baixa</option>
-          <option value="medium" selected>Média</option>
-          <option value="high">Alta</option>
-          <option value="critical">Crítica</option>
-        </select>
-      </div>
-    </div>
-    <div class="field-grid one"><div class="field"><label>Problema / Situação *</label><textarea id="ap-problem" rows="3" placeholder="Descreva o problema em detalhes..."></textarea></div></div>
-    <div class="field-grid one"><div class="field"><label>Plano de Solução *</label><textarea id="ap-solution" rows="3" placeholder="Como será resolvido..."></textarea></div></div>
-    <div class="field-grid"><div class="field"><label>Participantes</label><select id="ap-participants" multiple style="height:80px;"></select></div></div>
-    <div id="ap-actions-section" style="margin-top:12px;"></div>
-    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="closeModal('m-action')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="doCreateAction()">ENVIAR PARA APROVAÇÃO</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: VER ACTION PLAN -->
-<div class="overlay hidden" id="m-action-detail">
-  <div class="modal" style="max-width:720px">
-    <div class="modal-head">
-      <div class="modal-title" id="vap-title">—</div>
-      <button class="modal-close" onclick="closeModal('m-action-detail')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div id="vap-body"></div>
-  </div>
-</div>
-
-<!-- MODAL: REJEITAR ACTION PLAN -->
-<div class="overlay hidden" id="m-reject-action">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-head">
-      <div class="modal-title">REJEITAR <span style="color:var(--red)">PLANO</span></div>
-      <button class="modal-close" onclick="closeModal('m-reject-action')">✕</button>
-    </div>
-    <div class="field-grid one"><div class="field"><label>Motivo da Rejeição</label><textarea id="rej-action-reason" rows="4" placeholder="Explique o motivo..."></textarea></div></div>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="closeModal('m-reject-action')">CANCELAR</button>
-      <button class="btn btn-danger" onclick="doRejectAction()">REJEITAR</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: STUDIO DNA DOC -->
-<div class="overlay hidden" id="m-dna-doc">
-  <div class="modal" style="max-width:720px">
-    <div class="modal-head">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div id="dna-modal-icon" style="font-size:24px;"></div>
-        <div>
-          <div class="modal-title" id="dna-modal-title">—</div>
-          <div id="dna-modal-sub" style="font-family:var(--M);font-size:10px;color:var(--dim2);letter-spacing:1px;margin-top:3px;"></div>
-        </div>
-      </div>
-      <button class="modal-close" onclick="closeModal('m-dna-doc')">✕</button>
-    </div>
-    <div id="dna-modal-body" style="max-height:60vh;overflow-y:auto;padding-right:8px;"></div>
-    <div id="dna-modal-acts" style="display:flex;gap:8px;margin-top:14px;"></div>
-  </div>
-</div>
-
-<!-- MODAL: CRIAR DOC DNA -->
+<!-- MODAL: CRIAR DOCUMENTO -->
 <div class="overlay hidden" id="m-dna-create">
-  <div class="modal" style="max-width:660px">
+  <div class="modal" style="max-width:560px">
     <div class="modal-head">
       <div class="modal-title">NOVO <span style="color:var(--cyan)">DOCUMENTO</span></div>
       <button class="modal-close" onclick="closeModal('m-dna-create')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="field-grid">
-      <div class="field"><label>Título *</label><input type="text" id="dna-title" placeholder="Ex: Guia de Comunicação"></div>
-      <div class="field"><label>Subtítulo</label><input type="text" id="dna-subtitle" placeholder="Breve descrição do documento"></div>
+      <div class="field"><label>Título *</label><input type="text" id="dna-title" placeholder="Ex: Nike — Campanha 2025"></div>
+      <div class="field"><label>Categoria *</label><input type="text" id="dna-cat-input" placeholder="Ex: Clientes, Processos..." list="dna-cat-datalist"><datalist id="dna-cat-datalist"></datalist></div>
     </div>
     <div class="field-grid">
-      <div class="field"><label>Ícone (emoji)</label><input type="text" id="dna-icon" placeholder="📌" maxlength="4" style="font-size:20px;"></div>
+      <div class="field"><label>Subtítulo</label><input type="text" id="dna-subtitle" placeholder="Breve descrição"></div>
+      <div class="field"><label>Ícone / Logo</label>
+        <div class="dna-icon-picker" id="dna-icon-picker">
+          <div class="dna-icon-preview" id="dna-icon-preview">📄</div>
+          <div class="dna-icon-opts">
+            <div class="dna-icon-tabs">
+              <button class="dna-icon-tab active" onclick="dnaIconTab('emoji','dna')" data-tab="emoji">Emoji</button>
+              <button class="dna-icon-tab" onclick="dnaIconTab('url','dna')" data-tab="url">URL</button>
+              <button class="dna-icon-tab" onclick="dnaIconTab('upload','dna')" data-tab="upload">Upload</button>
+            </div>
+            <div id="dna-icon-tab-emoji">
+              <input type="text" id="dna-icon" placeholder="📄" maxlength="4" style="font-size:20px;width:100%;" oninput="dnaIconPreview(this.value,'','dna')">
+            </div>
+            <div id="dna-icon-tab-url" class="hidden">
+              <input type="url" id="dna-icon-url" placeholder="https://logo.com/logo.png" style="width:100%;" oninput="dnaIconPreview('',this.value,'dna')">
+            </div>
+            <div id="dna-icon-tab-upload" class="hidden">
+              <input type="file" id="dna-icon-file" accept="image/*" style="display:none;" onchange="dnaIconUpload(this,'dna')">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="$('dna-icon-file').click()">📷 UPLOAD</button>
+                <span id="dna-icon-fname" style="font-family:var(--M);font-size:10px;color:var(--dim);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="dna-icon-img" value="">
+      </div>
+    </div>
+    <div class="field-grid">
       <div class="field"><label>Cor de destaque</label>
         <select id="dna-color">
-          <option value="var(--red)">● Ciano</option>
-          <option value="var(--cyan)" selected>● Ciano</option>
-          <option value="var(--gold)">● Dourado</option>
-          <option value="var(--green)">● Verde</option>
-          <option value="var(--orange)">● Laranja</option>
+          <option value="#FF4655">● Vermelho</option>
+          <option value="#00C4B4" selected>● Ciano</option>
+          <option value="#FFD700">● Dourado</option>
+          <option value="#44FF99">● Verde</option>
+          <option value="#FF8C42">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
+        </select>
+      </div>
+      <div class="field"><label>Imagem de capa (URL)</label><input type="url" id="dna-cover" placeholder="https://..."></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-create')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveDNADoc()">CRIAR DOCUMENTO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR DOCUMENTO -->
+<div class="overlay hidden" id="m-dna-edit">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title">EDITAR <span style="color:var(--cyan)">DOCUMENTO</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-edit')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="dna-edit-doc-id">
+    <input type="hidden" id="dna-edit-is-default">
+    <div class="field-grid">
+      <div class="field"><label>Título *</label><input type="text" id="dna-edit-title"></div>
+      <div class="field"><label>Categoria</label><input type="text" id="dna-edit-cat"></div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Subtítulo</label><input type="text" id="dna-edit-subtitle"></div>
+      <div class="field"><label>Ícone / Logo</label>
+        <div class="dna-icon-picker" id="dna-edit-icon-picker">
+          <div class="dna-icon-preview" id="dna-edit-icon-preview">📄</div>
+          <div class="dna-icon-opts">
+            <div class="dna-icon-tabs">
+              <button class="dna-icon-tab active" onclick="dnaIconTab('emoji','dna-edit')" data-tab="emoji">Emoji</button>
+              <button class="dna-icon-tab" onclick="dnaIconTab('url','dna-edit')" data-tab="url">URL</button>
+              <button class="dna-icon-tab" onclick="dnaIconTab('upload','dna-edit')" data-tab="upload">Upload</button>
+            </div>
+            <div id="dna-edit-icon-tab-emoji">
+              <input type="text" id="dna-edit-icon" maxlength="4" style="font-size:20px;width:100%;" oninput="dnaIconPreview(this.value,'','dna-edit')">
+            </div>
+            <div id="dna-edit-icon-tab-url" class="hidden">
+              <input type="url" id="dna-edit-icon-url" placeholder="https://logo.com/logo.png" style="width:100%;" oninput="dnaIconPreview('',this.value,'dna-edit')">
+            </div>
+            <div id="dna-edit-icon-tab-upload" class="hidden">
+              <input type="file" id="dna-edit-icon-file" accept="image/*" style="display:none;" onchange="dnaIconUpload(this,'dna-edit')">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button class="btn btn-ghost btn-sm" onclick="$('dna-edit-icon-file').click()">📷 UPLOAD</button>
+                <span id="dna-edit-icon-fname" style="font-family:var(--M);font-size:10px;color:var(--dim);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="dna-edit-icon-img" value="">
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Cor</label>
+        <select id="dna-edit-color">
+          <option value="#FF4655">● Vermelho</option>
+          <option value="#00C4B4">● Ciano</option>
+          <option value="#FFD700">● Dourado</option>
+          <option value="#44FF99">● Verde</option>
+          <option value="#FF8C42">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
+        </select>
+      </div>
+      <div class="field"><label>Imagem de capa (URL)</label><input type="url" id="dna-edit-cover" placeholder="https://..."></div>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Projeto vinculado</label><select id="dna-edit-proj-sel"></select></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-edit')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveEditDNADoc()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CRIAR/EDITAR PASTA -->
+<div class="overlay hidden" id="m-dna-folder">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title" id="dna-folder-modal-title">NOVA <span style="color:var(--cyan)">PASTA</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-folder')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="dna-folder-name-inp" placeholder="Ex: Imagens, Briefing..."></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Ícone (emoji)</label><input type="text" id="dna-folder-icon-inp" placeholder="📁" maxlength="4" style="font-size:20px;"></div>
+      <div class="field"><label>Cor</label>
+        <select id="dna-folder-color-inp">
+          <option value="#FF4655">● Vermelho</option>
+          <option value="#00C4B4" selected>● Ciano</option>
+          <option value="#FFD700">● Dourado</option>
+          <option value="#44FF99">● Verde</option>
+          <option value="#FF8C42">● Laranja</option>
           <option value="#CC88FF">● Roxo</option>
         </select>
       </div>
     </div>
-    <div class="sec" style="margin-top:8px;">SEÇÕES DO DOCUMENTO</div>
-    <div id="dna-sections-list" style="margin-bottom:14px;"></div>
-    <div style="background:var(--bg3);padding:14px;margin-bottom:14px;border:1px solid rgba(0,240,255,.07);">
-      <div class="field-grid one"><div class="field"><label>Título da Seção *</label><input type="text" id="dna-sec-heading" placeholder="Ex: Diretrizes de Marca"></div></div>
-      <div class="field-grid one"><div class="field"><label>Conteúdo *</label><textarea id="dna-sec-body" rows="5" placeholder="Escreva o conteúdo desta seção..."></textarea></div></div>
-      <button class="btn btn-info btn-sm" onclick="addDNASection()">+ ADICIONAR SEÇÃO</button>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-folder')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveDNAFolder()">SALVAR</button>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-      <button class="btn btn-ghost" onclick="closeModal('m-dna-create')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="saveDNADoc()">SALVAR DOCUMENTO</button>
+  </div>
+</div>
+
+<!-- MODAL: CRIAR/EDITAR SUB-PASTA -->
+<div class="overlay hidden" id="m-dna-subfolder">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title" id="dna-sub-modal-title">NOVA <span style="color:var(--cyan)">SUB-PASTA</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-subfolder')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="dna-sub-name-inp" placeholder="Ex: Logos, Fotos..."></div></div>
+    <div class="field-grid">
+      <div class="field"><label>Ícone</label><input type="text" id="dna-sub-icon-inp" placeholder="📂" maxlength="4" style="font-size:20px;"></div>
+      <div class="field"><label>Cor</label>
+        <select id="dna-sub-color-inp">
+          <option value="#FF4655">● Vermelho</option>
+          <option value="#00C4B4" selected>● Ciano</option>
+          <option value="#FFD700">● Dourado</option>
+          <option value="#44FF99">● Verde</option>
+          <option value="#FF8C42">● Laranja</option>
+          <option value="#CC88FF">● Roxo</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-subfolder')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveDNASubfolder()">SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CRIAR/EDITAR ARQUIVO -->
+<div class="overlay hidden" id="m-dna-item">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title" id="dna-item-modal-title">NOVO <span style="color:var(--cyan)">ARQUIVO</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-item')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dna-type-tabs" style="margin-bottom:16px;">
+      <button class="dna-type-tab active" data-type="image" onclick="dnaSelectItemType('image',this)">🖼 Imagem</button>
+      <button class="dna-type-tab" data-type="text" onclick="dnaSelectItemType('text',this)">📝 Texto</button>
+      <button class="dna-type-tab" data-type="link" onclick="dnaSelectItemType('link',this)">🔗 Link</button>
+      <button class="dna-type-tab" data-type="pdf" onclick="dnaSelectItemType('pdf',this)">📄 PDF</button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Nome *</label><input type="text" id="dna-item-name" placeholder="Nome do arquivo"></div></div>
+    <!-- Imagem -->
+    <div id="dna-item-image-fields">
+      <div class="field-grid one"><div class="field"><label>URL da imagem</label><input type="url" id="dna-item-img-url" placeholder="https://..."></div></div>
+      <div class="field-grid one"><div class="field"><label>Ou faça upload</label>
+        <input type="file" id="dna-item-img-file" accept="image/*" style="display:none;" onchange="dnaHandleItemImg(this)">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-ghost btn-sm" onclick="$('dna-item-img-file').click()">📷 UPLOAD DO PC</button>
+          <span id="dna-item-img-fname" style="font-family:var(--M);font-size:10px;color:var(--dim);"></span>
+        </div>
+        <div id="dna-item-img-preview" style="margin-top:8px;"></div>
+      </div></div>
+    </div>
+    <!-- Texto -->
+    <div id="dna-item-text-fields" class="hidden">
+      <div class="field-grid one"><div class="field"><label>Conteúdo *</label><textarea id="dna-item-content" rows="6" placeholder="Escreva o conteúdo..."></textarea></div></div>
+    </div>
+    <!-- Link -->
+    <div id="dna-item-link-fields" class="hidden">
+      <div class="field-grid one"><div class="field"><label>URL *</label><input type="url" id="dna-item-url" placeholder="https://..."></div></div>
+      <div class="field-grid one"><div class="field"><label>Descrição</label><textarea id="dna-item-desc" rows="2" placeholder="Descrição opcional..."></textarea></div></div>
+    </div>
+    <!-- PDF -->
+    <div id="dna-item-pdf-fields" class="hidden">
+      <div class="field-grid one"><div class="field"><label>URL do PDF *</label><input type="url" id="dna-item-pdf-url" placeholder="https://..."></div></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-item')">CANCELAR</button>
+      <button class="btn btn-primary" id="dna-item-save-btn" onclick="saveDNAItem()">ADICIONAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VINCULAR PROJETO -->
+<div class="overlay hidden" id="m-dna-link-proj">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">VINCULAR <span style="color:var(--cyan)">PROJETO</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-link-proj')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field-grid one"><div class="field"><label>Projeto</label><select id="dna-link-proj-sel"></select></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-link-proj')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveLinkProject()">VINCULAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SOLICITAR PASTA (membros) -->
+<div class="overlay hidden" id="m-dna-folder-req">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">SOLICITAR <span style="color:var(--cyan)">PASTA</span></div>
+      <button class="modal-close" onclick="closeModal('m-dna-folder-req')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="font-family:var(--M);font-size:11px;color:var(--dim2);margin-bottom:16px;">Sua solicitação será enviada para um manager aprovar.</div>
+    <div class="field-grid one"><div class="field"><label>Nome da pasta *</label><input type="text" id="dna-req-folder-name" placeholder="Ex: Imagens, Referências..."></div></div>
+    <div class="field-grid one"><div class="field"><label>Motivo (opcional)</label><textarea id="dna-req-folder-reason" rows="3" placeholder="Por que você precisa desta pasta?"></textarea></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeModal('m-dna-folder-req')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="saveFolderRequest()">ENVIAR SOLICITAÇÃO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXPANDIR ITEM -->
+<div class="overlay hidden" id="m-dna-expand">
+  <div class="modal" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-head" style="flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+        <span id="dna-expand-icon" style="font-size:24px;flex-shrink:0;"></span>
+        <div style="min-width:0;">
+          <div class="modal-title" id="dna-expand-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+          <div id="dna-expand-meta" style="font-family:var(--M);font-size:10px;color:var(--dim2);letter-spacing:1px;margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('m-dna-expand')"><svg viewBox="0 0 24 24" width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="dna-expand-body" style="overflow-y:auto;flex:1;padding-top:4px;"></div>
   </div>
 </div>
 
@@ -1128,7 +1305,6 @@
 <script src="js/members.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/activity.js"></script>
-<script src="js/actions.js"></script>
 <script src="js/patchnotes.js"></script>
 <script src="js/projectmembers.js"></script>
 <script src="js/studiodna.js"></script>

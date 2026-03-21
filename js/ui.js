@@ -89,6 +89,9 @@ const ICONS = {
   refresh:     '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
   lock:        '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   info:        '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  maximize:    '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>',
+  'zoom-in':   '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>',
+  'arrow-up-right': '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>',
 };
 
 // Helper: retorna SVG inline
@@ -141,7 +144,7 @@ function buildGlobalProjSel() {
 }
 
 // ── Navigation ───────────────────────────────
-const NAV_ORDER = ['dashboard', 'projects', 'kanban', 'my-tasks', 'all-tasks', 'history', 'actions', 'approvals', 'members', 'notifications', 'profile', 'activity', 'studiodna', 'patchnotes'];
+const NAV_ORDER = ['dashboard', 'projects', 'kanban', 'my-tasks', 'all-tasks', 'history', 'approvals', 'members', 'notifications', 'profile', 'activity', 'studiodna', 'patchnotes'];
 
 async function go(v) {
   const mgrOnly = ['activity', 'approvals', 'members'];
@@ -164,7 +167,6 @@ async function renderCurView() {
     'my-tasks': renderMyTasks,
     'all-tasks': renderAllTasks,
     history: renderHistory,
-    actions: renderActions,
     approvals: renderApprovals,
     members: renderMembers,
     notifications: renderNotifications,
@@ -181,7 +183,6 @@ function myFilter(val, btn)   { myFV   = val; renderMyTasks(); }
 function allFilter(val, btn)  { allFV  = val; document.querySelectorAll('#all-tabs .ftab').forEach(t => t.classList.remove('active'));  btn.classList.add('active'); renderAllTasks(); }
 function histFilter(val, btn) { histFV = val; document.querySelectorAll('#hist-tabs .ftab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderHistory(); }
 function projFilter(val, btn) { projFV = val; document.querySelectorAll('#proj-tabs .ftab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderProjects(); }
-function apFilter(val, btn)   { apFV   = val; document.querySelectorAll('#ap-tabs .ftab').forEach(t => t.classList.remove('active'));   btn.classList.add('active'); renderActions(); }
 
 // ── Tag filter ───────────────────────────────
 function _toggleTag(tag) {
@@ -219,8 +220,8 @@ async function updBadge() {
   const assignSnap  = await db.collection('projectAssignmentRequests').where('status', '==', 'pending').get();
   const delSnap     = await db.collection('projectDeletionRequests').where('status', '==', 'pending').get();
   const delForMe    = delSnap.docs.filter(d => d.data().requestedBy !== me.uid).length;
-  const apSnap      = await db.collection('actionPlans').where('status', '==', 'pending_approval').get();
-  const n = taskPending + assignSnap.size + delForMe + apSnap.size;
+  const dnaSnap     = await db.collection('dnaFolderRequests').where('status', '==', 'pending').get();
+  const n = taskPending + assignSnap.size + delForMe + dnaSnap.size;
   const b = $('appr-badge'); b.textContent = n; b.classList.toggle('hidden', n === 0);
 }
 
