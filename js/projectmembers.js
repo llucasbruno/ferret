@@ -4,19 +4,15 @@
 
 // ── Helpers ──────────────────────────────────
 
-// Retorna se um usuário tem acesso a um projeto
 function userHasProjectAccess(uid, project) {
   if (!project) return false;
   if (meData?.access === 'manager') return true;
   const members = project.members || [];
-  // Acesso direto como membro
   if (members.includes(uid)) return true;
-  // Acesso por ter task atribuída nesse projeto
   const hasTask = tasks.some(t => t.projectId === project.id && t.assigneeId === uid);
   return hasTask;
 }
 
-// Retorna se o usuário logado tem acesso ao projeto
 function currentUserHasAccess(project) {
   return userHasProjectAccess(me?.uid, project);
 }
@@ -65,7 +61,7 @@ async function removeProjectMember(projectId, uid) {
 // ── Solicitar entrada (Membro) ────────────────
 async function requestProjectAccess(projectId) {
   const p = projects.find(x => x.id === projectId); if (!p) return;
-  // Check if already requested
+
   const existing = await db.collection('projectMemberRequests')
     .where('projectId', '==', projectId)
     .where('userId', '==', me.uid)
@@ -79,22 +75,30 @@ async function requestProjectAccess(projectId) {
     status: 'pending',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  // Notify all managers — in-app + email
-  for (const mgr of users.filter(u => u.access === 'manager')) {
-    await saveNotif(mgr.uid, 'action_pending', p.name, {
-      fromName: meData.displayName,
-      reason: `${meData.displayName} solicitou acesso ao projeto`
-    });
+
+  // Notifica cada manager de forma independente (erro em um não afeta os outros)
+  const managers = users.filter(u => u.access === 'manager');
+  for (const mgr of managers) {
+    try {
+      await saveNotif(mgr.uid, 'action_pending', p.name, {
+        fromName: meData.displayName,
+        reason: `${meData.displayName} solicitou acesso ao projeto`
+      });
+    } catch (e) { console.warn('Notif falhou para', mgr.displayName, e.message); }
+
     if (mgr.email) {
-      emailProjectRequested(
-        mgr.email,
-        mgr.displayName,
-        meData.displayName,
-        p.name,
-        `Solicitação de entrada no projeto como membro.`
-      );
+      try {
+        emailProjectRequested(
+          mgr.email,
+          mgr.displayName,
+          meData.displayName,
+          p.name,
+          `Solicitação de entrada no projeto como membro.`
+        );
+      } catch (e) { console.warn('Email falhou para', mgr.email, e.message); }
     }
   }
+
   await log('project_member', `${meData.displayName} solicitou acesso ao projeto "${p.name}"`);
   await updBadge();
   toast('Solicitação enviada para o ADM!', true);
