@@ -944,8 +944,10 @@ async function saveFolderRequest() {
     requestedById:me.uid, requestedByName:meData.displayName,
     status:'pending', createdAt:firebase.firestore.FieldValue.serverTimestamp()
   });
-  for (const mgr of users.filter(u=>u.access==='manager'))
+  for (const mgr of users.filter(u=>u.access==='manager')) {
     await saveNotif(mgr.uid,'patch_note',`Solicitação de pasta: "${name}"`,{ fromName:meData.displayName, reason:`Em "${doc.title}"${reason?` — ${reason}`:''}` });
+    if (mgr.email) emailFolderRequest(mgr.email, mgr.displayName, meData.displayName, name, doc.title);
+  }
   toast('Solicitação enviada!',true); closeModal('m-dna-folder-req');
   await updBadge();
 }

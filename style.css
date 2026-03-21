@@ -1927,3 +1927,126 @@ html[data-theme="cyber"]   .pfill { background: linear-gradient(90deg, #0055FF, 
   border-color: rgba(var(--accent-rgb),.22);
   transform: translateX(3px);
 }
+
+/* ══════════════════════════════════════════
+   LIGHT THEME — Off-white / Red
+══════════════════════════════════════════ */
+html[data-theme="light"] {
+  --red:    #E5152A;
+  --red2:   #B01020;
+  --cyan:   #007B6E;
+  --accent-rgb: 229, 21, 42;
+  --border-rgb: 0, 0, 0;
+
+  --bg:    #F0EDE8;
+  --bg2:   #E8E4DE;
+  --bg3:   #F6F3EF;
+  --bg4:   #DDD9D3;
+
+  --cream: #1A1614;
+  --dim:   #8A8480;
+  --dim2:  #B0ABA6;
+
+  --card-bg:     #FAFAF8;
+  --sidebar-bg:  #1A1614;
+  --topbar-bg:   rgba(240,237,232,.97);
+  --modal-bg:    #FAFAF8;
+  --overlay-bg:  rgba(20,15,10,.5);
+  --border-dim:  1px solid rgba(0,0,0,.08);
+  --input-bg:    rgba(0,0,0,.04);
+  --input-border: rgba(0,0,0,.15);
+  --dot-grid-opacity: 0;
+}
+
+html[data-theme="light"] body {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(229,21,42,.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(0,123,110,.04) 0%, transparent 55%);
+}
+
+html[data-theme="light"] .auth-hero {
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 60%, rgba(229,21,42,.1) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 70% 30%, rgba(0,123,110,.07) 0%, transparent 70%),
+    linear-gradient(135deg, #1A1614 0%, #2A2220 50%, #1E1A18 100%);
+}
+
+/* Sidebar escura no light — contraste claro/escuro */
+html[data-theme="light"] #sidebar {
+  background: #1A1614;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+html[data-theme="light"] #sidebar::before {
+  background: linear-gradient(90deg, var(--red), rgba(229,21,42,.1), transparent 80%);
+}
+html[data-theme="light"] .sb-tag { color: rgba(255,255,255,.3); }
+html[data-theme="light"] .sb-logo { color: #ECE8E1; }
+html[data-theme="light"] .sb-name { color: #ECE8E1; }
+html[data-theme="light"] .sb-rank { color: rgba(255,255,255,.4); }
+html[data-theme="light"] .nav-item { color: rgba(255,255,255,.35); }
+html[data-theme="light"] .nav-item:hover { color: #ECE8E1; background: rgba(255,255,255,.06); }
+html[data-theme="light"] .nav-item.active { color: var(--red); background: linear-gradient(90deg, rgba(229,21,42,.12), transparent 80%); border-left-color: var(--red); }
+html[data-theme="light"] .nav-section-text { color: rgba(255,255,255,.2); }
+html[data-theme="light"] .sb-footer { border-top-color: rgba(255,255,255,.06); }
+html[data-theme="light"] .btn-logout { color: rgba(255,255,255,.3); border-color: rgba(255,255,255,.08); }
+html[data-theme="light"] .btn-logout:hover { color: var(--danger); border-color: rgba(255,59,92,.4); background: rgba(255,59,92,.08); }
+html[data-theme="light"] .sb-user { border-bottom-color: rgba(255,255,255,.06); background: rgba(255,255,255,.02); }
+html[data-theme="light"] .xp-mini { background: rgba(255,255,255,.08); }
+html[data-theme="light"] .avatar { border-color: rgba(229,21,42,.5); box-shadow: 0 0 10px rgba(229,21,42,.15); }
+html[data-theme="light"] .sb-header { border-bottom-color: rgba(255,255,255,.06); }
+
+/* Topbar light */
+html[data-theme="light"] #topbar {
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 1px 12px rgba(0,0,0,.06);
+}
+html[data-theme="light"] #topbar::after {
+  background: linear-gradient(90deg, rgba(229,21,42,.25), transparent 40%);
+}
+
+/* Cards com sombra em vez de borda */
+html[data-theme="light"] .proj-card,
+html[data-theme="light"] .metric-card,
+html[data-theme="light"] .rm,
+html[data-theme="light"] .tc,
+html[data-theme="light"] .kc,
+html[data-theme="light"] .kb-col,
+html[data-theme="light"] .pn-card,
+html[data-theme="light"] .ap-card,
+html[data-theme="light"] .ac,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .member-card {
+  box-shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+  border-color: rgba(0,0,0,.07);
+}
+html[data-theme="light"] .proj-card:hover,
+html[data-theme="light"] .metric-card:hover,
+html[data-theme="light"] .rm:hover,
+html[data-theme="light"] .tc:hover,
+html[data-theme="light"] .kc:hover,
+html[data-theme="light"] .pn-card:hover,
+html[data-theme="light"] .ap-card:hover,
+html[data-theme="light"] .stat-card:hover,
+html[data-theme="light"] .member-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,.1), 0 8px 28px rgba(0,0,0,.08);
+  border-color: rgba(229,21,42,.25);
+}
+
+/* XP bars */
+html[data-theme="light"] .xp-fill { background: linear-gradient(90deg, var(--red2), var(--red), #FF6070); }
+html[data-theme="light"] .pfill   { background: linear-gradient(90deg, var(--red2), var(--red)); }
+
+/* Modal light */
+html[data-theme="light"] .modal {
+  box-shadow: 0 8px 40px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.06);
+}
+
+/* Kanban col */
+html[data-theme="light"] .kb-col-body.drag-over {
+  background: rgba(229,21,42,.04);
+  border: 1px dashed rgba(229,21,42,.3);
+}
+
+/* Scrollbar */
+html[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); }
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.25); }

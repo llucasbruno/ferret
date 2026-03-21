@@ -79,14 +79,24 @@ async function requestProjectAccess(projectId) {
     status: 'pending',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  // Notify all managers
+  // Notify all managers — in-app + email
   for (const mgr of users.filter(u => u.access === 'manager')) {
     await saveNotif(mgr.uid, 'action_pending', p.name, {
       fromName: meData.displayName,
       reason: `${meData.displayName} solicitou acesso ao projeto`
     });
+    if (mgr.email) {
+      emailProjectRequested(
+        mgr.email,
+        mgr.displayName,
+        meData.displayName,
+        p.name,
+        `Solicitação de entrada no projeto como membro.`
+      );
+    }
   }
   await log('project_member', `${meData.displayName} solicitou acesso ao projeto "${p.name}"`);
+  await updBadge();
   toast('Solicitação enviada para o ADM!', true);
 }
 

@@ -554,6 +554,8 @@ async function renderApprovals() {
   const delReqs     = delSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.requestedBy !== me.uid);
   const dnaSnap     = await db.collection('dnaFolderRequests').where('status', '==', 'pending').get();
   const dnaReqs     = dnaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const memberSnap  = await db.collection('projectMemberRequests').where('status', '==', 'pending').get();
+  const memberReqs  = memberSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   let html = '';
 
   if (dnaReqs.length) {
@@ -565,8 +567,30 @@ async function renderApprovals() {
     </div>`).join('');
   }
 
+  if (memberReqs.length) {
+    const marginTop = dnaReqs.length ? 16 : 0;
+    html += `<div class="sec" style="color:#FF8C42;margin-top:${marginTop}px;">🔑 SOLICITAÇÕES DE ACESSO AO PROJETO</div>`;
+    html += memberReqs.map(r => `<div class="ac" style="border-color:rgba(255,140,66,.2);margin-bottom:10px;">
+      <div class="ac-head">
+        <div>
+          <div class="ac-meta">SOLICITADO POR: <strong>${r.userName}</strong></div>
+          <div class="ac-title">📁 ${r.projectName}</div>
+        </div>
+        <span class="badge" style="background:rgba(255,140,66,.12);color:#FF8C42;border:1px solid rgba(255,140,66,.3);">ACESSO</span>
+      </div>
+      <div class="ac-acts">
+        <button class="btn btn-success btn-sm" onclick="approveProjectMemberRequest('${r.id}')">
+          <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> APROVAR
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="rejectProjectMemberRequest('${r.id}')">
+          <svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;margin-right:4px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REJEITAR
+        </button>
+      </div>
+    </div>`).join('');
+  }
+
   if (delReqs.length) {
-    html += `<div class="sec" style="color:var(--red);margin-top:${dnaReqs.length?16:0}px;">🗑 EXCLUSÕES DE PROJETO PENDENTES</div>`;
+    html += `<div class="sec" style="color:var(--red);margin-top:${(dnaReqs.length || memberReqs.length) ? 16 : 0}px;">🗑 EXCLUSÕES DE PROJETO PENDENTES</div>`;
     html += delReqs.map(r => `<div class="ac" style="border-color:rgba(255,70,85,.3);margin-bottom:10px;">
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.projectName}</div></div><span class="badge" style="background:rgba(255,70,85,.15);color:var(--red);">EXCLUSÃO</span></div>
       <div style="background:rgba(255,70,85,.06);border-left:3px solid var(--red);padding:10px 14px;border-radius:3px;margin:8px 0;font-size:13px;color:var(--dim);">${r.reason}</div>
@@ -576,7 +600,7 @@ async function renderApprovals() {
   }
 
   if (assignReqs.length) {
-    html += `<div class="sec" style="color:#F5C518;margin-top:${(dnaReqs.length || delReqs.length) ? 16 : 0}px;">📁 ATRIBUIÇÕES DE PROJETO PENDENTES</div>`;
+    html += `<div class="sec" style="color:#F5C518;margin-top:${(dnaReqs.length || memberReqs.length || delReqs.length) ? 16 : 0}px;">📁 ATRIBUIÇÕES DE PROJETO PENDENTES</div>`;
     html += assignReqs.map(r => `<div class="ac" style="border-color:#F5C51833;margin-bottom:10px;">
       <div class="ac-head"><div><div class="ac-meta">SOLICITADO POR: <strong>${r.requestedByName}</strong></div><div class="ac-title">${r.taskTitle}</div></div><span class="badge" style="background:#F5C51822;color:#F5C518;">VÍNCULO</span></div>
       <div style="font-family:var(--M);font-size:11px;color:var(--dim);margin-bottom:8px;">📁 Projeto: <strong style="color:var(--cyan)">${r.projectName || '— Sem projeto —'}</strong></div>
@@ -585,7 +609,7 @@ async function renderApprovals() {
   }
 
   if (pend.length) {
-    html += `<div class="sec" style="margin-top:${(dnaReqs.length || delReqs.length || assignReqs.length) ? 16 : 0}px;">✅ TASKS AGUARDANDO APROVAÇÃO</div>`;
+    html += `<div class="sec" style="margin-top:${(dnaReqs.length || memberReqs.length || delReqs.length || assignReqs.length) ? 16 : 0}px;">✅ TASKS AGUARDANDO APROVAÇÃO</div>`;
     html += pend.map(t => {
       const dl = fmtDate(t.deadline?.toDate ? t.deadline.toDate() : t.deadline ? new Date(t.deadline) : null);
       const pc = projColor(t.projectId);
