@@ -81,8 +81,6 @@ async function saveCargo() {
 
   toast('Cargo atualizado!', true);
   closeModal('m-cargo');
-  await refresh();
-  renderCurView();
 }
 
 // ── Render members ───────────────────────────
@@ -90,13 +88,13 @@ async function renderMembers() {
   await loadUsers();
   $('members-list').innerHTML = users.map(u => {
     const r = rank(u.xp || 0);
-    const av = u.photoURL ? `<img src="${u.photoURL}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block">` : (u.displayName[0] || '?');
+    const av = u.photoURL ? `<img src="${u.photoURL}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block">` : escapeHtml(u.displayName[0] || '?');
     const xpPct_ = xpPct(u.xp || 0);
     return `<div class="member-card">
       <div class="avatar" style="width:42px;height:42px;font-size:17px;">${av}</div>
       <div class="member-info" style="flex:1;">
-        <div class="member-name">${u.displayName}</div>
-        <div class="member-role">${u.cargo || '—'} · <span style="color:${u.access === 'manager' ? 'var(--gold)' : 'var(--cyan)'};">${u.access === 'manager' ? 'GERENTE' : 'MEMBRO'}</span></div>
+        <div class="member-name">${escapeHtml(u.displayName)}</div>
+        <div class="member-role">${escapeHtml(u.cargo || '—')} · <span style="color:${u.access === 'manager' ? 'var(--gold)' : 'var(--cyan)'};">${u.access === 'manager' ? 'GERENTE' : 'MEMBRO'}</span></div>
         <div style="font-family:var(--M);font-size:9px;color:var(--dim);margin-top:2px;">${r.icon} <span style="color:${r.color}">${r.name}</span> · <strong style="color:var(--gold)">${u.xp || 0} XP</strong> · ${u.tasksCompleted || 0} feitas</div>
         <div style="margin-top:5px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">
           <div style="height:100%;width:${xpPct_}%;background:${r.color};transition:width .3s;"></div>

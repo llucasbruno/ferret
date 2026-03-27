@@ -81,7 +81,7 @@ async function saveProject() {
       managers.forEach(mgr => emailProjectRequested(mgr.email, mgr.displayName, meData.displayName, name, data.description));
     }
   }
-  closeModal('m-project'); await refresh(); buildGlobalProjSel(); renderCurView();
+  closeModal('m-project'); buildGlobalProjSel();
 }
 
 // ── Approve / Reject project ─────────────────
@@ -91,7 +91,7 @@ async function approveProject(id) {
   await db.collection('projects').doc(id).update({ status: 'active', rejectionReason: null });
   await log('project_update', `${meData.displayName} aprovou o projeto "${p.name}"`);
   await saveNotif(p.createdById, 'project_approved', p.name);
-  toast('Projeto aprovado!', true); await refresh(); buildGlobalProjSel(); renderCurView();
+  toast('Projeto aprovado!', true); buildGlobalProjSel(); updBadge();
 }
 
 function openRejectProject(id) { rejProjId = id; $('rej-proj-reason').value = ''; showModal('m-reject-proj'); }
@@ -103,18 +103,18 @@ async function doRejectProject() {
   await db.collection('projects').doc(rejProjId).update({ status: 'rejected', rejectionReason: reason });
   await saveNotif(p.createdById, 'project_rejected', p.name, { reason });
   await log('project_update', `${meData.displayName} rejeitou o projeto "${p.name}": ${reason}`);
-  closeModal('m-reject-proj'); toast('Projeto rejeitado'); await refresh(); buildGlobalProjSel(); renderCurView();
+  closeModal('m-reject-proj'); toast('Projeto rejeitado'); buildGlobalProjSel(); updBadge();
 }
 
 // ── Archive ──────────────────────────────────
 async function archiveProject(id) {
   if (!confirm('Arquivar este projeto?')) return;
   await db.collection('projects').doc(id).update({ archived: true });
-  await refresh(); buildGlobalProjSel(); renderCurView(); toast('Projeto arquivado');
+  buildGlobalProjSel(); toast('Projeto arquivado');
 }
 async function unarchiveProject(id) {
   await db.collection('projects').doc(id).update({ archived: false });
-  await refresh(); buildGlobalProjSel(); renderCurView(); toast('Projeto reativado!', true);
+  buildGlobalProjSel(); toast('Projeto reativado!', true);
 }
 
 // ── Delete (2-ADM flow) ──────────────────────
@@ -155,7 +155,7 @@ async function approveDeleteProject(reqId) {
   await db.collection('projectDeletionRequests').doc(reqId).update({ status: 'approved' });
   await saveNotif(r.requestedBy, 'delete_approved', r.projectName, { fromName: meData.displayName });
   await log('project_update', `${meData.displayName} aprovou exclusão do projeto "${r.projectName}"`);
-  toast('Projeto excluído!', true); await refresh(); buildGlobalProjSel(); renderCurView(); updBadge();
+  toast('Projeto excluído!', true); buildGlobalProjSel(); updBadge();
 }
 
 async function rejectDeleteProject(reqId) {
@@ -223,7 +223,6 @@ async function openCreateForProject() {
 }
 
 async function renderProjectDetail() {
-  await refresh();
   const p = projects.find(x => x.id === curProjectId);
   if (!p) { go('projects'); return; }
   const isMgr     = meData?.access === 'manager';
@@ -395,7 +394,6 @@ async function projMoveTask(id, newStatus) {
     await db.collection('tasks').doc(id).update({ status: newStatus });
     await log('task_start', `${meData.displayName} moveu "${t.title}" para ${SL[newStatus] || newStatus}`);
     toast(`"${t.title}" movida para ${SL[newStatus] || newStatus}.`, true);
-    await refresh(); renderProjectDetail();
   } finally {
     _movingTask = false;
   }
@@ -418,12 +416,10 @@ async function projFinalizeTask(id) {
   await saveNotif(t.assigneeId, 'task_approved', t.title, { fromName: meData.displayName, reason: `Task finalizada! +${xp} XP` });
   await log('task_finalize', `${meData.displayName} finalizou "${t.title}" (+${xp} XP)`);
   toast(`"${t.title}" finalizada! +${xp} XP`, true);
-  await refresh(); renderProjectDetail();
 }
 
 // ── Render projects list ──────────────────────
 async function renderProjects() {
-  await refresh();
   const isMgr = meData?.access === 'manager';
   $('proj-head-acts').innerHTML = isMgr
     ? `<button class="btn btn-primary" onclick="openCreateProject()">+ NOVO PROJETO</button>`

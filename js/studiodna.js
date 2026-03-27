@@ -166,9 +166,9 @@ function _renderGrid() {
           <span style="font-size:28px;line-height:1;">${doc.iconImg ? `<img src="${doc.iconImg}" style="width:36px;height:36px;object-fit:contain;border-radius:4px;display:block;" onerror="this.outerHTML='📄'">` : (doc.icon||'📄')}</span>
           <span class="dna-cat-badge" style="background:${col}20;color:${col};border:1px solid ${col}44;">${(doc.category||'Geral').toUpperCase()}</span>
         </div>
-        <div class="dna-doc-title">${doc.title}</div>
-        ${doc.subtitle?`<div class="dna-doc-sub">${doc.subtitle}</div>`:''}
-        ${proj?`<div style="display:flex;align-items:center;gap:5px;font-family:var(--M);font-size:9px;margin-top:6px;"><span style="width:6px;height:6px;border-radius:50%;background:${proj.color||'var(--cyan)'};display:inline-block;flex-shrink:0;"></span><span style="color:var(--dim2);">${proj.name}</span></div>`:''}
+        <div class="dna-doc-title">${escapeHtml(doc.title)}</div>
+        ${doc.subtitle?`<div class="dna-doc-sub">${escapeHtml(doc.subtitle)}</div>`:''}
+        ${proj?`<div style="display:flex;align-items:center;gap:5px;font-family:var(--M);font-size:9px;margin-top:6px;"><span style="width:6px;height:6px;border-radius:50%;background:${proj.color||'var(--cyan)'};display:inline-block;flex-shrink:0;"></span><span style="color:var(--dim2);">${escapeHtml(proj.name)}</span></div>`:''}
         <div class="dna-doc-footer">
           <span>${fCount} pasta${fCount!==1?'s':''}</span>
           ${updAt?`<span>${fmtTime({toDate:()=>updAt})}</span>`:''}
@@ -271,11 +271,11 @@ function _renderDocView() {
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
       <span style="font-size:44px;line-height:1;">${doc.iconImg ? `<img src="${doc.iconImg}" style="width:36px;height:36px;object-fit:contain;border-radius:4px;display:block;" onerror="this.outerHTML='📄'">` : (doc.icon||'📄')}</span>
       <div>
-        <h1 style="font-family:var(--R);font-size:clamp(20px,4vw,30px);font-weight:700;letter-spacing:3px;color:var(--cream);margin:0 0 4px;">${doc.title}</h1>
-        ${doc.subtitle?`<div style="font-family:var(--M);font-size:11px;color:var(--dim2);letter-spacing:1px;">${doc.subtitle}</div>`:''}
+        <h1 style="font-family:var(--R);font-size:clamp(20px,4vw,30px);font-weight:700;letter-spacing:3px;color:var(--cream);margin:0 0 4px;">${escapeHtml(doc.title)}</h1>
+        ${doc.subtitle?`<div style="font-family:var(--M);font-size:11px;color:var(--dim2);letter-spacing:1px;">${escapeHtml(doc.subtitle)}</div>`:''}
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
-          <span class="dna-cat-badge" style="background:${col}20;color:${col};border:1px solid ${col}44;">${(doc.category||'Geral').toUpperCase()}</span>
-          <span style="font-family:var(--M);font-size:9px;color:var(--dim2);">Por ${doc.createdByName||'—'}</span>
+          <span class="dna-cat-badge" style="background:${col}20;color:${col};border:1px solid ${col}44;">${escapeHtml((doc.category||'Geral').toUpperCase())}</span>
+          <span style="font-family:var(--M);font-size:9px;color:var(--dim2);">Por ${escapeHtml(doc.createdByName||'—')}</span>
         </div>
       </div>
     </div>`;
@@ -303,7 +303,7 @@ function _renderDocView() {
               <button class="dna-card-btn" onclick="openEditFolder('${f.id}')" title="Editar">${ic('edit',11,'var(--dim2)')}</button>
               <button class="dna-card-btn" onclick="deleteDNAFolder('${f.id}')" title="Excluir" style="color:var(--dim);">${ic('trash',11,'currentColor')}</button>
             </div>`:''}</div>
-          <div class="dna-folder-name">${f.name}</div>
+          <div class="dna-folder-name">${escapeHtml(f.name)}</div>
           <div class="dna-folder-meta">
             ${subCount?`<span>${subCount} sub-pasta${subCount!==1?'s':''}</span><span>·</span>`:''}
             <span>${totalItems} item${totalItems!==1?'s':''}</span>
@@ -364,9 +364,9 @@ function _renderFolderView() {
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(var(--border-rgb),.08);">
       <span style="font-size:36px;line-height:1;">${(subfolder||folder).icon||'📁'}</span>
       <div>
-        <div style="font-family:var(--R);font-size:22px;font-weight:700;letter-spacing:2px;color:var(--cream);">${(subfolder||folder).name}</div>
+        <div style="font-family:var(--R);font-size:22px;font-weight:700;letter-spacing:2px;color:var(--cream);">${escapeHtml((subfolder||folder).name)}</div>
         <div style="font-family:var(--M);font-size:9px;color:var(--dim2);margin-top:4px;">
-          Por ${(subfolder||folder).createdByName||'—'}
+          Por ${escapeHtml((subfolder||folder).createdByName||'—')}
           · ${items.length} item${items.length!==1?'s':''}
           ${!dnaViewSubId&&subfolders.length?` · ${subfolders.length} sub-pasta${subfolders.length!==1?'s':''}`:''}
         </div>
@@ -384,8 +384,8 @@ function _renderFolderView() {
         return `<div class="dna-subfolder-chip" onclick="openDNASubfolder('${sf.id}')" style="border-color:${sfCol}44;">
           <span>${sf.icon||'📁'}</span>
           <div>
-            <div style="font-family:var(--R);font-size:13px;font-weight:600;color:var(--cream);">${sf.name}</div>
-            <div style="font-family:var(--M);font-size:9px;color:var(--dim2);">${(sf.items||[]).length} iten${(sf.items||[]).length!==1?'s':'s'} · Por ${sf.createdByName||'—'}</div>
+            <div style="font-family:var(--R);font-size:13px;font-weight:600;color:var(--cream);">${escapeHtml(sf.name)}</div>
+            <div style="font-family:var(--M);font-size:9px;color:var(--dim2);">${(sf.items||[]).length} iten${(sf.items||[]).length!==1?'s':'s'} · Por ${escapeHtml(sf.createdByName||'—')}</div>
           </div>
           ${isMgr?`<div class="dna-card-acts" style="margin-left:auto;" onclick="event.stopPropagation()">
             <button class="dna-card-btn" onclick="openEditSubfolder('${folder.id}','${sf.id}')" title="Editar">${ic('edit',10,'var(--dim2)')}</button>
@@ -432,8 +432,9 @@ function _buildItemRow(item, folderId, subfolderId) {
         </div>
       </div>`;
   } else if (item.type === 'text' && item.content) {
-    const short   = item.content.replace(/\n/g, '<br>').slice(0, 240);
-    const hasMore = item.content.length > 240;
+    const escaped = escapeHtml(item.content).replace(/\n/g, '<br>');
+    const short   = escaped.slice(0, 240);
+    const hasMore = escaped.length > 240;
     contentHtml = `
       <div class="dna-item-text-body">
         <div class="dna-item-text-content">${short}${hasMore ? '<span class="dna-text-fade">…</span>' : ''}</div>
@@ -449,7 +450,7 @@ function _buildItemRow(item, folderId, subfolderId) {
           <span class="dna-item-link-url">${item.url}</span>
           ${ic('arrow-up-right',10,'var(--green)')}
         </a>
-        ${item.description ? `<div class="dna-item-link-desc">${item.description}</div>` : ''}
+        ${item.description ? `<div class="dna-item-link-desc">${escapeHtml(item.description)}</div>` : ''}
       </div>`;
   } else if (item.type === 'pdf' && item.url) {
     contentHtml = `
@@ -467,11 +468,11 @@ function _buildItemRow(item, folderId, subfolderId) {
       <div class="dna-item-left">
         <div class="dna-item-type-dot" style="background:${col};box-shadow:0 0 6px ${col}88;"></div>
         <div class="dna-item-info">
-          <div class="dna-item-name">${item.name}</div>
+          <div class="dna-item-name">${escapeHtml(item.name)}</div>
           <div class="dna-item-meta">
             <span class="dna-item-type-label" style="color:${col};">${typeIcon} ${typeLabel}</span>
             <span class="dna-item-sep">·</span>
-            ${ic('user',9,'var(--dim)')} <span>${item.createdByName || '—'}</span>
+            ${ic('user',9,'var(--dim)')} <span>${escapeHtml(item.createdByName || '—')}</span>
             <span class="dna-item-sep">·</span>
             <span>${crAt ? fmtTime({toDate:()=>crAt}) : '—'}</span>
           </div>
@@ -510,12 +511,12 @@ function dnaExpandItem(itemId, folderId, subId) {
   if (item.type === 'image' && item.imageUrl) {
     bodyHtml = `<img src="${item.imageUrl}" style="width:100%;max-height:70vh;object-fit:contain;display:block;border-radius:4px;" onerror="this.alt='Imagem não disponível'">`;
   } else if (item.type === 'text' && item.content) {
-    bodyHtml = `<div class="dna-expand-text">${item.content.replace(/\n/g,'<br>')}</div>`;
+    bodyHtml = `<div class="dna-expand-text">${escapeHtml(item.content).replace(/\n/g,'<br>')}</div>`;
   }
 
   $('dna-expand-icon').textContent  = typeIcon;
   $('dna-expand-title').textContent = item.name;
-  $('dna-expand-meta').innerHTML    = `<span style="color:${col};">${typeLabel}</span> · ${ic('user',10,'var(--dim2)')} ${item.createdByName||'—'} · ${crAt?fmtTime({toDate:()=>crAt}):'—'}`;
+  $('dna-expand-meta').innerHTML    = `<span style="color:${col};">${typeLabel}</span> · ${ic('user',10,'var(--dim2)')} ${escapeHtml(item.createdByName||'—')} · ${crAt?fmtTime({toDate:()=>crAt}):'—'}`;
   $('dna-expand-body').innerHTML    = bodyHtml;
   showModal('m-dna-expand');
 }
@@ -962,7 +963,7 @@ async function approveFolderRequest(reqId) {
   await _dnaPersist(r.docId, !!doc?.isDefault, { folders });
   await db.collection('dnaFolderRequests').doc(reqId).update({ status:'approved' });
   await saveNotif(r.requestedById,'task_approved',r.folderName,{ fromName:meData.displayName, reason:`Pasta criada em "${r.docTitle}"` });
-  toast('Pasta criada!',true); await refresh(); renderCurView(); updBadge();
+  toast('Pasta criada!',true); updBadge();
 }
 
 async function rejectFolderRequest(reqId) {

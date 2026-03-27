@@ -2,7 +2,9 @@
 //  CONFIG.JS — Constantes e configurações
 // ══════════════════════════════════════════════
 
-const CEO_EMAILS = ['avacode394@gmail.com', 'ramombenfica99@gmail.com'];
+// CEO_EMAILS removido — lista de admins agora vive em
+// Firestore > config/admins > emails (array de strings).
+// Veja auth.js > doRegister() para a lógica de acesso.
 
 // URL do backend — localhost em dev, Render em produção
 const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);

@@ -5,8 +5,6 @@
 let kanbanView = 'board'; // 'board' | 'archived'
 
 async function renderKanban() {
-  await refresh();
-
   const kps = $('kanban-proj-sel');
   kps.innerHTML = `<button class="kp-btn ${kanbanProjFV === 'all' ? 'active' : ''}" onclick="kanbanProjFV='all';renderKanban()">TODOS</button>` +
     projects.filter(p => !p.archived).map(p => `<button class="kp-btn ${kanbanProjFV === p.id ? 'active' : ''}" onclick="kanbanProjFV='${p.id}';renderKanban()" style="${kanbanProjFV === p.id ? `border-color:${p.color};color:${p.color}` : ''}">${p.name.toUpperCase()}</button>`).join('');

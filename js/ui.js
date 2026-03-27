@@ -269,7 +269,7 @@ function renderLogs(logs) {
 // fromClick=false → sessão restaurada, aguarda primeiro clique no app
 async function boot(fromClick = false) {
   updateSidebar(); show('main-app'); hide('auth-screen');
-  await refresh(); buildGlobalProjSel();
+  await refresh(); buildGlobalProjSel(); // carga inicial antes dos listeners
   await go('dashboard');
   startListeners();
   await updBadge();

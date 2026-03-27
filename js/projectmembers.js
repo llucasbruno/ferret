@@ -44,7 +44,6 @@ async function saveAddProjectMember() {
   await log('project_member', `${meData.displayName} adicionou ${u?.displayName} ao projeto "${p.name}"`);
   toast(`${u?.displayName} adicionado ao projeto!`, true);
   closeModal('m-add-proj-member');
-  await refresh(); renderCurView();
 }
 
 async function removeProjectMember(projectId, uid) {
@@ -55,7 +54,6 @@ async function removeProjectMember(projectId, uid) {
   await db.collection('projects').doc(projectId).update({ members });
   await log('project_member', `${meData.displayName} removeu ${u?.displayName} do projeto "${p.name}"`);
   toast(`${u?.displayName} removido do projeto.`, true);
-  await refresh(); renderCurView();
 }
 
 // ── Solicitar entrada (Membro) ────────────────
@@ -113,8 +111,7 @@ async function approveProjectMemberRequest(reqId) {
   await db.collection('projectMemberRequests').doc(reqId).update({ status: 'approved' });
   await saveNotif(r.userId, 'project_approved', r.projectName, { fromName: meData.displayName, reason: 'Sua solicitação de acesso foi aprovada' });
   await log('project_member', `${meData.displayName} aprovou acesso de ${r.userName} ao projeto "${r.projectName}"`);
-  toast(`${r.userName} adicionado ao projeto!`, true);
-  await refresh(); renderCurView();
+  toast(`${r.userName} adicionado ao projeto!`, true); updBadge();
 }
 
 async function rejectProjectMemberRequest(reqId) {
@@ -122,8 +119,7 @@ async function rejectProjectMemberRequest(reqId) {
   const r = snap.data(); if (!r) return;
   await db.collection('projectMemberRequests').doc(reqId).update({ status: 'rejected' });
   await saveNotif(r.userId, 'project_rejected', r.projectName, { fromName: meData.displayName, reason: 'Sua solicitação de acesso foi negada' });
-  toast('Solicitação rejeitada.', false);
-  await refresh(); renderCurView();
+  toast('Solicitação rejeitada.', false); updBadge();
 }
 
 // ── Render member list for project detail ─────

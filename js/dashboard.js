@@ -37,7 +37,6 @@ function renderMetrics() {
 }
 
 async function renderDash() {
-  await refresh();
   renderMetrics();
 
   // Mini project cards

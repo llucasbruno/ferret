@@ -23,7 +23,15 @@ async function doRegister() {
   const err = $('r-err'); err.style.display = 'none';
   if (!name || !email || !pass) { err.textContent = 'Preencha nome, email e senha'; err.style.display = 'block'; return; }
   try {
-    const access = CEO_EMAILS.includes(email.toLowerCase()) ? 'manager' : 'member';
+    // Consulta lista de admins no Firestore (não mais hardcoded no JS)
+    let access = 'member';
+    try {
+      const adminDoc = await db.collection('config').doc('admins').get();
+      if (adminDoc.exists) {
+        const adminEmails = adminDoc.data().emails || [];
+        if (adminEmails.map(e => e.toLowerCase()).includes(email.toLowerCase())) access = 'manager';
+      }
+    } catch (_) { /* se doc não existir, assume membro */ }
     const c = await auth.createUserWithEmailAndPassword(email, pass);
     const member = { displayName: name, email, cargo: cargo || 'Motion Designer', photoURL: photo || '', access, xp: 0, joinedAt: firebase.firestore.FieldValue.serverTimestamp() };
     await db.collection('users').doc(c.user.uid).set(member);

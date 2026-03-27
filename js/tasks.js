@@ -7,7 +7,6 @@ let _movingTask = false;
 
 // ── Create task ──────────────────────────────
 async function openCreate() {
-  await refresh();
   const projOpts = projects.filter(p => !p.archived && p.status !== 'pending').map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   $('t-project').innerHTML = `<option value="">— Sem projeto —</option>${projOpts}`;
   if (globalProjFV !== 'all') $('t-project').value = globalProjFV;
@@ -43,16 +42,14 @@ async function doCreate() {
   closeModal('m-create'); toast(isMgr ? 'Task criada!' : 'Enviada para aprovação!', true);
   if (isMgr && assigneeId !== me.uid) {
     await saveNotif(assigneeId, 'task_assigned', title);
-    // Email para o responsável
     if (assignee?.email) emailTaskAssigned(assignee.email, assignee.displayName, { title, priority, deadline: new Date(deadline + 'T00:00:00'), xpReward: XP_REWARD[priority], projectName: proj?.name || null });
   }
-  await refresh(); renderCurView();
 }
 
 // ── Task detail modal ────────────────────────
 async function moveFromModal(id, newStatus) {
   await moveTaskStatus(id, newStatus);
-  await refresh();
+  await loadTasks();
   const t = tasks.find(x => x.id === id);
   if (t) openTask(id);
 }
@@ -63,7 +60,7 @@ async function openTask(id) {
   const overdue = isOverdue(t);
   const col = projColor(t.projectId), pname = t.projectName || projName(t.projectId);
   $('md-title').textContent = t.title;
-  $('md-proj-info').innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:${col}"></div><span style="color:${col}">${pname}</span>`;
+  $('md-proj-info').innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:${col}"></div><span style="color:${col}">${escapeHtml(pname)}</span>`;
   $('md-problem').textContent = t.problem; $('md-resolution').textContent = t.resolution;
   $('md-deadline').textContent = fmtDate(dl) + (overdue ? ' ⚠ ATRASADA' : '');
   $('md-deadline').style.color = overdue ? 'var(--red)' : 'var(--cream)';
@@ -128,7 +125,7 @@ async function openTask(id) {
 async function startTask(id) {
   await db.collection('tasks').doc(id).update({ status: 'in_progress' });
   await log('task_start', `${meData.displayName} iniciou uma task`);
-  toast('Task em progresso!'); closeModal('m-task'); await refresh(); renderCurView();
+  toast('Task em progresso!'); closeModal('m-task');
 }
 
 async function completeTask(id) {
@@ -146,7 +143,7 @@ async function completeTask(id) {
   await db.collection('tasks').doc(id).update({ status: 'done', completedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await log('task_done', `${meData.displayName} concluiu "${t.title}" (aguardando finalização)`);
   toast('Task concluída! Aguardando finalização pelo ADM.', true);
-  _movingTask = false; closeModal('m-task'); await refresh(); renderCurView();
+  _movingTask = false; closeModal('m-task');
 }
 
 async function finalizeTask(id) {
@@ -176,7 +173,7 @@ async function finalizeTask(id) {
   const assignee = users.find(u => u.uid === t.assigneeId);
   if (assignee?.email) emailTaskFinalized(assignee.email, assignee.displayName, t, (assignee.xp || 0) + xp);
   toast(overdue ? `Finalizada com atraso! +${xp} XP (-${pen})` : `Task finalizada! +${xp} XP`, true);
-  _movingTask = false; closeModal('m-task'); await refresh(); renderCurView();
+  _movingTask = false; closeModal('m-task');
 }
 
 async function archiveTask(id) {
@@ -187,7 +184,7 @@ async function archiveTask(id) {
   await db.collection('tasks').doc(id).update({ status: 'archived', archivedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await log('task_archive', `${meData.displayName} arquivou "${t.title}"`);
   toast('Task arquivada.', true);
-  closeModal('m-task'); await refresh(); renderCurView();
+  closeModal('m-task');
 }
 
 async function approveTask(id) {
@@ -199,7 +196,7 @@ async function approveTask(id) {
   // Email para o responsável avisando que a task foi aprovada e atribuída
   const assignee = users.find(u => u.uid === t.assigneeId);
   if (assignee?.email) emailTaskAssigned(assignee.email, assignee.displayName, t);
-  toast('Task aprovada!', true); await refresh(); renderCurView(); updBadge();
+  toast('Task aprovada!', true); updBadge();
 }
 
 function openReject(id) { rejTask = id; $('rej-reason').value = ''; showModal('m-reject'); }
@@ -215,7 +212,7 @@ async function doReject() {
   // Email para o responsável
   const assignee = users.find(u => u.uid === t.assigneeId);
   if (assignee?.email) emailTaskRejected(assignee.email, assignee.displayName, t, reason);
-  toast('Task rejeitada'); closeModal('m-reject'); await refresh(); renderCurView(); updBadge();
+  toast('Task rejeitada'); closeModal('m-reject'); updBadge();
 }
 
 async function deleteTask(id) {
@@ -223,7 +220,7 @@ async function deleteTask(id) {
   const t = tasks.find(x => x.id === id);
   await db.collection('tasks').doc(id).delete();
   await log('task_delete', `${meData.displayName} excluiu "${t?.title}"`);
-  toast('Task excluída'); closeModal('m-task'); await refresh(); renderCurView();
+  toast('Task excluída'); closeModal('m-task');
 }
 
 // ── Move task (kanban drag) ──────────────────
@@ -281,7 +278,6 @@ async function moveTaskStatus(id, newStatus) {
       await db.collection('tasks').doc(id).update({ status: newStatus, finalizedAt: null });
       await log('task_start', `${meData.displayName} reabriu "${t.title}" de FINALIZADO → ${SL[newStatus]}`);
       toast('Task reaberta. XP revertido.', false);
-      await refresh(); renderCurView();
       return;
     }
 
@@ -290,7 +286,6 @@ async function moveTaskStatus(id, newStatus) {
       await db.collection('tasks').doc(id).update({ status: newStatus, completedAt: null });
       await log('task_start', `${meData.displayName} reabriu "${t.title}" → ${SL[newStatus]}`);
       toast('Task reaberta.', false);
-      await refresh(); renderCurView();
       return;
     }
 
@@ -303,7 +298,6 @@ async function moveTaskStatus(id, newStatus) {
     // Movimentação normal
     await db.collection('tasks').doc(id).update({ status: newStatus });
     await log('task_start', `${meData.displayName} moveu "${t.title}" para ${SL[newStatus]}`);
-    await refresh(); renderCurView();
 
   } finally {
     _movingTask = false;
@@ -347,7 +341,7 @@ async function doEditTask() {
   await db.collection('tasks').doc(editingTaskId).update(upd);
   await log('task_update', `${meData.displayName} editou a task "${title}"`);
   closeModal('m-edit-task'); editingTaskId = null;
-  toast('Task atualizada!', true); await refresh(); renderCurView();
+  toast('Task atualizada!', true);
 }
 
 // ── Comments ─────────────────────────────────
@@ -366,8 +360,8 @@ function renderComments(cmts) {
   const c = $('md-cmts');
   if (!cmts.length) { c.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:8px 0;">Nenhum comentário ainda.</div>'; return; }
   c.innerHTML = cmts.map(x => `<div class="cmt">
-    <div class="cmt-author">${x.userName}</div>
-    <div class="cmt-txt">${renderMentionText(x.text)}</div>
+    <div class="cmt-author">${escapeHtml(x.userName)}</div>
+    <div class="cmt-txt">${renderMentionText(escapeHtml(x.text))}</div>
     <div class="cmt-time">${fmtTime(x.createdAt)}</div>
   </div>`).join('');
   c.scrollTop = c.scrollHeight;
@@ -392,7 +386,7 @@ function renderSubtasks(t) {
     const normPct = totalW > 0 ? Math.round(((s.weight || 1) / totalW) * 100) : 0;
     return `<div class="subtask-item${s.done ? ' done' : ''}" id="sti-${i}">
       <div class="st-check${s.done ? ' done' : ''}" onclick="toggleSubtask(${i})">${s.done ? '✓' : ''}</div>
-      <div class="st-title">${s.title}</div>
+      <div class="st-title">${escapeHtml(s.title)}</div>
       <div class="st-weight">${normPct}%</div>
       <button class="st-del" onclick="deleteSubtask(${i})">✕</button>
     </div>`;
@@ -439,9 +433,9 @@ function taskCard(t, i, isMe) {
   const dl = t.deadline?.toDate ? t.deadline.toDate() : t.deadline ? new Date(t.deadline) : null;
   const overdue = isOverdue(t);
   const urgent  = dl && !overdue && (dl - new Date()) < 2 * 864e5 && t.status !== 'done';
-  const tags    = (t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" data-tag="${x.replace(/"/g, '&quot;')}" onclick="event.stopPropagation();filterByTag(this.dataset.tag)">${x}</span>`).join('');
+  const tags    = (t.tags || []).map(x => `<span class="tag-pill${tagFV.includes(x) ? ' active' : ''}" data-tag="${escapeHtml(x)}" onclick="event.stopPropagation();filterByTag(this.dataset.tag)">${escapeHtml(x)}</span>`).join('');
   const col     = projColor(t.projectId);
-  const pname   = t.projectName || projName(t.projectId);
+  const pname   = escapeHtml(t.projectName || projName(t.projectId));
   const statusBadge = overdue ? `<span class="badge bs-overdue">ATRASADA</span>` : `<span class="badge bs-${t.status}">${SL[t.status] || t.status}</span>`;
   const isMgrCard = meData?.access === 'manager';
   let acts = '';
@@ -449,14 +443,14 @@ function taskCard(t, i, isMe) {
     if (t.status === 'active'      && t.assigneeId === me?.uid) acts += `<button class="btn btn-warn btn-sm" onclick="event.stopPropagation();startTask('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> INICIAR</button>`;
     if (t.status === 'in_progress' && t.assigneeId === me?.uid) acts += `<button class="btn btn-success btn-sm" onclick="event.stopPropagation();completeTask('${t.id}')"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg> CONCLUIR</button>`;
   }
-  const rejBlock = t.status === 'rejected' && t.rejectionReason ? `<div class="rej-notice"><div class="rej-notice-lbl">// MOTIVO DA REJEIÇÃO</div><div style="font-size:13px;color:var(--dim)">${t.rejectionReason}</div></div>` : '';
+  const rejBlock = t.status === 'rejected' && t.rejectionReason ? `<div class="rej-notice"><div class="rej-notice-lbl">// MOTIVO DA REJEIÇÃO</div><div style="font-size:13px;color:var(--dim)">${escapeHtml(t.rejectionReason)}</div></div>` : '';
   return `<div class="tc p-${t.priority} s-${overdue ? 'overdue' : t.status}${overdue ? ' overdue' : ''}" onclick="openTask('${t.id}')">
     <div class="tc-head">
       <div class="tc-proj"><div class="tc-proj-dot" style="background:${col}"></div>${pname}</div>
-      <div class="tc-badges">${!isMe ? `<span style="font-family:var(--M);font-size:9px;color:var(--dim);">👤 ${t.assigneeName}</span>` : ''}<span class="badge bp-${t.priority}">${PL[t.priority]}</span>${statusBadge}<span class="badge bxp">+${t.xpReward}</span></div>
+      <div class="tc-badges">${!isMe ? `<span style="font-family:var(--M);font-size:9px;color:var(--dim);">👤 ${escapeHtml(t.assigneeName)}</span>` : ''}<span class="badge bp-${t.priority}">${PL[t.priority]}</span>${statusBadge}<span class="badge bxp">+${t.xpReward}</span></div>
     </div>
     ${rejBlock}
-    <div class="tc-body"><div class="tc-title">${t.title}</div><div class="tc-desc">${t.problem}</div></div>
+    <div class="tc-body"><div class="tc-title">${escapeHtml(t.title)}</div><div class="tc-desc">${escapeHtml(t.problem)}</div></div>
     ${(()=>{const subs=t.subtasks||[];if(!subs.length)return'';const pct=calcProgress(subs);const done=subs.filter(x=>x.done).length;return`<div style="padding:0 16px 8px;"><div style="display:flex;justify-content:space-between;font-family:var(--M);font-size:9px;color:var(--dim);margin-bottom:4px;"><span>SUBTASKS ${done}/${subs.length}</span><span style="color:${pct===100?'var(--green)':'var(--cyan)'};">${pct}%</span></div><div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct===100?'var(--green)':'var(--cyan)'};border-radius:2px;transition:width .3s;"></div></div></div>`;})()}
     <div class="tc-foot">
       <div class="tc-meta"><span class="${urgent ? 'urgent' : overdue ? 'overdue-txt' : ''}"><svg viewBox="0 0 24 24" width="11" height="11" style="stroke:var(--dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:3px;vertical-align:middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${fmtDate(dl)}${overdue ? ' ⚠' : ''}</span>${tags}</div>
@@ -467,7 +461,6 @@ function taskCard(t, i, isMe) {
 
 // ── Render views ─────────────────────────────
 async function renderMyTasks() {
-  await refresh();
   const allMyTasks = filterByGlobalProj(tasks.filter(x => x.assigneeId === me.uid && x.status !== 'archived'));
 
   // Contadores por status
@@ -514,7 +507,6 @@ async function renderMyTasks() {
 }
 
 async function renderAllTasks() {
-  await refresh();
   $('all-tabs').innerHTML = `<button class="ftab ${allFV === 'all' ? 'active' : ''}" onclick="allFilter('all',this)">TODOS</button>` + users.map(u => `<button class="ftab ${allFV === u.uid ? 'active' : ''}" onclick="allFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
   let t = filterByGlobalProj(tasks.filter(x => x.status !== 'rejected' && x.status !== 'archived'));
   if (allFV !== 'all') t = t.filter(x => x.assigneeId === allFV);
@@ -524,7 +516,6 @@ async function renderAllTasks() {
 }
 
 async function renderHistory() {
-  await refresh();
   $('hist-tabs').innerHTML = `<button class="ftab ${histFV === 'all' ? 'active' : ''}" onclick="histFilter('all',this)">TODOS</button>` +
     users.map(u => `<button class="ftab ${histFV === u.uid ? 'active' : ''}" onclick="histFilter('${u.uid}',this)">${u.displayName.split(' ')[0].toUpperCase()}</button>`).join('');
   let done = filterByGlobalProj(tasks.filter(t => t.status === 'done'));
